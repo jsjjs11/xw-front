@@ -81,6 +81,21 @@ export const DICT_TYPE = {
   PROMOTION_COUPON_TAKE_TYPE: 'promotion_coupon_take_type', // 优惠劵的领取方式
   PROMOTION_ACTIVITY_STATUS: 'promotion_activity_status', // 优惠活动的状态
   PROMOTION_CONDITION_TYPE: 'promotion_condition_type', // 营销的条件类型枚举
+
+  //=========== NACS 模块 ==========
+  // add by chj ......
+  NACS_ACCESS_EVENT_TYPE: 'nacs_access_event_type',       // 门禁访问事件类型
+  NACS_AUTH_source_TYPE: 'nacs_auth_source_type',         // 授权来源类型
+  NACS_AUTH_OP_TYPE: 'nacs_auth_op_type',                 // 线网权限授权操作类型
+  nacs_AUTH_OP_STATE: 'nacs_auth_op_state',               // 线网授权同步状态
+  nacs_AUTH_MODE: 'nacs_auth_mode',                       // 线网门禁授权模式
+  NACS_DEVICE_TYPE: 'nacs_device_type',                   // 线网设备类型
+  NACS_CARD_STATE: 'nacs_card_state',                     // 门禁卡状态
+  NACS_OP_DATA_TYPE: 'nacs_op_data_type',                 //数据操作类型
+
+  // ......
+
+
 }
 
 /**

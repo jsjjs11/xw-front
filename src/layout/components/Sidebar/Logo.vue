@@ -35,7 +35,7 @@ export default {
   },
   data() {
     return {
-      title: '芋道管理系统',
+      title: '线网门禁管理系统',
       logo: logoImg
     }
   }
