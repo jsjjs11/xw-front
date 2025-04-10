@@ -1,13 +1,13 @@
 <template>
   <div class="app-container">
     <el-row :gutter="20">
-      <!--部门数据-->
+      <!--门禁组数据-->
       <el-col :span="4" :xs="24">
         <div class="head-container">
-          <el-input v-model="deptName" placeholder="请输入门禁组名称" clearable size="small" prefix-icon="el-icon-search" style="margin-bottom: 20px"/>
+          <el-input v-model="group_name" placeholder="请输入门禁组名称" clearable size="small" prefix-icon="el-icon-search" style="margin-bottom: 20px"/>
         </div>
         <div class="head-container">
-          <el-tree :data="deptOptions" :props="defaultProps" :expand-on-click-node="false" :filter-node-method="filterNode"
+          <el-tree :data="groupsOptions" :props="defaultProps" :expand-on-click-node="false" :filter-node-method="filterNode"
                    ref="tree" default-expand-all highlight-current @node-click="handleNodeClick"/>
         </div>
       </el-col>
@@ -15,7 +15,7 @@
       <el-col :span="20" :xs="24">
         <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="90px">
           <el-form-item label="门禁点名称" prop="username">
-            <el-input v-model="queryParams.username" placeholder="请输入门禁点名称" clearable style="width: 240px"
+            <el-input v-model="queryParams.device_name" placeholder="请输入门禁点名称" clearable style="width: 240px"
                       @keyup.enter.native="handleQuery"/>
           </el-form-item>
 <!--          <el-form-item label="手机号码" prop="mobile">-->
@@ -23,8 +23,9 @@
 <!--                      @keyup.enter.native="handleQuery"/>-->
 <!--          </el-form-item>-->
           <el-form-item label="门禁访问类型" prop="status">
-            <el-select v-model="queryParams.status" placeholder="门禁访问类型" clearable style="width: 240px">
-              <el-option v-for="dict in statusDictDatas" :key="parseInt(dict.value)" :label="dict.label" :value="parseInt(dict.value)"/>
+            <el-select v-model="queryParams.access_type" placeholder="请选择用户类型" clearable>
+              <el-option v-for="dict in this.getDictDatas(DICT_TYPE.NACS_ACCESS_TYPE)"
+                         :key="dict.value" :label="dict.label" :value="dict.value"/>
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -34,33 +35,39 @@
         </el-form>
 
         <el-row :gutter="10" class="mb8">
-          <el-col :span="1.5">
-            <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-                       v-hasPermi="['system:user:create']">新增</el-button>
-          </el-col>
+<!--          <el-col :span="1.5">-->
+<!--            <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"-->
+<!--                       v-hasPermi="['system:user:create']">新增</el-button>-->
+<!--          </el-col>-->
 <!--          <el-col :span="1.5">-->
 <!--            <el-button type="info" icon="el-icon-upload2" size="mini" @click="handleImport"-->
 <!--                       v-hasPermi="['system:user:import']">导入</el-button>-->
 <!--          </el-col>-->
-          <el-col :span="1.5">
-            <el-button type="warning" icon="el-icon-download" size="mini" @click="handleExport" :loading="exportLoading"
-                       v-hasPermi="['system:user:export']">导出</el-button>
-          </el-col>
-          <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :columns="columns"></right-toolbar>
+<!--          <el-col :span="1.5">-->
+<!--            <el-button type="warning" icon="el-icon-download" size="mini" @click="handleExport" :loading="exportLoading"-->
+<!--                       v-hasPermi="['system:user:export']">导出</el-button>-->
+<!--          </el-col>-->
+<!--          <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :columns="columns"></right-toolbar>-->
         </el-row>
 
-        <el-table v-loading="loading" :data="userList">
-          <el-table-column label="门禁点编号" align="center" key="id" prop="id" v-if="columns[0].visible" />
-          <el-table-column label="门禁点名称" align="center" key="username" prop="username" v-if="columns[1].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="用户昵称" align="center" key="nickname" prop="nickname" v-if="columns[2].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="部门" align="center" key="deptName" prop="dept.name" v-if="columns[3].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="手机号码" align="center" key="mobile" prop="mobile" v-if="columns[4].visible" width="120" />
-          <el-table-column label="状态" key="status" v-if="columns[5].visible" align="center">
-            <template v-slot="scope">
-              <el-switch v-model="scope.row.status" :active-value="0" :inactive-value="1" @change="handleStatusChange(scope.row)" />
-            </template>
+        <el-table v-loading="loading" :data="deviceList">
+          <el-table-column label="门禁点编号" align="center" key="id" prop="id" />
+          <el-table-column label="门禁点名称" align="center" key="device_name" prop="device_name" :show-overflow-tooltip="true" />
+          <el-table-column label="线路名称" align="center" key="line_id" prop="line_id"  :show-overflow-tooltip="true" />
+          <el-table-column label="门禁组编号" align="center" key="group_code" prop="group_code":show-overflow-tooltip="true" />
+          <el-table-column label="访问类型" align="center" key="access_type" prop="access_type"  width="120">
+
+
+          <template v-slot="scope">
+            <el-tag >{{getDictDataLabel(DICT_TYPE.NACS_ACCESS_TYPE,scope.row.access_type)}}</el-tag>
+          </template>
           </el-table-column>
-          <el-table-column label="创建时间" align="center" prop="createTime" v-if="columns[6].visible" width="160">
+<!--          <el-table-column label="状态" key="status" v-if="columns[5].visible" align="center">-->
+<!--            <template v-slot="scope">-->
+<!--              <el-switch v-model="scope.row.status" :active-value="0" :inactive-value="1" @change="handleStatusChange(scope.row)" />-->
+<!--            </template>-->
+<!--          </el-table-column>-->
+          <el-table-column label="创建时间" align="center" prop="createTime" width="160">
             <template v-slot="scope">
               <span>{{ parseTime(scope.row.createTime) }}</span>
             </template>
@@ -100,8 +107,8 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="归属部门" prop="deptId">
-              <treeselect v-model="form.deptId" :options="deptOptions" :show-count="true" :clearable="false"
+            <el-form-item label="归属门禁组" prop="group_code">
+              <treeselect v-model="form.groupsId" :options="groupsOptions" :show-count="true" :clearable="false"
                           placeholder="请选择归属部门" :normalizer="normalizer"/>
             </el-form-item>
           </el-col>
@@ -253,19 +260,15 @@ export default {
       // 总条数
       total: 0,
       // 用户表格数据
-      userList: null,
+      deviceList: null,
       // 弹出层标题
       title: "",
       // 部门树选项
-      deptOptions: undefined,
+      groupsOptions: undefined,
       // 是否显示弹出层
       open: false,
-      // 部门名称
-      deptName: undefined,
-      // 默认密码
-      initPassword: undefined,
-      // 性别状态字典
-      sexOptions: [],
+      // 门禁组名称
+      group_name: undefined,
       // 岗位选项
       postOptions: [],
       // 角色选项
@@ -298,19 +301,19 @@ export default {
         username: undefined,
         mobile: undefined,
         status: undefined,
-        deptId: undefined,
+        group_code: undefined,
         createTime: []
       },
-      // 列信息
-      columns: [
-        { key: 0, label: `用户编号`, visible: true },
-        { key: 1, label: `用户名称`, visible: true },
-        { key: 2, label: `用户昵称`, visible: true },
-        { key: 3, label: `部门`, visible: true },
-        { key: 4, label: `手机号码`, visible: true },
-        { key: 5, label: `状态`, visible: true },
-        { key: 6, label: `创建时间`, visible: true }
-      ],
+      // // 列信息
+      // columns: [
+      //   { key: 0, label: `用户编号`, visible: true },
+      //   { key: 1, label: `用户名称`, visible: true },
+      //   { key: 2, label: `用户昵称`, visible: true },
+      //   { key: 3, label: `部门`, visible: true },
+      //   { key: 4, label: `手机号码`, visible: true },
+      //   { key: 5, label: `状态`, visible: true },
+      //   { key: 6, label: `创建时间`, visible: true }
+      // ],
       // 表单校验
       rules: {
         username: [
@@ -349,13 +352,14 @@ export default {
   },
   watch: {
     // 根据名称筛选部门树
-    deptName(val) {
+    group_name(val) {
       this.$refs.tree.filter(val);
     }
   },
   created() {
     this.getList();
     this.getTreeselect();
+    console.log(this.getDictDataLabel(this.DICT_TYPE.NACS_ACCESS_TYPE,1))
     // this.getConfigKey("sys.user.init-password").then(response => {
     //   this.initPassword = response.msg;
     // });
@@ -388,192 +392,64 @@ export default {
             "list": [
               {
                 "id": 139,
-                "username": "wwbwwb",
-                "nickname": "小秃头",
-                "remark": null,
-                "deptId": null,
-                "deptName": null,
-                "postIds": null,
-                "email": "",
-                "mobile": "",
-                "sex": 0,
-                "avatar": "",
-                "status": 0,
-                "loginIp": "0:0:0:0:0:0:0:1",
-                "loginDate": 1725973438000,
-                "createTime": 1725973438000
+                "line_id": "7",
+                "group_code": "1",
+                "device_id": "1",
+                "device_name":"消防门",
+                "access_type": 2,
               },
               {
-                "id": 131,
-                "username": "hh",
-                "nickname": "呵呵",
-                "remark": null,
-                "deptId": 100,
-                "deptName": "南京地铁",
-                "postIds": [],
-                "email": "777@qq.com",
-                "mobile": "15601882312",
-                "sex": 1,
-                "avatar": "",
-                "status": 0,
-                "loginIp": "",
-                "loginDate": null,
-                "createTime": 1714178756000
+                "id": 140,
+                "line_id": "7",
+                "group_code": "2",
+                "device_id": "2",
+                "device_name":"消防门",
+                "access_type": 1,
               },
               {
-                "id": 118,
-                "username": "goudan",
-                "nickname": "狗蛋",
-                "remark": null,
-                "deptId": 103,
-                "deptName": "研发部门",
-                "postIds": [
-                  1
-                ],
-                "email": "",
-                "mobile": "15601691239",
-                "sex": 1,
-                "avatar": "",
-                "status": 0,
-                "loginIp": "0:0:0:0:0:0:0:1",
-                "loginDate": 1710637827000,
-                "createTime": 1657359883000
+                "id": 141,
+                "line_id": "7",
+                "group_code": "3",
+                "device_id": "3",
+                "device_name":"消防门",
+                "access_type": 1,
               },
               {
-                "id": 117,
-                "username": "admin123",
-                "nickname": "测试号02",
-                "remark": "1111",
-                "deptId": 100,
-                "deptName": "南京地铁",
-                "postIds": [
-                  2
-                ],
-                "email": "",
-                "mobile": "15601691234",
-                "sex": 1,
-                "avatar": "",
-                "status": 0,
-                "loginIp": "0:0:0:0:0:0:0:1",
-                "loginDate": 1727835380000,
-                "createTime": 1657359626000
+                "id": 142,
+                "line_id": "7",
+                "group_code": "4",
+                "device_id": "4",
+                "device_name":"消防门",
+                "access_type": 1,
               },
               {
-                "id": 115,
-                "username": "aotemane",
-                "nickname": "阿呆",
-                "remark": "11222",
-                "deptId": 102,
-                "deptName": "长沙分公司",
-                "postIds": [
-                  1,
-                  2
-                ],
-                "email": "7648@qq.com",
-                "mobile": "15601691229",
-                "sex": 2,
-                "avatar": "",
-                "status": 0,
-                "loginIp": "",
-                "loginDate": null,
-                "createTime": 1651258543000
+                "id": 143,
+                "line_id": "7",
+                "group_code": "5",
+                "device_id": "5",
+                "device_name":"消防门",
+                "access_type": 1,
               },
               {
-                "id": 114,
-                "username": "hrmgr",
-                "nickname": "hr 小姐姐",
-                "remark": null,
-                "deptId": null,
-                "deptName": null,
-                "postIds": [
-                  5
-                ],
-                "email": "",
-                "mobile": "15601691236",
-                "sex": 1,
-                "avatar": "",
-                "status": 0,
-                "loginIp": "0:0:0:0:0:0:0:1",
-                "loginDate": 1711290065000,
-                "createTime": 1647697858000
+                "id": 144,
+                "line_id": "7",
+                "group_code": "6",
+                "device_id": "6",
+                "device_name":"消防门",
+                "access_type": 1,
               },
               {
-                "id": 112,
-                "username": "newobject",
-                "nickname": "新对象",
-                "remark": null,
-                "deptId": 100,
-                "deptName": "南京地铁",
-                "postIds": [],
-                "email": "",
-                "mobile": "15601691235",
-                "sex": 1,
-                "avatar": "",
-                "status": 0,
-                "loginIp": "0:0:0:0:0:0:0:1",
-                "loginDate": 1710601898000,
-                "createTime": 1645614483000
-              },
-              {
-                "id": 104,
-                "username": "test",
-                "nickname": "测试号",
-                "remark": null,
-                "deptId": 107,
-                "deptName": "运维部门",
-                "postIds": [
-                  1,
-                  2
-                ],
-                "email": "111@qq.com",
-                "mobile": "15601691200",
-                "sex": 1,
-                "avatar": "",
-                "status": 0,
-                "loginIp": "0:0:0:0:0:0:0:1",
-                "loginDate": 1735958449000,
-                "createTime": 1611166433000
-              },
-              {
-                "id": 103,
-                "username": "yuanma",
-                "nickname": "源码",
-                "remark": null,
-                "deptId": 106,
-                "deptName": "财务部门",
-                "postIds": null,
-                "email": "yuanma@iocoder.cn",
-                "mobile": "15601701300",
-                "sex": 0,
-                "avatar": "",
-                "status": 0,
-                "loginIp": "0:0:0:0:0:0:0:1",
-                "loginDate": 1723369692000,
-                "createTime": 1610553035000
-              },
-              {
-                "id": 100,
-                "username": "yudao",
-                "nickname": "芋道",
-                "remark": "不要吓我",
-                "deptId": 104,
-                "deptName": "市场部门",
-                "postIds": [
-                  1
-                ],
-                "email": "yudao@iocoder.cn",
-                "mobile": "15601691300",
-                "sex": 1,
-                "avatar": "",
-                "status": 0,
-                "loginIp": "0:0:0:0:0:0:0:1",
-                "loginDate": 1730527246000,
-                "createTime": 1609981637000
+                "id": 145,
+                "line_id": "7",
+                "group_code": "7",
+                "device_id": "7",
+                "device_name":"消防门",
+                "access_type": 1,
               }
             ],
-            "total": 11
+            "total": 7
           }
-          this.userList = response.data.list;
+          this.deviceList = response.data.list;
           this.total = response.data.total;
           this.loading = false;
         }
@@ -582,7 +458,7 @@ export default {
     /** 查询部门下拉树结构 + 岗位下拉 */
     getTreeselect() {
       listSimpleDepts().then(response => {
-        // 处理 deptOptions 参数
+        // 处理 groupsOptions 参数
         response.data = [
           {
             "id": 100,
@@ -640,8 +516,8 @@ export default {
             "parentId": 101
           }
         ]
-        this.deptOptions = [];
-        this.deptOptions.push(...this.handleTree(response.data, "id"));
+        this.groupsOptions = [];
+        this.groupsOptions.push(...this.handleTree(response.data, "id"));
       });
       listSimplePosts().then(response => {
         // 处理 postOptions 参数
@@ -656,7 +532,7 @@ export default {
     },
     // 节点单击事件
     handleNodeClick(data) {
-      this.queryParams.deptId = data.id;
+      this.queryParams.group_code = data.id;
       this.getList();
     },
     // 用户状态修改
@@ -685,7 +561,7 @@ export default {
     reset() {
       this.form = {
         id: undefined,
-        deptId: undefined,
+        group_code: undefined,
         username: undefined,
         nickname: undefined,
         password: undefined,
