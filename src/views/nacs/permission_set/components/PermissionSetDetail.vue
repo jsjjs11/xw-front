@@ -2,11 +2,19 @@
   <div class="app-container">
     <!-- 搜索工作栏 -->
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch">
-      <el-form-item label="权限集标识" prop="setId">
-        <el-input v-model="queryParams.setId" placeholder="请输入权限集标识" clearable @keyup.enter.native="handleQuery"/>
+      <el-form-item label="线路ID" prop="lineId">
+        <el-input v-model="queryParams.lineId" placeholder="请输入线路ID" clearable @keyup.enter.native="handleQuery"/>
       </el-form-item>
-      <el-form-item label="权限集名称" prop="setName">
-        <el-input v-model="queryParams.setName" placeholder="请输入权限集名称" clearable @keyup.enter.native="handleQuery"/>
+      <el-form-item label="门禁权限组编号" prop="logicDeciveCode">
+        <el-input v-model="queryParams.logicDeciveCode" placeholder="请输入门禁权限组编号" clearable @keyup.enter.native="handleQuery"/>
+      </el-form-item>
+      <el-form-item label="授权模式" prop="authMode">
+
+        <el-select v-model="queryParams.authMode" placeholder="请选择授权模式" clearable size="small">
+          <el-option v-for="dict in this.getDictDatas(DICT_TYPE.NACS_AUTH_MODE)"
+                     :key="dict.value" :label="dict.label" :value="dict.value"/>
+        </el-select>
+
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" @click="handleQuery">搜索</el-button>
@@ -18,23 +26,21 @@
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-                   v-hasPermi="['nacs:permission-set:create']">新增</el-button>
+                   v-hasPermi="['nacs:permission-set-detail:create']">新增</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
-
     <!-- 列表 -->
-    <el-table
-      v-loading="loading"
-      :data="list"
-      :stripe="true"
-      :highlight-current-row="true"
-      :show-overflow-tooltip="true"
-      @current-change="handleCurrentChange"
-    >
-      <el-table-column label="权限集编号" align="center" prop="id" />
-      <el-table-column label="权限集标识" align="center" prop="setId" />
-      <el-table-column label="权限集名称" align="center" prop="setName" />
+    <el-table v-loading="loading" :data="list">
+      <el-table-column label="编号" align="center" prop="id" />
+      <el-table-column label="线路ID" align="center" prop="lineId" />
+      <el-table-column label="门禁权限组编号" align="center" prop="logicDeciveCode" />
+      <el-table-column label="授权模式" align="center" prop="authMode">
+        <template v-slot="scope">
+          <dict-tag :type="DICT_TYPE.NACS_AUTH_MODE" :value="scope.row.authMode"/>
+        </template>
+      </el-table-column>
+      <el-table-column label="区域集合ID" align="center" prop="setId" />
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
         <template v-slot="scope">
@@ -44,9 +50,9 @@
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template v-slot="scope">
           <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)"
-                     v-hasPermi="['nacs:permission-set:update']">修改</el-button>
+                     v-hasPermi="['nacs:permission-set-detail:update']">修改</el-button>
           <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)"
-                     v-hasPermi="['nacs:permission-set:delete']">删除</el-button>
+                     v-hasPermi="['nacs:permission-set-detail:delete']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -55,23 +61,20 @@
                 @pagination="getList"/>
 
     <!-- 对话框(添加 / 修改) -->
-    <PermissionSetForm ref="formRef" @success="getList"/>
-    <!-- 子表的列表 -->
-    <el-tabs  v-model="subTabsName">
-      <el-tab-pane label="门禁集合详细" name="PermissionSetDetail">
-        <PermissionSetDetail  :set-id="currentRow.id" />
-      </el-tab-pane>
-    </el-tabs>
+    <PermissionSetDetailForm ref="formRef" @success="getList"/>
   </div>
 </template>
 
 <script>
-import { getPermissionSetPage, deletePermissionSet } from '@/api/nacs/permission_set/index.js'
-import PermissionSetForm from './components/PermissionSetForm.vue'
-import PermissionSetDetail from './components/PermissionSetDetail.vue';
+import { getPermissionSetDetailPage, deletePermissionSetDetail } from '@/api/nacs/permission_set/index.js'
+import PermissionSetDetailForm from './PermissionSetDetailForm.vue'
+
 export default {
-  name: "PermissionSet",
-  components: { PermissionSetForm ,PermissionSetDetail},
+  name: "PermissionSetDetail",
+  components: { PermissionSetDetailForm },
+  props:[
+    'setId'
+  ],// 集合编号（主表的关联字段）
   data() {
     return {
       // 遮罩层
@@ -80,23 +83,28 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 权限集列表
+      // 权限集详情列表
       list: [],
-      /** 子表的列表 */
-      subTabsName: 'PermissionSetDetail',
-      // 是否展开，默认全部展开
-      isExpandAll: true,
-      // 重新渲染表格状态
-      refreshTable: true,
-      // 选中行
-      currentRow: {},
       // 查询参数
       queryParams: {
         pageNo: 1,
         pageSize: 10,
-        setId: null,
-        setName: null
+        lineId: null,
+        logicDeciveCode: null,
+        authMode: null,
+        setId: null
       }
+    }
+  },
+  watch:{/** 监听主表的关联字段的变化，加载对应的子表数据 */
+    setId:{
+      handler(val) {
+        this.queryParams.setId = val;
+        if (val){
+          this.handleQuery();
+        }
+      },
+      immediate: true
     }
   },
   created() {
@@ -114,9 +122,11 @@ export default {
             list: [
               {
                 id: 1,
-                setId: 'SET002',
-                setName: '设备房权限',
-                remark: '系统管理员的权限集合',
+                lineId: 'LINE001',
+                logicDeciveCode: 'AUTH001',
+                authMode: '1',
+                setId: 'SET001',
+                remark: '测试数据1',
                 createTime: '2024-03-20 10:00:00',
                 updateTime: '2024-03-20 10:00:00',
                 creator: 'admin',
@@ -124,46 +134,39 @@ export default {
               },
               {
                 id: 2,
+                lineId: 'LINE002',
+                logicDeciveCode: 'AUTH002',
+                authMode: '0',
                 setId: 'SET002',
-                setName: '设备2房权限',
-                remark: '普通用户的基础权限集合',
+                remark: '测试数据2',
                 createTime: '2024-03-20 11:00:00',
                 updateTime: '2024-03-20 11:00:00',
                 creator: 'admin',
                 updater: 'admin'
-              },
-              {
-                id: 3,
-                setId: 'SET001',
-                setName: '访客权限集',
-                remark: '访客的只读权限集合',
-                createTime: '2024-03-20 12:00:00',
-                updateTime: '2024-03-20 12:00:00',
-                creator: 'admin',
-                updater: 'admin'
               }
             ],
-            total: 3
+            total: 2
           },
           msg: "查询成功"
         }
 
-        // 如果有搜索条件，进行本地过滤（实际应该由后端处理）
-        if (this.queryParams.setId || this.queryParams.setName) {
+        // 如果有搜索条件，进行本地过滤
+        if (this.queryParams.lineId || this.queryParams.logicDeciveCode || this.queryParams.authMode) {
           mockData.data.list = mockData.data.list.filter(item => {
-            const matchSetId = !this.queryParams.setId ||
-              item.setId.toLowerCase().includes(this.queryParams.setId.toLowerCase())
-            const matchSetName = !this.queryParams.setName ||
-              item.setName.toLowerCase().includes(this.queryParams.setName.toLowerCase())
-            return matchSetId && matchSetName
+            const matchLineId = !this.queryParams.lineId ||
+              item.lineId.includes(this.queryParams.lineId)
+            const matchLogicDeciveCode = !this.queryParams.logicDeciveCode ||
+              item.logicDeciveCode.includes(this.queryParams.logicDeciveCode)
+            const matchAuthMode = !this.queryParams.authMode ||
+              item.authMode === this.queryParams.authMode
+            return matchLineId && matchLogicDeciveCode && matchAuthMode
           })
           mockData.data.total = mockData.data.list.length
         }
 
-        // 模拟API调用延迟
         await new Promise(resolve => setTimeout(resolve, 300))
 
-        // const res = await getPermissionSetPage(this.queryParams)
+        // const res = await getPermissionSetDetailPage(this.queryParams)
         this.list = mockData.data.list
         this.total = mockData.data.total
       } finally {
@@ -174,11 +177,6 @@ export default {
     handleQuery() {
       this.queryParams.pageNo = 1
       this.getList()
-    },
-    /** 重置按钮操作 */
-    resetQuery() {
-      this.resetForm("queryForm")
-      this.handleQuery()
     },
     /** 新增按钮操作 */
     handleAdd() {
@@ -191,17 +189,13 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const id = row.id
-      this.$modal.confirm('是否确认删除权限集编号为"' + id + '"的数据项?').then(() => {
-        return deletePermissionSet(id)
+      this.$modal.confirm('是否确认删除权限集详情编号为"' + id + '"的数据项?').then(() => {
+        return deletePermissionSetDetail(id)
       }).then(() => {
         this.getList()
         this.$modal.msgSuccess("删除成功")
       }).catch(() => {})
-    },
-    /** 选中行操作 */
-    handleCurrentChange(row) {
-      this.currentRow = row;
-    },
+    }
   }
 }
 </script>

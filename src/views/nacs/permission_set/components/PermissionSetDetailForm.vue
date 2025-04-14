@@ -30,7 +30,7 @@
 
 <script>
 export default {
-  name: "PermissionSetLineForm",
+  name: "PermissionSetDetailForm",
   data() {
     return {
       visible: false,

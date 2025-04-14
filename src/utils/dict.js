@@ -87,8 +87,8 @@ export const DICT_TYPE = {
   NACS_ACCESS_EVENT_TYPE: 'nacs_access_event_type',       // 门禁访问事件类型
   NACS_AUTH_source_TYPE: 'nacs_auth_source_type',         // 授权来源类型
   NACS_AUTH_OP_TYPE: 'nacs_auth_op_type',                 // 线网权限授权操作类型
-  nacs_AUTH_OP_STATE: 'nacs_auth_op_state',               // 线网授权同步状态
-  nacs_AUTH_MODE: 'nacs_auth_mode',                       // 线网门禁授权模式
+  NACS_AUTH_OP_STATE: 'nacs_auth_op_state',               // 线网授权同步状态
+  NACS_AUTH_MODE: 'nacs_auth_mode',                       // 线网门禁授权模式
   NACS_DEVICE_TYPE: 'nacs_device_type',                   // 线网设备类型
   NACS_CARD_STATE: 'nacs_card_state',                     // 门禁卡状态
   NACS_OP_DATA_TYPE: 'nacs_op_data_type',                 //数据操作类型
