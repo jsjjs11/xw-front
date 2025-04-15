@@ -22,8 +22,8 @@
             <el-input v-model="queryParams.username" placeholder="请输入用户名称" clearable style="width: 240px"
                       @keyup.enter.native="handleQuery"/>
           </el-form-item>
-          <el-form-item label="手机号码" prop="mobile">
-            <el-input v-model="queryParams.mobile" placeholder="请输入手机号码" clearable style="width: 240px"
+          <el-form-item label="身份证号" prop="id_card">
+            <el-input v-model="queryParams.id_card" placeholder="请输入身份证号" clearable style="width: 240px"
                       @keyup.enter.native="handleQuery"/>
           </el-form-item>
           <el-form-item label="状态" prop="status">
@@ -47,6 +47,18 @@
                        v-hasPermi="['system:user:create']">新增</el-button>
           </el-col>
           <el-col :span="1.5">
+            <el-button type="warning" plain icon="el-icon-delete" size="mini" @click="handleDelete"
+                       v-hasPermi="['system:user:delete']">删除</el-button>
+          </el-col>
+          <el-col :span="1.5">
+            <el-button type="primary" plain icon="el-icon-edit" size="mini" @click="handleUpdate"
+                       v-hasPermi="['system:user:update']">修改</el-button>
+          </el-col>
+          <el-col :span="1.5">
+            <el-button type="primary" plain icon="el-icon-view" size="mini" @click="handleView"
+                       >查看</el-button>
+          </el-col>
+          <el-col :span="1.5">
             <el-button type="info" icon="el-icon-upload2" size="mini" @click="handleImport"
                        v-hasPermi="['system:user:import']">导入</el-button>
           </el-col>
@@ -57,12 +69,14 @@
           <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :columns="columns"></right-toolbar>
         </el-row>
 
-        <el-table v-loading="loading" :data="userList">
+        <el-table v-loading="loading" :data="userList" highlight-current-row @selection-change="handleSelectionChange">
+          <el-table-column type="selection" width="45" align="center" />
           <el-table-column label="用户编号" align="center" key="id" prop="id" v-if="columns[0].visible" />
-          <el-table-column label="用户名称" align="center" key="username" prop="username" v-if="columns[1].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="用户昵称" align="center" key="nickname" prop="nickname" v-if="columns[2].visible" :show-overflow-tooltip="true" />
+          <el-table-column label="用户昵称" align="center" key="username" prop="username" v-if="columns[1].visible" :show-overflow-tooltip="true" />
+          <el-table-column label="员工姓名" align="center" key="employeeName" prop="employeeName" v-if="columns[2].visible" :show-overflow-tooltip="true" />
           <el-table-column label="部门" align="center" key="deptName" prop="dept.name" v-if="columns[3].visible" :show-overflow-tooltip="true" />
           <el-table-column label="手机号码" align="center" key="mobile" prop="mobile" v-if="columns[4].visible" width="120" />
+          <el-table-column label="身份证号" align="center" key="id_card" prop="id_card" v-if="columns[8].visible" />
           <el-table-column label="状态" key="status" v-if="columns[5].visible" align="center">
             <template v-slot="scope">
               <el-switch v-model="scope.row.status" :active-value="0" :inactive-value="1" @change="handleStatusChange(scope.row)" />
@@ -73,6 +87,7 @@
               <span>{{ parseTime(scope.row.createTime) }}</span>
             </template>
           </el-table-column>
+          <el-table-column label="审核状态" align="center" key="auditStatus" prop="auditStatus" v-if="columns[7].visible" width="120"></el-table-column>
           <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
             <template v-slot="scope">
               <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)"
@@ -99,79 +114,202 @@
     </el-row>
 
     <!-- 添加或修改参数配置对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="600px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="用户昵称" prop="nickname">
-              <el-input v-model="form.nickname" placeholder="请输入用户昵称" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="归属部门" prop="deptId">
-              <treeselect v-model="form.deptId" :options="deptOptions" :show-count="true" :clearable="false"
-                          placeholder="请选择归属部门" :normalizer="normalizer"/>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="手机号码" prop="mobile">
-              <el-input v-model="form.mobile" placeholder="请输入手机号码" maxlength="11" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="邮箱" prop="email">
-              <el-input v-model="form.email" placeholder="请输入邮箱" maxlength="50" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item v-if="form.id === undefined" label="用户名称" prop="username">
-              <el-input v-model="form.username" placeholder="请输入用户名称" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item v-if="form.id === undefined" label="用户密码" prop="password">
-              <el-input v-model="form.password" placeholder="请输入用户密码" type="password" show-password />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="用户性别">
-              <el-select v-model="form.sex" placeholder="请选择">
-                <el-option v-for="dict in sexDictDatas" :key="parseInt(dict.value)" :label="dict.label" :value="parseInt(dict.value)"/>
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="岗位">
-              <el-select v-model="form.postIds" multiple placeholder="请选择">
-                <el-option
-                    v-for="item in postOptions"
-                    :key="item.id"
-                    :label="item.name"
-                    :value="item.id"
-                ></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="24">
-            <el-form-item label="备注">
-              <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
+    <el-drawer 
+    :title="title" 
+    :visible.sync="open" 
+    size="65%"
+    direction="rtl" 
+    :before-close="handleClose"
+    class="drawer-container">
+    <div class="drawer-container-wrapper">  
+      <el-menu :default-active="activeTab" class="menu-container" mode="horizontal" @select="handleTabChange">
+				<el-menu-item index="1">基本信息</el-menu-item>
+				<el-menu-item index="2">卡信息</el-menu-item>
+        <el-menu-item index="3">通用权限</el-menu-item>
+        <el-menu-item index="4">门禁权限</el-menu-item>
+			</el-menu>
+      <div v-show="activeTab === '1'">
+        <el-form ref="form" :model="form" :rules="rules" label-width="80px" style="margin-left: 20px; margin-right: 20px;">
+          <div style="padding-top: 15px ;overflow: hidden;">
+            <el-divider direction="vertical" ></el-divider>
+            <span style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">基本信息</span>
+          </div>
+          <el-divider style="margin: 10px 0;"></el-divider>
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="用户昵称" prop="username">
+                <el-input v-model="form.username" placeholder="请输入用户昵称" :disabled="isViewMode"/>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item v-if="form.id === undefined" label="员工姓名" prop="employeeName">
+                <el-input v-model="form.employeeName" placeholder="请输入员工姓名" :disabled="isViewMode"/>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item v-if="form.id === undefined" label="用户密码" prop="password">
+                <el-input v-model="form.password" placeholder="请输入用户密码" type="password" show-password />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item v-if="form.id === undefined" label="确认密码" prop="password2">
+                <el-input v-model="form.password2" placeholder="请输入用户密码" type="password2" show-password />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="身份证号" prop="id_card">
+                <el-input v-model="form.id_card" placeholder="请输入身份证号码" :disabled="isViewMode"/>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="手机号码" prop="mobile">
+                <el-input v-model="form.mobile" placeholder="请输入手机号码" maxlength="11" :disabled="isViewMode"/>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="邮箱" prop="email">
+                <el-input v-model="form.email" placeholder="请输入邮箱" maxlength="50" :disabled="isViewMode"/>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="出生日期" prop="birthday">
+                <el-date-picker
+                  v-model="form.birthday"
+                  type="date"
+                  placeholder="请选择出生日期"
+                  :disabled="isViewMode">
+                </el-date-picker>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="用户性别">
+                <el-select v-model="form.sex" placeholder="请选择" :disabled="isViewMode">
+                  <el-option v-for="dict in sexDictDatas" :key="parseInt(dict.value)" :label="dict.label" :value="parseInt(dict.value)"/>
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <div style="padding-top: 15px ;overflow: hidden;">
+            <el-divider direction="vertical" ></el-divider>
+            <span style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">工作信息</span>
+          </div>
+          <el-divider style="margin: 10px 0;"></el-divider>
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="员工编号" prop="employee_code">
+                <el-input v-model="form.employee_code" placeholder="请输入员工编号" :disabled="isViewMode"/>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="所属部门" prop="dept_id">
+                <treeselect v-model="form.dept_id" :options="deptOptions" :show-count="true" :clearable="false"
+                            placeholder="请选择所属部门" :normalizer="normalizer" :disabled="isViewMode"/>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="岗位">
+                <el-select v-model="form.postIds" multiple placeholder="请选择" :disabled="isViewMode">
+                  <el-option
+                      v-for="item in postOptions"
+                      :key="item.id"
+                      :label="item.name"
+                      :value="item.id"
+                  ></el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row :gutter="20">
+          <div style="padding-top: 15px ;overflow: hidden;">
+            <el-divider direction="vertical" ></el-divider>
+            <span style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">其他信息</span>
+          </div>
+          <el-divider style="margin: 10px 0;"></el-divider>
+          <el-row>
+            <el-col :span="24">
+              <el-form-item label="备注">
+                <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" :disabled="isViewMode"></el-input>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
       </div>
-    </el-dialog>
+      <div v-show="activeTab === '2'">
+        <div style="padding-top: 15px ;overflow: hidden;">
+          <el-divider direction="vertical" ></el-divider>
+          <span style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">卡信息</span>
+        </div>
+        <el-divider style="margin: 10px 0;"></el-divider>
+        <el-button type="primary" plain icon="el-icon-plus" @click="addCard">新增门禁卡</el-button>
+        <el-table :data="cardList" style="margin-top: 20px;" class="access-table">
+          <el-table-column label="卡号" prop="card_id" />
+          <el-table-column label="卡类型" prop="card_type" />
+          <el-table-column label="卡状态" prop="card_state" />
+          <el-table-column label="有效时间" prop="start_date" />
+          <el-table-column label="失效时间" prop="end_date" />
+        </el-table>
+      </div>
+      <div v-show="activeTab === '3'">
+        <div style="padding-top: 15px ;overflow: hidden;">
+          <el-divider direction="vertical" ></el-divider>
+          <span style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">人脸权限</span>
+        </div>
+        <el-divider style="margin: 10px 0;"></el-divider>
+        <image-upload v-model="imageUrl" :limit="1" :file-size="10" :file-type="['jpg','png']"/>
+        <div style="padding-top: 15px ;overflow: hidden;">
+          <el-divider direction="vertical" ></el-divider>
+          <span style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">指纹权限</span>
+        </div>
+        <el-divider style="margin: 10px 0;"></el-divider>
+      </div>
+      <div v-show="activeTab === '4'" >
+        <div style="padding-top: 15px ;overflow: hidden;">
+          <el-divider direction="vertical" ></el-divider>
+          <span style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">门禁权限</span>
+        </div>
+        <el-divider style="margin: 10px 0;"></el-divider>
+        <el-button type="primary" plain icon="el-icon-plus" @click="addAccess" >新增门禁权限</el-button>
+        <el-table :data="accessList" style="margin-top: 20px;" class="access-table">
+          <el-table-column label="权限组名称" prop="accessName" />
+          <el-table-column label="权限类型" prop="accessType" />
+          <el-table-column label="权限模式" prop="accessMode" />
+          <el-table-column label="预设公共权限" prop="presetCommonAccess" />
+        </el-table>
+      </div>
+    </div>
+       <!-- 添加底部按钮区域 -->
+      <div class="drawer-footer-wrapper">
+        <div  class="drawer-footer-button">
+          <!-- <el-button 
+            v-if="activeTab !== '1'" 
+            @click="activeTab = (parseInt(activeTab) - 1).toString()">
+            上一步
+          </el-button>
+          <el-button 
+            v-if="activeTab !== '4'" 
+            type="primary" 
+            @click="activeTab = (parseInt(activeTab) + 1).toString()">
+            下一步
+          </el-button> -->
+          <el-button type="primary" @click="open = false">取消</el-button>
+          <el-button 
+            type="primary" 
+            @click="submitForm">
+            确定
+          </el-button><!-- v-if="activeTab === '4'"  -->
+        </div>
+      </div>
+      
+    </el-drawer>
 
     <!-- 用户导入对话框 -->
     <el-dialog :title="upload.title" :visible.sync="upload.open" width="400px" append-to-body>
@@ -197,11 +335,11 @@
     <!-- 分配角色 -->
     <el-dialog title="分配角色" :visible.sync="openRole" width="500px" append-to-body>
       <el-form :model="form" label-width="80px">
-        <el-form-item label="用户名称">
+        <el-form-item label="用户昵称">
           <el-input v-model="form.username" :disabled="true" />
         </el-form-item>
-        <el-form-item label="用户昵称">
-          <el-input v-model="form.nickname" :disabled="true" />
+        <el-form-item label="员工姓名">
+          <el-input v-model="form.employeeName" :disabled="true" />
         </el-form-item>
         <el-form-item label="角色">
           <el-select v-model="form.roleIds" multiple placeholder="请选择">
@@ -246,10 +384,10 @@ import {DICT_TYPE, getDictDatas} from "@/utils/dict";
 import {assignUserRole, listUserRoles} from "@/api/system/permission";
 import {listSimpleRoles} from "@/api/system/role";
 import {getBaseHeader} from "@/utils/request";
-
+import ImageUpload from '@/components/ImageUpload/index.vue'
 export default {
   name: "SystemUser",
-  components: { Treeselect },
+  components: { Treeselect , ImageUpload},
   data() {
     return {
       // 遮罩层
@@ -279,7 +417,27 @@ export default {
       // 角色选项
       roleOptions: [],
       // 表单参数
-      form: {},
+      form: {
+        id: undefined,
+        dept_id: undefined,
+        username: '',
+        employeeName: '',
+        password: '',
+        password2: '',
+        mobile: '',
+        email: '',
+        sex: undefined,
+        status: "0",
+        remark: '',
+        postIds: [],
+        roleIds: [],
+        id_card: '',
+        employee_code: '',
+        birthday: null
+      },
+      // cardform: {},
+      accessList: [],
+      cardList:[],
       defaultProps: {
         children: "children",
         label: "name"
@@ -306,9 +464,10 @@ export default {
         username: undefined,
         mobile: undefined,
         status: undefined,
-        deptId: undefined,
+        dept_id: undefined,
         createTime: []
       },
+      activeTab: "1",
       // 列信息
       columns: [
         { key: 0, label: `用户编号`, visible: true },
@@ -317,25 +476,27 @@ export default {
         { key: 3, label: `部门`, visible: true },
         { key: 4, label: `手机号码`, visible: true },
         { key: 5, label: `状态`, visible: true },
-        { key: 6, label: `创建时间`, visible: true }
+        { key: 6, label: `创建时间`, visible: true },
+        { key: 7, label: '审核状态', visible: true },
+        { key: 8, label: '身份证号', visible: true }
       ],
       // 表单校验
       rules: {
         username: [
-          { required: true, message: "用户名称不能为空", trigger: "blur" }
-        ],
-        nickname: [
           { required: true, message: "用户昵称不能为空", trigger: "blur" }
+        ],
+        employeeName: [
+          { required: true, message: "员工姓名不能为空", trigger: "blur" }
         ],
         password: [
           { required: true, message: "用户密码不能为空", trigger: "blur" }
         ],
-        email: [
-          {
-            type: "email",
-            message: "'请输入正确的邮箱地址",
-            trigger: ["blur", "change"]
-          }
+        password2: [
+          { required: true, message: "确认密码不能为空", trigger: "blur" },
+          // { validator: this.validatePassword, trigger: "blur" }
+        ],
+        id_card: [
+          { required: true, message: "身份证号不能为空", trigger: "blur" }
         ],
         mobile: [
           {
@@ -343,16 +504,27 @@ export default {
             message: "请输入正确的手机号码",
             trigger: "blur"
           }
+        ],
+        email: [
+          {
+            type: "email",
+            message: "'请输入正确的邮箱地址",
+            trigger: ["blur", "change"]
+          }
         ]
       },
+      
       // 是否显示弹出层（角色权限）
       openRole: false,
-
       // 枚举
       SysCommonStatusEnum: CommonStatusEnum,
       // 数据字典
       statusDictDatas: getDictDatas(DICT_TYPE.COMMON_STATUS),
       sexDictDatas: getDictDatas(DICT_TYPE.SYSTEM_USER_SEX),
+      cardTypeDictDatas:getDictDatas(DICT_TYPE.SYSTEM_USER_CARD_TYPE),
+      isViewMode: false,
+      selectedRows: [],      // 多选时的选中行
+      imageUrl: '',
     };
   },
   watch: {
@@ -418,12 +590,12 @@ export default {
     },
     // 节点单击事件
     handleNodeClick(data) {
-      this.queryParams.deptId = data.id;
+      this.queryParams.dept_id = data.id;
       this.getList();
     },
     // 用户状态修改
     handleStatusChange(row) {
-      let text = row.status === CommonStatusEnum.ENABLE ? "启用" : "停用";
+      let text = row.status === CommonStatusEnum.ENABLE ? "正常" : "停用";
       this.$modal.confirm('确认要"' + text + '""' + row.username + '"用户吗?').then(function() {
           return changeUserStatus(row.id, row.status);
         }).then(() => {
@@ -447,19 +619,28 @@ export default {
     reset() {
       this.form = {
         id: undefined,
-        deptId: undefined,
-        username: undefined,
-        nickname: undefined,
-        password: undefined,
-        mobile: undefined,
-        email: undefined,
+        dept_id: undefined,
+        username: '',
+        employeeName: '',
+        password: '',
+        password2: '',
+        mobile: '',
+        email: '',
         sex: undefined,
         status: "0",
-        remark: undefined,
+        remark: '',
         postIds: [],
-        roleIds: []
+        roleIds: [],
+        id_card: '',
+        employee_code: '',
+        birthday: null
       };
+      this.isViewMode = false;
       this.resetForm("form");
+    },
+    /** 勾选表格内容 */
+    handleSelectionChange(rows) {
+      this.selectedRows = rows
     },
     /** 搜索按钮操作 */
     handleQuery() {
@@ -478,19 +659,66 @@ export default {
       this.getTreeselect();
       // 打开表单，并设置初始化
       this.open = true;
+      this.activeTab = "1";
       this.title = "添加用户";
       this.form.password = this.initPassword;
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
+      // 统一获取选中行数据
+      const selectedRow = row.id ? row : this.selectedRows[0];
+      console.log(selectedRow);
+      if (!selectedRow || !selectedRow.id) {
+        this.$message.error("请先选择要操作的数据行");
+        return;
+      }
+       // 检查选中数量
+      if (this.selectedRows.length > 1) {
+        this.$message.warning('只能选择一行数据进行操作')
+        return
+      }
       this.reset();
       this.getTreeselect();
-      const id = row.id;
+      const id = selectedRow.id;
       getUser(id).then(response => {
+        this.activeTab = "1";
         this.form = response.data;
         this.open = true;
         this.title = "修改用户";
+        this.isViewMode = false;
       });
+    },
+    /** 查看按钮操作 */
+    handleView(row) {
+      // 统一获取选中行数据
+      const selectedRow = row.id ? row : this.selectedRows[0];
+      console.log(selectedRow);
+      if (!selectedRow || !selectedRow.id) {
+        this.$message.error("请先选择要操作的数据行");
+        return;
+      }
+       // 检查选中数量
+      if (this.selectedRows.length > 1) {
+        this.$message.warning('只能选择一行数据进行操作')
+        return
+      }
+      this.reset();
+      const id = selectedRow.id;
+      getUser(id).then(response => {
+        this.activeTab = "1";
+        this.form = response.data;
+        this.open = true;
+        this.title = "查看用户";
+        this.isViewMode = true;
+      });
+    },
+    /** 关闭弹窗 */
+    handleClose() {
+      this.open = false;
+      this.reset();
+    },
+    handleTabChange(index) {
+      this.activeTab = index;
     },
     /** 重置密码按钮操作 */
     handleResetPwd(row) {
@@ -507,10 +735,10 @@ export default {
     handleRole(row) {
       this.reset();
       const id = row.id
-      // 处理了 form 的用户 username 和 nickname 的展示
+      // 处理了 form 的用户 username 和 employeeName 的展示
       this.form.id = id;
       this.form.username = row.username;
-      this.form.nickname = row.nickname;
+      this.form.employeeName = row.employeeName;
       // 打开弹窗
       this.openRole = true;
       // 获得角色列表
@@ -524,6 +752,16 @@ export default {
         // 设置选中
         this.form.roleIds = response.data;
       })
+    },
+    /** 跳转至门禁卡管理页面 */
+    addCard() {
+      this.open = false;
+      this.$router.push({ path:"/nacs/cards" });
+    },
+    /** 跳转至门禁权限管理页面 */
+    addAccess() {
+      this.open = false;
+      this.$router.push({ path:"/nacs/cards" });
     },
     /** 提交按钮 */
     submitForm: function() {
@@ -542,6 +780,9 @@ export default {
               this.getList();
             });
           }
+        } else {
+          console.log('表单验证失败');
+          return false;
         }
       });
     },
@@ -639,3 +880,53 @@ export default {
   }
 };
 </script>
+<style lang="scss" scoped>
+::v-deep.el-divider--vertical {
+  width: 12px;
+  height: 40px;
+  margin: 0 16px;
+  background-color: #2661fc;
+}
+.el-divider--horizontal {
+  margin: 18px 0;
+}
+::v-deep .access-table .el-table__header th .cell {
+  text-align: center !important;
+}
+::v-deep .access-table .el-table__body td .cell {
+  text-align: center !important;
+}
+.access-table {
+  height: 400px;
+}
+.drawer-container {
+  height: 100%; /* 关键属性 */
+  display: flex;
+  flex-direction: column; /* 改为纵向布局 */
+}
+.drawer-container-wrapper {
+  flex: 1;
+  overflow: auto; /* 允许内容滚动 */
+  padding: 20px; /* 保持原有内边距 */
+  min-height: 100%; /* 关键属性 */
+}
+.drawer-footer-wrapper {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 15px 20px;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  background: white;
+  border-top: 1px solid #ebeef5;
+  z-index: 1;
+}
+
+.drawer-footer-button {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+</style>
