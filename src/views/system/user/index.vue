@@ -755,13 +755,21 @@ export default {
     },
     /** 跳转至门禁卡管理页面 */
     addCard() {
-      this.open = false;
+      if (this.form.id === undefined) {
+        this.$message.error("请先新建用户");
+      } else {
+        this.open = false;
       this.$router.push({ path:"/nacs/cards" });
+      }
     },
     /** 跳转至门禁权限管理页面 */
     addAccess() {
-      this.open = false;
+      if (this.form.id === undefined) {
+        this.$message.error("请先新建用户");
+      } else {
+        this.open = false;
       this.$router.push({ path:"/nacs/cards" });
+      }
     },
     /** 提交按钮 */
     submitForm: function() {
