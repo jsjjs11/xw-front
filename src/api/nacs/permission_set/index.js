@@ -51,6 +51,10 @@ export function getPermissionSetPage(query) {
     params: query
   })
 }
+
+
+
+
 // 创建权限集详情
 export function createPermissionSetDetail(data) {
   return request({
@@ -69,6 +73,7 @@ export function updatePermissionSetDetail(data) {
   })
 }
 
+
 // 删除权限集详情
 export function deletePermissionSetDetail(id) {
   return request({
@@ -77,6 +82,7 @@ export function deletePermissionSetDetail(id) {
   })
 }
 
+
 // 获取权限集详情
 export function getPermissionSetDetail(id) {
   return request({
@@ -84,6 +90,7 @@ export function getPermissionSetDetail(id) {
     method: 'get'
   })
 }
+
 
 // 获取权限集详情分页
 export function getPermissionSetDetailPage(query) {

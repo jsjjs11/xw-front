@@ -49,8 +49,6 @@
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template v-slot="scope">
-          <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)"
-                     v-hasPermi="['nacs:permission-set-detail:update']">修改</el-button>
           <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)"
                      v-hasPermi="['nacs:permission-set-detail:delete']">删除</el-button>
         </template>
@@ -61,7 +59,7 @@
                 @pagination="getList"/>
 
     <!-- 对话框(添加 / 修改) -->
-    <PermissionSetDetailForm ref="formRef" @success="getList"/>
+    <PermissionSetDetailForm ref="formRef"  :set-id="setId" :selected-list = "list"  @success="getList"/>
   </div>
 </template>
 
@@ -107,16 +105,19 @@ export default {
       immediate: true
     }
   },
-  created() {
+  mounted() {
+    this.queryParams.setId = this.setId;
     this.getList()
   },
   methods: {
     /** 查询列表 */
     async getList() {
+
       try {
+        //let res = await getPermissionSetDetailPage(this.queryParams);
         this.loading = true
         // 模拟后端返回的数据
-        const mockData = {
+        let  res = {
           code: 0,
           data: {
             list: [
@@ -137,7 +138,7 @@ export default {
                 lineId: 'LINE002',
                 logicDeciveCode: 'AUTH002',
                 authMode: '0',
-                setId: 'SET002',
+                setId: 'SET001',
                 remark: '测试数据2',
                 createTime: '2024-03-20 11:00:00',
                 updateTime: '2024-03-20 11:00:00',
@@ -149,26 +150,8 @@ export default {
           },
           msg: "查询成功"
         }
-
-        // 如果有搜索条件，进行本地过滤
-        if (this.queryParams.lineId || this.queryParams.logicDeciveCode || this.queryParams.authMode) {
-          mockData.data.list = mockData.data.list.filter(item => {
-            const matchLineId = !this.queryParams.lineId ||
-              item.lineId.includes(this.queryParams.lineId)
-            const matchLogicDeciveCode = !this.queryParams.logicDeciveCode ||
-              item.logicDeciveCode.includes(this.queryParams.logicDeciveCode)
-            const matchAuthMode = !this.queryParams.authMode ||
-              item.authMode === this.queryParams.authMode
-            return matchLineId && matchLogicDeciveCode && matchAuthMode
-          })
-          mockData.data.total = mockData.data.list.length
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 300))
-
-        // const res = await getPermissionSetDetailPage(this.queryParams)
-        this.list = mockData.data.list
-        this.total = mockData.data.total
+        this.list = res.data.list
+        this.total = res.data.total
       } finally {
         this.loading = false
       }
@@ -178,13 +161,15 @@ export default {
       this.queryParams.pageNo = 1
       this.getList()
     },
+    /** 重置按钮操作 */
+    resetQuery() {
+      this.resetForm("queryForm")
+      this.handleQuery()
+    },
     /** 新增按钮操作 */
     handleAdd() {
       this.$refs["formRef"].open()
-    },
-    /** 修改按钮操作 */
-    handleUpdate(row) {
-      this.$refs["formRef"].open(row.id)
+
     },
     /** 删除按钮操作 */
     handleDelete(row) {

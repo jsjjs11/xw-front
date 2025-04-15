@@ -59,7 +59,7 @@
     <!-- 子表的列表 -->
     <el-tabs  v-model="subTabsName">
       <el-tab-pane label="门禁集合详细" name="PermissionSetDetail">
-        <PermissionSetDetail  :set-id="currentRow.id" />
+        <PermissionSetDetail  :set-id="currentRow.setId" />
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -83,7 +83,7 @@ export default {
       // 权限集列表
       list: [],
       /** 子表的列表 */
-      subTabsName: 'PermissionSetDetail',
+      subTabsName: '',
       // 是否展开，默认全部展开
       isExpandAll: true,
       // 重新渲染表格状态
@@ -107,8 +107,9 @@ export default {
     async getList() {
       try {
         this.loading = true
+        //let res = await getPermissionSetPage(this.queryParams);
         // 模拟后端返回的数据
-        const mockData = {
+        let res = {
           code: 0,
           data: {
             list: [
@@ -148,24 +149,10 @@ export default {
           msg: "查询成功"
         }
 
-        // 如果有搜索条件，进行本地过滤（实际应该由后端处理）
-        if (this.queryParams.setId || this.queryParams.setName) {
-          mockData.data.list = mockData.data.list.filter(item => {
-            const matchSetId = !this.queryParams.setId ||
-              item.setId.toLowerCase().includes(this.queryParams.setId.toLowerCase())
-            const matchSetName = !this.queryParams.setName ||
-              item.setName.toLowerCase().includes(this.queryParams.setName.toLowerCase())
-            return matchSetId && matchSetName
-          })
-          mockData.data.total = mockData.data.list.length
-        }
-
-        // 模拟API调用延迟
-        await new Promise(resolve => setTimeout(resolve, 300))
 
         // const res = await getPermissionSetPage(this.queryParams)
-        this.list = mockData.data.list
-        this.total = mockData.data.total
+        this.list = res.data.list
+        this.total = res.data.total
       } finally {
         this.loading = false
       }
@@ -194,13 +181,19 @@ export default {
       this.$modal.confirm('是否确认删除权限集编号为"' + id + '"的数据项?').then(() => {
         return deletePermissionSet(id)
       }).then(() => {
+        if (row.setId == this.currentRow.setId){
+          this.subTabsName = '';
+        }
         this.getList()
+        this.handleCurrentChange()
         this.$modal.msgSuccess("删除成功")
       }).catch(() => {})
     },
     /** 选中行操作 */
     handleCurrentChange(row) {
       this.currentRow = row;
+      this.subTabsName = 'PermissionSetDetail';
+
     },
   }
 }
