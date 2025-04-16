@@ -28,7 +28,8 @@
       </el-form-item>
       <el-form-item label="卡类型" prop="cardType">
         <el-select v-model="queryParams.cardType" placeholder="请选择卡类型" clearable size="small">
-          <el-option label="请选择字典生成" value="" />
+          <el-option v-for="dict in this.getDictDatas(DICT_TYPE.NACS_CARD_TYPE)"
+                     :key="dict.value" :label="dict.label" :value="dict.value"/>
         </el-select>
       </el-form-item>
       <el-form-item label="卡状态" prop="cardState">
@@ -66,7 +67,11 @@
       <el-table-column label="持卡人编号ID" align="center" prop="employeeCode" />
       <el-table-column label="持卡人姓名" align="center" prop="employeeName" />
       <el-table-column label="持卡人身份证号" align="center" prop="idCard" />
-      <el-table-column label="卡类型" align="center" prop="cardType" />
+      <el-table-column label="卡类型" align="center" prop="cardType">
+        <template v-slot="scope">
+          <dict-tag :type="DICT_TYPE.NACS_CARD_TYPE" :value="scope.row.cardType" />
+        </template>
+      </el-table-column>
       <el-table-column label="卡状态" align="center" prop="cardState">
         <template v-slot="scope">
           <dict-tag :type="DICT_TYPE.NACS_CARD_STATE" :value="scope.row.cardState" />
