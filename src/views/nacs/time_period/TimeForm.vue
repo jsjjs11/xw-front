@@ -1,32 +1,48 @@
 <template>
 	<div class="app-container">
-		<el-dialog :title=dialogTitle :visible.sync="dialogVisible" width="50%" :before-close="handleClose">
+		<el-dialog :title=dialogTitle :visible.sync="dialogVisible" width="40%" :before-close="handleClose">
 			<el-form ref="timeForm" :model="timeForm" label-width="100px" :rules="rules" v-loading="formLoading">
 				<el-form-item label="名称" prop="name">
-					<el-input v-model="timeForm.name" placeholder="请输入名称"></el-input>
+					<el-input v-model="timeForm.name" placeholder="请输入名称" :disabled="isViewMode"></el-input>
 				</el-form-item>
-				<el-form-item label="编号" prop="code">
-					<el-input v-model="timeForm.code"></el-input>
+				<el-form-item label="编号" prop="id">
+					<el-input v-model="timeForm.id" placeholder="请输入编号" :disabled="isViewMode"></el-input>
+				</el-form-item>
+				<el-form-item label="创建人" prop="creator">
+					<el-input v-model="timeForm.creator" placeholder="请输入创建人" :disabled="isViewMode"></el-input>
+				</el-form-item>
+				<el-form-item label="描述" prop="description">
+					<el-input v-model="timeForm.description" placeholder="请输入描述" :disabled="isViewMode"></el-input>
 				</el-form-item>
 				<el-form-item label="有效日期" prop="dateRange">
 					<el-row :gutter="9">
-						<el-col :span="10" style="width: 38.666667%;">
-							<el-date-picker v-model="timeForm.startTime" type="date" placeholder="开始日期" value-format="yyyy-MM-dd" ></el-date-picker>
+						<el-col :span="10" >
+							<el-date-picker v-model="timeForm.startTime" 
+								type="date" 
+								placeholder="开始日期" 
+								value-format="yyyy-MM-dd" 
+								style="width: 100%;" 
+								:disabled="isViewMode"></el-date-picker>
 						</el-col>
 						<!-- 分隔符 -->
 						<el-col :span="2" class="date-separator">
 							<span style="font-size: 16px; color: #606266">--</span>
 						</el-col>
-						<el-col :span="10" style="width: 38.666667%;">
-							<el-date-picker v-model="timeForm.endTime" type="date" placeholder="结束日期" value-format="yyyy-MM-dd" ></el-date-picker>
+						<el-col :span="10" >
+							<el-date-picker v-model="timeForm.endTime" 
+							type="date" 
+							placeholder="结束日期" 
+							value-format="yyyy-MM-dd" 
+							style="width: 100%;" 
+							:disabled="isViewMode"></el-date-picker>
 						</el-col>
 					</el-row>
 				</el-form-item>
 				<el-form-item label="工作日设置" prop="workDays">
-					<el-checkbox :indeterminate="isIndeterminate" v-model="checkAll" @change="handleCheckAllChange">全选</el-checkbox>
+					<el-checkbox :indeterminate="isIndeterminate" v-model="checkAll" @change="handleCheckAllChange" :disabled="isViewMode">全选</el-checkbox>
 					<div style="margin: 15px 0;"></div>
 					<el-checkbox-group v-model="timeForm.workDays" @change="handleCheckedWorkDaysChange">
-						<el-checkbox v-for="item in workDays" :label="item" :key="item">{{item}}</el-checkbox>
+						<el-checkbox v-for="item in workDays" :label="item" :key="item" :disabled="isViewMode">{{item}}</el-checkbox>
 					</el-checkbox-group>
 				</el-form-item>
 				<el-form-item label="时间段设置">
@@ -51,7 +67,8 @@
 							format="HH:mm"
 							value-format="HH:mm"
 							:picker-options="{selectableRange: getStartRange(index)}"
-							style="width: 100%"/>
+							style="width: 100%"
+							:disabled="isViewMode"/>
 						</el-col>
 						
 						<!-- 分隔符 -->
@@ -69,7 +86,7 @@
 								:disabled="!timeRange.startTime"
 								:picker-options="{selectableRange: getEndRange(index)}"
 								style="width: 100%"
-							/>
+							  />
 						</el-col>
 
 						<!-- 删除按钮 -->
@@ -105,7 +122,9 @@ export default {
 			formLoading: false,
 			timeForm: {
 				name: '',
-				code: '',
+				id: '',
+				creator: '',
+				description: '',
 				startTime: '',
 				endTime: '',
 				workDays: [],
@@ -115,8 +134,11 @@ export default {
 				name: [
 					{ required: true, message: '请输入名称', trigger: 'blur' }
 				],
-				code: [
+				id: [
 					{ required: true, message: '请输入编号', trigger: 'blur' }
+				],
+				creator: [
+					{ required: true, message: '请输入创建人', trigger: 'blur' }
 				],
 				dateRange: [
 					{
@@ -153,6 +175,7 @@ export default {
 			workDays: ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'],
 			checkAll: false,
 			isIndeterminate: false,
+			isViewMode: false,
 		}
 	},
 	methods: {
@@ -173,13 +196,29 @@ export default {
 			}
 			this.title = "新增时间段";
 		},
+		async checkForm(id) {
+			this.dialogVisible = true;
+			if (id) {
+				this.formLoading = true;
+				try {
+					const res = await TimeApi.getTimePeriod(id);
+					this.timeForm = res.data;
+					this.isViewMode = true;
+					this.title = "查看时间段";
+				} finally {
+					this.formLoading = false;
+				}
+			}
+		},
+		// 全选
 		handleCheckAllChange(val) {
 			this.isIndeterminate = false
 			this.timeForm.workDays = val ? this.workDays : []
 		},
 		handleCheckedWorkDaysChange(val) {
-			this.isIndeterminate = val.length < this.workDays.length
-			this.checkAll = val.length === this.workDays.length
+			const checkedCount = val.length
+			this.checkAll = checkedCount === this.workDays.length
+			this.isIndeterminate = checkedCount > 0 && checkedCount < this.workDays.length // 关键修改
 		},
 		// 添加时间段
     addTimeRange() {
@@ -245,7 +284,9 @@ export default {
 		reset() {
 			this.timeForm = {
 				name: '',
-				code: '',
+				id: '',
+				creator: '',
+				description: '',
 				startTime: '',
 				endTime: '',
 				workDays: [],

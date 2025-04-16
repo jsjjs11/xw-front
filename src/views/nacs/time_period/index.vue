@@ -23,11 +23,29 @@
 				<el-table-column type="selection" width="45" align="center" />
 				<el-table-column label="编号" align="center" key="id" prop="id" />
 				<el-table-column label="时间组名称" align="center" key="periodName" prop="periodName" />
-				<el-table-column label="创建时间" align="center" key="createTime" prop="createTime" />
+				<el-table-column label="状态" align="center" key="status" prop="status">
+					<template v-slot="scope">
+              <el-switch v-model="scope.row.status" :active-value="0" :inactive-value="1" @change="handleStatusChange(scope.row)" />
+            </template>
+				</el-table-column>
+				<el-table-column label="创建人" align="center" key="creator" prop="creator" />
+				<el-table-column label="创建时间" align="center" key="createTime" prop="createTime" >
+					<template v-slot="scope">
+						<span>{{ parseTime(scope.row.createTime) }}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="更新人" align="center" key="updater" prop="updater" />
+				<el-table-column label="更新时间" align="center" key="updateTime" prop="updateTime" >
+					<template v-slot="scope">
+						<span>{{ parseTime(scope.row.updateTime) }}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="操作状态" align="center" key="op_state" prop="op_state" />
 				<el-table-column label="操作" align="center" class-name="small-padding fixed-width">
 					<template v-slot="scope">
 						<el-button size="mini" type="text" icon="el-icon-edit" @click="openForm(scope.row.id)"
 											v-hasPermi="['nacs:time_period:update']">修改</el-button>
+						<el-button size="mini" type="text" icon="el-icon-view" @click="checkForm(scope.row.id)">查看</el-button>					
 						<el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)"
 											v-hasPermi="['nacs:time_period:delete']">删除</el-button>
 					</template>
@@ -91,6 +109,32 @@ export default {
 		openForm(id) {
 			this.$refs['timeForm'].openForm(id);
 		},
+		checkForm(id) {
+			this.$refs['timeForm'].checkForm(id);
+		},
+		handleDelete(row) {
+			this.$confirm('确认删除该时间段吗？').then(() => {
+				TimeApi.deleteTimePeriod(row.id).then(() => {
+					this.$message.success('删除成功');
+					this.getList();
+				}).catch(() => {
+					this.$message.error('删除失败');
+				});
+			}).catch(() => {
+			});
+		},
+		// 时间段状态修改
+    handleStatusChange(row) {
+      let text = row.status === CommonStatusEnum.ENABLE ? "正常" : "停用";
+      this.$modal.confirm('确认要"' + text + '""' + row.periodName + '"时间段吗?').then(function() {
+				return changeUserStatus(row.id, row.status);
+			}).then(() => {
+				this.$modal.msgSuccess(text + "成功");
+			}).catch(function() {
+				row.status = row.status === CommonStatusEnum.ENABLE ? CommonStatusEnum.DISABLE
+						: CommonStatusEnum.ENABLE;
+			});
+    },
 	}
 }
 </script>
