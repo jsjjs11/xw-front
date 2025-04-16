@@ -2,7 +2,7 @@
   <el-dialog :title="dialogTitle" :visible.sync="visible" width="800px" append-to-body>
     <el-form ref="form" :model="formData" :rules="rules" label-width="120px">
       <el-form-item label="授权模式" prop="authMode">
-        <el-select v-model="formData.authMode" placeholder="请选择授权模式" @change="handleAuthModeChange">
+        <el-select v-model="formData.authMode" placeholder="请选择授权模式" @change="handleAuthModeChange" >
           <el-option
             v-for="dict in this.getDictDatas(DICT_TYPE.NACS_AUTH_MODE)"
             :key="parseInt(dict.value)"
@@ -43,7 +43,7 @@
       </el-form-item>
 
       <el-form-item label="备注" prop="remark">
-        <el-input v-model="formData.remark" type="textarea" placeholder="请输入备注" />
+        <el-input v-model="formData.remark" type="textarea" placeholder="请输入备注"  />
       </el-form-item>
     </el-form>
     <div slot="footer" class="dialog-footer">
@@ -86,8 +86,8 @@ export default {
     /** 处理授权模式变更 */
     handleAuthModeChange(value) {
       // 清空之前的选择
-      this.formData.groupIds = []
-      this.formData.deviceIds = []
+      //this.formData.groupIds = []
+      //this.formData.deviceIds = []
 
       // 根据授权模式加载不同的数据
       if (value === 0) {
@@ -160,7 +160,8 @@ export default {
         this.groupOptions = res.data.map(item => ({
           id: item.id,
           groupName: item.group_name,
-          groupCode: item.group_code
+          groupCode: item.group_code,
+          lineId:item.line_id
         }))
       } catch (error) {
         console.error('加载门禁组失败:', error)
@@ -174,28 +175,28 @@ export default {
         // 模拟门禁点数据
         let res = {data:[
           {
-            "id": 1,
+            "id": 11,
             "line_id": "6",
             "device_code": "D101",
             "device_name": "主楼大厅1号门",
             "group_id": 1
           },
           {
-            "id": 2,
+            "id": 22,
             "line_id": "6",
             "device_code": "D102",
             "device_name": "主楼大厅2号门",
             "group_id": 2
           },
           {
-            "id": 3,
+            "id": 33,
             "line_id": "6",
             "device_code": "D201",
             "device_name": "主楼电梯1号门",
             "group_id": 3
           },
           {
-            "id": 4,
+            "id": 44,
             "line_id": "6",
             "device_code": "D202",
             "device_name": "主楼电梯2号门",
@@ -206,7 +207,8 @@ export default {
           id: item.id,
           deviceName: item.device_name,
           deviceCode: item.device_code,
-          groupId: item.group_id
+          groupId: item.group_id,
+          lineId:item.line_id
         }))
       } catch (error) {
         console.error('加载门禁点失败:', error)
@@ -245,14 +247,15 @@ export default {
         if (!valid) return
         try {
           let submitData = []
-          
+          let groupIdsData = []
+          let deviceIdsData = []
           // 处理按组授权的数据
           if (this.formData.groupIds.length > 0) {
             // 找到选中的门禁组对应的数据
-            submitData = this.formData.groupIds.map(groupId => {
+            groupIdsData = this.formData.groupIds.map(groupId => {
               const groupInfo = this.groupOptions.find(item => item.id === groupId)
               return {
-                line_id: "7", // 使用固定的 line_id，也可以从其他地方获取
+                line_id: groupInfo.lineId,
                 logic_decive_code: groupInfo.groupCode, // 使用门禁组的编号
                 auth_mode: 0,
                 set_id: this.setId,
@@ -260,14 +263,13 @@ export default {
               }
             })
           }
-          
           // 处理按点授权的数据
           if ( this.formData.deviceIds.length > 0) {
             // 找到选中的门禁点对应的数据
-            submitData = this.formData.deviceIds.map(deviceId => {
+            deviceIdsData = this.formData.deviceIds.map(deviceId => {
               const deviceInfo = this.deviceOptions.find(item => item.id === deviceId)
               return {
-                line_id: deviceInfo.line_id,
+                line_id: deviceInfo.lineId,
                 logic_decive_code: deviceInfo.deviceCode,
                 auth_mode: 1,
                 set_id: this.setId,
@@ -275,11 +277,8 @@ export default {
               }
             })
           }
-
+          submitData = [...groupIdsData, ...deviceIdsData]
           console.log('提交的数据数组：', submitData)
-          
-          // 模拟保存成功
-          await new Promise(resolve => setTimeout(resolve, 300))
           this.visible = false
           this.$modal.msgSuccess(data.id ? "修改成功" : "新增成功")
           this.$emit('success')
@@ -307,10 +306,4 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.el-transfer {
-  margin: 15px 0;
-}
-</style>
 
