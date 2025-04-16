@@ -47,7 +47,8 @@
           <el-col :span="24">
             <el-form-item label="卡类型" prop="cardType">
               <el-select v-model="formData.cardType" placeholder="请选择卡类型" class="input-width">
-                <el-option label="请选择字典生成" value="" />
+                <el-option v-for="dict in this.getDictDatas(DICT_TYPE.NACS_CARD_TYPE)"
+                           :key="dict.value" :label="dict.label" :value="dict.value"/>
               </el-select>
             </el-form-item>
           </el-col>
@@ -143,7 +144,22 @@
           }
         }
         this.title = "新增门禁卡片管理";
-              },
+      },
+      /** 开卡 */
+      creadCard(form) {
+
+        if (form) {
+
+          this.reset();
+          this.title = "开卡";
+          this.formData.employeeId= form.id;
+          this.formData.employeeCode= form.employee_code;
+          this.formData.employeeName = form.username
+          this.formData.idCard  =  form.id_card
+          this.dialogVisible = true;
+        }
+
+      },
       /** 提交按钮 */
       async submitForm() {
         // 校验主表

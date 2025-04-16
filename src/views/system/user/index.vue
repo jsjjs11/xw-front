@@ -90,6 +90,8 @@
           <el-table-column label="审核状态" align="center" key="auditStatus" prop="auditStatus" v-if="columns[7].visible" width="120"></el-table-column>
           <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
             <template v-slot="scope">
+              <el-button size="mini" type="text" icon="el-icon-bank-card" @click.stop="handleCard(scope.row)"
+                         v-hasPermi="['system:user:card']">卡片</el-button>
               <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)"
                          v-hasPermi="['system:user:update']">修改</el-button>
               <el-dropdown  @command="(command) => handleCommand(command, scope.$index, scope.row)"
@@ -114,14 +116,14 @@
     </el-row>
 
     <!-- 添加或修改参数配置对话框 -->
-    <el-drawer 
-    :title="title" 
-    :visible.sync="open" 
+    <el-drawer
+    :title="title"
+    :visible.sync="open"
     size="65%"
-    direction="rtl" 
+    direction="rtl"
     :before-close="handleClose"
     class="drawer-container">
-    <div class="drawer-container-wrapper">  
+    <div class="drawer-container-wrapper">
       <el-menu :default-active="activeTab" class="menu-container" mode="horizontal" @select="handleTabChange">
 				<el-menu-item index="1">基本信息</el-menu-item>
 				<el-menu-item index="2">卡信息</el-menu-item>
@@ -251,11 +253,27 @@
         <el-divider style="margin: 10px 0;"></el-divider>
         <el-button type="primary" plain icon="el-icon-plus" @click="addCard">新增门禁卡</el-button>
         <el-table :data="cardList" style="margin-top: 20px;" class="access-table">
-          <el-table-column label="卡号" prop="card_id" />
-          <el-table-column label="卡类型" prop="card_type" />
-          <el-table-column label="卡状态" prop="card_state" />
-          <el-table-column label="有效时间" prop="start_date" />
-          <el-table-column label="失效时间" prop="end_date" />
+          <el-table-column label="物理卡号" align="center" prop="cardId" />
+          <el-table-column label="卡类型" align="center" prop="cardType">
+            <template v-slot="scope">
+              <dict-tag :type="DICT_TYPE.NACS_CARD_TYPE" :value="scope.row.cardType" />
+            </template>
+          </el-table-column>
+          <el-table-column label="卡状态" align="center" prop="cardState">
+            <template v-slot="scope">
+              <dict-tag :type="DICT_TYPE.NACS_CARD_STATE" :value="scope.row.cardState" />
+            </template>
+          </el-table-column>
+          <el-table-column label="有效时间" align="center" prop="startDate" width="180">
+            <template v-slot="scope">
+              <span>{{ parseTime(scope.row.endDate) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="失效时间" align="center" prop="endDate" width="180">
+            <template v-slot="scope">
+              <span>{{ parseTime(scope.row.endDate) }}</span>
+            </template>
+          </el-table-column>
         </el-table>
       </div>
       <div v-show="activeTab === '3'">
@@ -289,26 +307,26 @@
        <!-- 添加底部按钮区域 -->
       <div class="drawer-footer-wrapper">
         <div  class="drawer-footer-button">
-          <!-- <el-button 
-            v-if="activeTab !== '1'" 
+          <!-- <el-button
+            v-if="activeTab !== '1'"
             @click="activeTab = (parseInt(activeTab) - 1).toString()">
             上一步
           </el-button>
-          <el-button 
-            v-if="activeTab !== '4'" 
-            type="primary" 
+          <el-button
+            v-if="activeTab !== '4'"
+            type="primary"
             @click="activeTab = (parseInt(activeTab) + 1).toString()">
             下一步
           </el-button> -->
           <el-button type="primary" @click="open = false">取消</el-button>
-          <el-button 
-            type="primary" 
+          <el-button
+            type="primary"
             @click="submitForm">
             确定
           </el-button><!-- v-if="activeTab === '4'"  -->
         </div>
       </div>
-      
+
     </el-drawer>
 
     <!-- 用户导入对话框 -->
@@ -357,7 +375,8 @@
         <el-button @click="cancelRole">取 消</el-button>
       </div>
     </el-dialog>
-
+    <!-- 卡片对话框(添加 / 修改) -->
+    <CardsForm ref="cardFormRef" @success="getList" />
   </div>
 </template>
 
@@ -373,8 +392,10 @@ import {
   resetUserPwd,
   updateUser
 } from "@/api/system/user";
+import * as CardsApi from '@/api/nacs/cards';
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
+import CardsForm from '@/views/nacs/cards/CardsForm.vue';
 
 import {listSimpleDepts} from "@/api/system/dept";
 import {listSimplePosts} from "@/api/system/post";
@@ -387,7 +408,7 @@ import {getBaseHeader} from "@/utils/request";
 import ImageUpload from '@/components/ImageUpload/index.vue'
 export default {
   name: "SystemUser",
-  components: { Treeselect , ImageUpload},
+  components: { Treeselect , ImageUpload, CardsForm},
   data() {
     return {
       // 遮罩层
@@ -498,6 +519,7 @@ export default {
         id_card: [
           { required: true, message: "身份证号不能为空", trigger: "blur" }
         ],
+        employee_code: [{ required: true, message: '员工编号不能为空', trigger: 'blur' }],
         mobile: [
           {
             pattern: /^(?:(?:\+|00)86)?1(?:3[\d]|4[5-79]|5[0-35-9]|6[5-7]|7[0-8]|8[\d]|9[189])\d{8}$/,
@@ -513,7 +535,7 @@ export default {
           }
         ]
       },
-      
+
       // 是否显示弹出层（角色权限）
       openRole: false,
       // 枚举
@@ -680,6 +702,12 @@ export default {
       this.reset();
       this.getTreeselect();
       const id = selectedRow.id;
+      CardsApi.getCardsPage({
+        pageNo: 1,
+        pageSize: 10,
+        employeeId:id}).then(response => {
+        this.cardList = response.data.list
+      });
       getUser(id).then(response => {
         this.activeTab = "1";
         this.form = response.data;
@@ -753,14 +781,17 @@ export default {
         this.form.roleIds = response.data;
       })
     },
-    /** 跳转至门禁卡管理页面 */
+    /** 开卡 */
     addCard() {
+      console.log(this.form)
       if (this.form.id === undefined) {
         this.$message.error("请先新建用户");
       } else {
-        this.open = false;
-      this.$router.push({ path:"/nacs/cards" });
+        /** 添加/修改操作 */
+        this.$refs["cardFormRef"].creadCard(this.form);
       }
+
+
     },
     /** 跳转至门禁权限管理页面 */
     addAccess() {
@@ -936,5 +967,9 @@ export default {
   gap: 10px;
   max-width: 100%;
   margin: 0 auto;
+}
+.search-icon {
+  color: red;
+
 }
 </style>
