@@ -790,8 +790,23 @@ export default {
         /** 添加/修改操作 */
         this.$refs["cardFormRef"].creadCard(this.form);
       }
-
-
+    },
+    /** 卡片管理 */
+    handleCard(row) {
+      this.reset();
+      const id = row.id;
+      // 加载卡片数据
+      CardsApi.getCardsPage({
+        pageNo: 1,
+        pageSize: 10,
+        employeeId: id
+      }).then(response => {
+        this.cardList = response.data.list;
+        // 直接打开卡片信息标签页
+        this.open = true;
+        this.activeTab = "2";
+        this.title = "卡片信息";
+      });
     },
     /** 跳转至门禁权限管理页面 */
     addAccess() {
@@ -840,7 +855,14 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      const ids = row.id || this.ids;
+      // 统一获取选中行数据
+      const selectedRow = row.id ? row : this.selectedRows[0];
+      console.log(selectedRow);
+      if (!selectedRow || !selectedRow.id) {
+        this.$message.error("请先选择要操作的数据行");
+        return;
+      }
+      const ids = selectedRow.id;
       this.$modal.confirm('是否确认删除用户编号为"' + ids + '"的数据项?').then(function() {
           return delUser(ids);
         }).then(() => {
