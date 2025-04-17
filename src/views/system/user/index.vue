@@ -790,8 +790,23 @@ export default {
         /** 添加/修改操作 */
         this.$refs["cardFormRef"].creadCard(this.form);
       }
-
-
+    },
+    /** 卡片管理 */
+    handleCard(row) {
+      this.reset();
+      const id = row.id;
+      // 加载卡片数据
+      CardsApi.getCardsPage({
+        pageNo: 1,
+        pageSize: 10,
+        employeeId: id
+      }).then(response => {
+        this.cardList = response.data.list;
+        // 直接打开卡片信息标签页
+        this.open = true;
+        this.activeTab = "2";
+        this.title = "卡片信息";
+      });
     },
     /** 跳转至门禁权限管理页面 */
     addAccess() {
