@@ -840,7 +840,14 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      const ids = row.id || this.ids;
+      // 统一获取选中行数据
+      const selectedRow = row.id ? row : this.selectedRows[0];
+      console.log(selectedRow);
+      if (!selectedRow || !selectedRow.id) {
+        this.$message.error("请先选择要操作的数据行");
+        return;
+      }
+      const ids = selectedRow.id;
       this.$modal.confirm('是否确认删除用户编号为"' + ids + '"的数据项?').then(function() {
           return delUser(ids);
         }).then(() => {
