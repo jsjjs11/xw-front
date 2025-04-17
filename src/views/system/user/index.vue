@@ -76,7 +76,7 @@
           <el-table-column label="员工姓名" align="center" key="employeeName" prop="employeeName" v-if="columns[2].visible" :show-overflow-tooltip="true" />
           <el-table-column label="部门" align="center" key="deptName" prop="dept.name" v-if="columns[3].visible" :show-overflow-tooltip="true" />
           <el-table-column label="手机号码" align="center" key="mobile" prop="mobile" v-if="columns[4].visible" width="120" />
-          <el-table-column label="身份证号" align="center" key="id_card" prop="id_card" v-if="columns[8].visible" />
+          <el-table-column label="身份证号" align="center" key="idCard" prop="idCard" v-if="columns[8].visible" />
           <el-table-column label="状态" key="status" v-if="columns[5].visible" align="center">
             <template v-slot="scope">
               <el-switch v-model="scope.row.status" :active-value="0" :inactive-value="1" @change="handleStatusChange(scope.row)" />
@@ -163,8 +163,8 @@
           </el-row>
           <el-row :gutter="20">
             <el-col :span="12">
-              <el-form-item label="身份证号" prop="id_card">
-                <el-input v-model="form.id_card" placeholder="请输入身份证号码" :disabled="isViewMode"/>
+              <el-form-item label="身份证号" prop="idCard">
+                <el-input v-model="form.idCard" placeholder="请输入身份证号码" :disabled="isViewMode"/>
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -251,7 +251,7 @@
           <span style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">卡信息</span>
         </div>
         <el-divider style="margin: 10px 0;"></el-divider>
-        <el-button type="primary" plain icon="el-icon-plus" @click="addCard">新增门禁卡</el-button>
+        <el-button type="primary" plain icon="el-icon-plus" @click="creatCard">新增门禁卡</el-button>
         <el-table :data="cardList" style="margin-top: 20px;" class="access-table">
           <el-table-column label="物理卡号" align="center" prop="cardId" />
           <el-table-column label="卡类型" align="center" prop="cardType">
@@ -377,6 +377,8 @@
     </el-dialog>
     <!-- 卡片对话框(添加 / 修改) -->
     <CardsForm ref="cardFormRef" @success="getList" />
+    <!-- 用户卡片对话框 -->
+    <user-card-dialog ref="userCardDialog" />
   </div>
 </template>
 
@@ -396,7 +398,7 @@ import * as CardsApi from '@/api/nacs/cards';
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import CardsForm from '@/views/nacs/cards/CardsForm.vue';
-
+import userCardDialog from './userCard.vue';
 import {listSimpleDepts} from "@/api/system/dept";
 import {listSimplePosts} from "@/api/system/post";
 
@@ -408,7 +410,7 @@ import {getBaseHeader} from "@/utils/request";
 import ImageUpload from '@/components/ImageUpload/index.vue'
 export default {
   name: "SystemUser",
-  components: { Treeselect , ImageUpload, CardsForm},
+  components: { Treeselect , ImageUpload, CardsForm, userCardDialog},
   data() {
     return {
       // 遮罩层
@@ -452,7 +454,7 @@ export default {
         remark: '',
         postIds: [],
         roleIds: [],
-        id_card: '',
+        idCard: '',
         employee_code: '',
         birthday: null
       },
@@ -516,7 +518,7 @@ export default {
           { required: true, message: "确认密码不能为空", trigger: "blur" },
           // { validator: this.validatePassword, trigger: "blur" }
         ],
-        id_card: [
+        idCard: [
           { required: true, message: "身份证号不能为空", trigger: "blur" }
         ],
         employee_code: [{ required: true, message: '员工编号不能为空', trigger: 'blur' }],
@@ -653,7 +655,7 @@ export default {
         remark: '',
         postIds: [],
         roleIds: [],
-        id_card: '',
+        idCard: '',
         employee_code: '',
         birthday: null
       };
@@ -782,8 +784,7 @@ export default {
       })
     },
     /** 开卡 */
-    addCard() {
-      console.log(this.form)
+    creatCard() {
       if (this.form.id === undefined) {
         this.$message.error("请先新建用户");
       } else {
@@ -791,22 +792,13 @@ export default {
         this.$refs["cardFormRef"].creadCard(this.form);
       }
     },
-    /** 卡片管理 */
-    handleCard(row) {
-      this.reset();
-      const id = row.id;
-      // 加载卡片数据
-      CardsApi.getCardsPage({
-        pageNo: 1,
-        pageSize: 10,
-        employeeId: id
-      }).then(response => {
-        this.cardList = response.data.list;
-        // 直接打开卡片信息标签页
-        this.open = true;
-        this.activeTab = "2";
-        this.title = "卡片信息";
-      });
+    handleCard(row){
+      if (row.id === undefined) {
+        this.$message.error("请先选择用户");
+      } else {
+        /** 添加/修改操作 */
+        this.$refs["userCardDialog"].show(row);
+      }
     },
     /** 跳转至门禁权限管理页面 */
     addAccess() {
