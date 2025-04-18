@@ -4,7 +4,7 @@
       <!--门禁组数据-->
       <el-col :span="4" :xs="24">
         <div class="head-container">
-          <el-input v-model="group_name" placeholder="请输入门禁组名称" clearable size="small" prefix-icon="el-icon-search" style="margin-bottom: 20px"/>
+          <el-input v-model="groupName" placeholder="请输入门禁组名称" clearable size="small" prefix-icon="el-icon-search" style="margin-bottom: 20px"/>
         </div>
         <div class="head-container">
           <el-tree :data="groupsOptions" :props="defaultProps" :expand-on-click-node="false" :filter-node-method="filterNode"
@@ -15,7 +15,7 @@
       <el-col :span="20" :xs="24">
         <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="90px">
           <el-form-item label="门禁点名称" prop="username">
-            <el-input v-model="queryParams.device_name" placeholder="请输入门禁点名称" clearable style="width: 240px"
+            <el-input v-model="queryParams.deviceName" placeholder="请输入门禁点名称" clearable style="width: 240px"
                       @keyup.enter.native="handleQuery"/>
           </el-form-item>
 <!--          <el-form-item label="手机号码" prop="mobile">-->
@@ -23,7 +23,7 @@
 <!--                      @keyup.enter.native="handleQuery"/>-->
 <!--          </el-form-item>-->
           <el-form-item label="门禁访问类型" prop="status">
-            <el-select v-model="queryParams.access_type" placeholder="请选择用户类型" clearable>
+            <el-select v-model="queryParams.accessType" placeholder="请选择用户类型" clearable>
               <el-option v-for="dict in this.getDictDatas(DICT_TYPE.NACS_ACCESS_TYPE)"
                          :key="dict.value" :label="dict.label" :value="dict.value"/>
             </el-select>
@@ -52,14 +52,14 @@
 
         <el-table v-loading="loading" :data="deviceList">
           <el-table-column label="门禁点编号" align="center" key="id" prop="id" />
-          <el-table-column label="门禁点名称" align="center" key="device_name" prop="device_name" :show-overflow-tooltip="true" />
-          <el-table-column label="线路名称" align="center" key="line_id" prop="line_id"  :show-overflow-tooltip="true" />
-          <el-table-column label="门禁组编号" align="center" key="group_code" prop="group_code":show-overflow-tooltip="true" />
-          <el-table-column label="访问类型" align="center" key="access_type" prop="access_type"  width="120">
+          <el-table-column label="门禁点名称" align="center" key="deviceName" prop="deviceName" :show-overflow-tooltip="true" />
+          <el-table-column label="线路名称" align="center" key="lineId" prop="lineId"  :show-overflow-tooltip="true" />
+          <el-table-column label="门禁组编号" align="center" key="groupCode" prop="groupCode":show-overflow-tooltip="true" />
+          <el-table-column label="访问类型" align="center" key="accessType" prop="accessType"  width="120">
 
 
           <template v-slot="scope">
-            <el-tag >{{getDictDataLabel(DICT_TYPE.NACS_ACCESS_TYPE,scope.row.access_type)}}</el-tag>
+            <el-tag >{{getDictDataLabel(DICT_TYPE.NACS_ACCESS_TYPE,scope.row.accessType)}}</el-tag>
           </template>
           </el-table-column>
 <!--          <el-table-column label="状态" key="status" v-if="columns[5].visible" align="center">-->
@@ -107,7 +107,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="归属门禁组" prop="group_code">
+            <el-form-item label="归属门禁组" prop="groupCode">
               <treeselect v-model="form.groupsId" :options="groupsOptions" :show-count="true" :clearable="false"
                           placeholder="请选择归属部门" :normalizer="normalizer"/>
             </el-form-item>
@@ -268,7 +268,7 @@ export default {
       // 是否显示弹出层
       open: false,
       // 门禁组名称
-      group_name: undefined,
+      groupName: undefined,
       // 岗位选项
       postOptions: [],
       // 角色选项
@@ -301,7 +301,7 @@ export default {
         username: undefined,
         mobile: undefined,
         status: undefined,
-        group_code: undefined,
+        groupCode: undefined,
         createTime: []
       },
       // // 列信息
@@ -352,14 +352,13 @@ export default {
   },
   watch: {
     // 根据名称筛选部门树
-    group_name(val) {
+    groupName(val) {
       this.$refs.tree.filter(val);
     }
   },
   created() {
     this.getList();
     this.getTreeselect();
-    console.log(this.getDictDataLabel(this.DICT_TYPE.NACS_ACCESS_TYPE,1))
     // this.getConfigKey("sys.user.init-password").then(response => {
     //   this.initPassword = response.msg;
     // });
@@ -392,59 +391,59 @@ export default {
             "list": [
               {
                 "id": 139,
-                "line_id": "7",
-                "group_code": "1",
-                "device_id": "1",
-                "device_name":"消防门",
-                "access_type": 2,
+                "lineId": "7",
+                "groupCode": "1",
+                "deviceId": "1",
+                "deviceName":"消防门",
+                "accessType": 2,
               },
               {
                 "id": 140,
-                "line_id": "7",
-                "group_code": "2",
-                "device_id": "2",
-                "device_name":"消防门",
-                "access_type": 1,
+                "lineId": "7",
+                "groupCode": "2",
+                "deviceId": "2",
+                "deviceName":"消防门",
+                "accessType": 1,
               },
               {
                 "id": 141,
-                "line_id": "7",
-                "group_code": "3",
-                "device_id": "3",
-                "device_name":"消防门",
-                "access_type": 1,
+                "lineId": "7",
+                "groupCode": "3",
+                "deviceId": "3",
+                "deviceName":"消防门",
+                "accessType": 1,
               },
               {
                 "id": 142,
-                "line_id": "7",
-                "group_code": "4",
-                "device_id": "4",
-                "device_name":"消防门",
-                "access_type": 1,
+                "lineId": "7",
+                "groupCode": "4",
+                "deviceId": "4",
+                "deviceName":"消防门",
+                "accessType": 1,
               },
               {
                 "id": 143,
-                "line_id": "7",
-                "group_code": "5",
-                "device_id": "5",
-                "device_name":"消防门",
-                "access_type": 1,
+                "lineId": "7",
+                "groupCode": "5",
+                "deviceId": "5",
+                "deviceName":"消防门",
+                "accessType": 1,
               },
               {
                 "id": 144,
-                "line_id": "7",
-                "group_code": "6",
-                "device_id": "6",
-                "device_name":"消防门",
-                "access_type": 1,
+                "lineId": "7",
+                "groupCode": "6",
+                "deviceId": "6",
+                "deviceName":"消防门",
+                "accessType": 1,
               },
               {
                 "id": 145,
-                "line_id": "7",
-                "group_code": "7",
-                "device_id": "7",
-                "device_name":"消防门",
-                "access_type": 1,
+                "lineId": "7",
+                "groupCode": "7",
+                "deviceId": "7",
+                "deviceName":"消防门",
+                "accessType": 1,
               }
             ],
             "total": 7
@@ -532,7 +531,7 @@ export default {
     },
     // 节点单击事件
     handleNodeClick(data) {
-      this.queryParams.group_code = data.id;
+      this.queryParams.groupCode = data.id;
       this.getList();
     },
     // 用户状态修改
@@ -561,7 +560,7 @@ export default {
     reset() {
       this.form = {
         id: undefined,
-        group_code: undefined,
+        groupCode: undefined,
         username: undefined,
         nickname: undefined,
         password: undefined,

@@ -4,7 +4,7 @@
       <el-form-item label="授权模式" prop="authMode">
         <el-select v-model="formData.authMode" placeholder="请选择授权模式" @change="handleAuthModeChange" >
           <el-option
-            v-for="dict in this.getDictDatas(DICT_TYPE.NACS_AUTH_MODE)"
+            v-for="dict in this.getDictDatas(DICT_TYPE.NACS_authMode)"
             :key="parseInt(dict.value)"
             :label="dict.label"
             :value="parseInt(dict.value)"
@@ -104,55 +104,55 @@ export default {
         let res = {data:[
             {
               "id": 1,
-              "line_id": "7",
+              "lineId": "7",
               "group_code": "101",
               "group_name": "主楼大厅门禁"
             },
             {
               "id": 2,
-              "line_id": "7",
+              "lineId": "7",
               "group_code": "102",
               "group_name": "主楼电梯门禁"
             },
             {
               "id": 3,
-              "line_id": "7",
+              "lineId": "7",
               "group_code": "201",
               "group_name": "东区侧门门禁"
             },
             {
               "id": 4,
-              "line_id": "7",
+              "lineId": "7",
               "group_code": "202",
               "group_name": "东区停车场门禁"
             },
             {
               "id": 5,
-              "line_id": "7",
+              "lineId": "7",
               "group_code": "301",
               "group_name": "西区实验室门禁"
             },
             {
               "id": 6,
-              "line_id": "7",
+              "lineId": "7",
               "group_code": "302",
               "group_name": "西区仓库门禁"
             },
             {
               "id": 7,
-              "line_id": "7",
+              "lineId": "7",
               "group_code": "401",
               "group_name": "南区员工通道"
             },
             {
               "id": 8,
-              "line_id": "7",
+              "lineId": "7",
               "group_code": "402",
               "group_name": "南区消防通道"
             },
             {
               "id": 9,
-              "line_id": "7",
+              "lineId": "7",
               "group_code": "501",
               "group_name": "北区VIP通道"
             }
@@ -161,7 +161,7 @@ export default {
           id: item.id,
           groupName: item.group_name,
           groupCode: item.group_code,
-          lineId:item.line_id
+          lineId:item.lineId
         }))
       } catch (error) {
         console.error('加载门禁组失败:', error)
@@ -176,28 +176,28 @@ export default {
         let res = {data:[
           {
             "id": 11,
-            "line_id": "6",
+            "lineId": "6",
             "device_code": "D101",
             "device_name": "主楼大厅1号门",
             "group_id": 1
           },
           {
             "id": 22,
-            "line_id": "6",
+            "lineId": "6",
             "device_code": "D102",
             "device_name": "主楼大厅2号门",
             "group_id": 2
           },
           {
             "id": 33,
-            "line_id": "6",
+            "lineId": "6",
             "device_code": "D201",
             "device_name": "主楼电梯1号门",
             "group_id": 3
           },
           {
             "id": 44,
-            "line_id": "6",
+            "lineId": "6",
             "device_code": "D202",
             "device_name": "主楼电梯2号门",
             "group_id": 4
@@ -208,7 +208,7 @@ export default {
           deviceName: item.device_name,
           deviceCode: item.device_code,
           groupId: item.group_id,
-          lineId:item.line_id
+          lineId:item.lineId
         }))
       } catch (error) {
         console.error('加载门禁点失败:', error)
@@ -255,10 +255,10 @@ export default {
             groupIdsData = this.formData.groupIds.map(groupId => {
               const groupInfo = this.groupOptions.find(item => item.id === groupId)
               return {
-                line_id: groupInfo.lineId,
-                logic_decive_code: groupInfo.groupCode, // 使用门禁组的编号
-                auth_mode: 0,
-                set_id: this.setId,
+                lineId: groupInfo.lineId,
+                logicDeciveCode: groupInfo.groupCode, // 使用门禁组的编号
+                authMode: 0,
+                setId: this.setId,
                 remark: this.formData.remark
               }
             })
@@ -269,10 +269,10 @@ export default {
             deviceIdsData = this.formData.deviceIds.map(deviceId => {
               const deviceInfo = this.deviceOptions.find(item => item.id === deviceId)
               return {
-                line_id: deviceInfo.lineId,
-                logic_decive_code: deviceInfo.deviceCode,
-                auth_mode: 1,
-                set_id: this.setId,
+                lineId: deviceInfo.lineId,
+                logicDeciveCode: deviceInfo.deviceCode,
+                authMode: 1,
+                setId: this.setId,
                 remark: this.formData.remark
               }
             })
