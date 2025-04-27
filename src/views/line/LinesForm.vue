@@ -10,7 +10,8 @@
           <el-input v-model="formData.name" placeholder="请输入线路名称" />
         </el-form-item>
         <el-form-item label="线路颜色" prop="color">
-          <el-input v-model="formData.color" placeholder="请输入线路颜色" />
+          <el-color-picker v-model="formData.color" show-alpha :predefine="predefineColors" class="custom-color-picker"></el-color-picker>
+          <!-- <el-input v-model="formData.color" placeholder="请输入线路颜色" /> -->
         </el-form-item>
         <el-form-item label="负责人用户ID" prop="leaderUserId">
           <el-input v-model="formData.leaderUserId" placeholder="请输入负责人用户ID" />
@@ -56,6 +57,22 @@ export default {
         name: [{ required: true, message: '线路名称不能为空', trigger: 'blur' }],
         color: [{ required: true, message: '线路颜色不能为空', trigger: 'blur' }],
       },
+      predefineColors: [
+				'#ff4500',
+				'#ff8c00',
+				'#ffd700',
+				'#90ee90',
+				'#00ced1',
+				'#1e90ff',
+				'#c71585',
+				'rgba(255, 69, 0, 0.68)',
+				'rgb(255, 120, 0)',
+				'hsv(51, 100, 98)',
+				'hsva(120, 40, 94, 0.5)',
+				'hsl(181, 100%, 37%)',
+				'hsla(209, 100%, 56%, 0.73)',
+				'#c7158577'
+			],
     };
   },
   methods: {
@@ -115,3 +132,8 @@ export default {
   }
 };
 </script>
+<style lang="scss" scoped>
+::v-deep .custom-color-picker .el-color-picker__trigger {
+  width: 210px !important;
+}
+</style>
