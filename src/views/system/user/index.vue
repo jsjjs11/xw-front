@@ -126,9 +126,9 @@
     <div class="drawer-container-wrapper">
       <el-menu :default-active="activeTab" class="menu-container" mode="horizontal" @select="handleTabChange">
 				<el-menu-item index="1">基本信息</el-menu-item>
-				<el-menu-item index="2">卡信息</el-menu-item>
+				<!-- <el-menu-item index="2">卡信息</el-menu-item>
         <el-menu-item index="3">通用权限</el-menu-item>
-        <el-menu-item index="4">门禁权限</el-menu-item>
+        <el-menu-item index="4">门禁权限</el-menu-item> -->
 			</el-menu>
       <div v-show="activeTab === '1'">
         <el-form ref="form" :model="form" :rules="rules" label-width="80px" style="margin-left: 20px; margin-right: 20px;">
