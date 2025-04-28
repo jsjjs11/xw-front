@@ -25,6 +25,13 @@
               <span>{{ parseTime(scope.row.endDate) }}</span>
             </template>
           </el-table-column>
+          <el-table-column label="操作" align="center" width="180">
+            <template v-slot="scope">
+              <el-button type="text" size="mini" @click="reportLoss(scope.row)">挂失/解挂</el-button>
+              <el-button type="text" size="mini" @click="freeze(scope.row)">冻结/解冻</el-button>
+              <el-button type="text" size="mini" @click="logout(scope.row)">注销</el-button>
+            </template>
+          </el-table-column>
         </el-table>
 
         <!-- 分页组件 -->
@@ -42,7 +49,7 @@
 </template>
 
 <script>
-import { getCardsPage } from '@/api/nacs/cards'
+import { getCardsPage, reportLost, freezeCards, activateCards, deleteCards } from '@/api/nacs/cards'
 import CardsForm from '@/views/nacs/cards/CardsForm.vue'
 import { DICT_TYPE } from '@/utils/dict'
 import { parseTime } from '@/utils/ruoyi'
@@ -119,7 +126,46 @@ export default {
       this.cardList = []
       this.total = 0
     },
-    // 时间格式化
+    /** 挂失/解挂 */
+    reportLoss(row) {
+      const action = row.cardState === 2 ? "解挂" : "挂失";
+      this.$modal.confirm(`确定${action}该卡吗？`).then(function() {
+        if(action === "挂失") {
+          return reportLost(row.cardId)
+        } else {
+          activateCards(row.cardId)
+        }
+      }).then(()=> {
+        this.$modal.msgSuccess(`${action}成功`)
+      }).catch(() => {
+        this.$message.error(`${action}失败`)
+      });
+    },
+    /** 冻结/解冻 */
+    freeze(row) {
+      const action = row.cardState === 4 ? "冻结" : "解冻";
+      this.$modal.confirm(`确定${action}该卡吗？`).then(function() {
+        if(action === "冻结") {
+          return freezeCards(row.cardId)
+        } else {
+          activateCards(row.cardId)
+        }
+      }).then(()=> {
+        this.$modal.msgSuccess(`${action}成功`)
+      }).catch(() => {
+        this.$message.error(`${action}失败`)
+      });
+    },
+    /** 注销 */
+    logout(row) {
+      this.$modal.confirm(`确定注销该卡吗？`).then(function() {
+        return deleteCards(row.cardId)
+      }).then(()=> {
+        this.$modal.msgSuccess(`注销成功`)
+      }).catch(() => {
+        this.$message.error(`注销失败`)
+      });
+    },
     parseTime
   }
 }

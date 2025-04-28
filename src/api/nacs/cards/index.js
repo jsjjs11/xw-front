@@ -50,4 +50,25 @@ export function exportCardsExcel(params) {
     params,
     responseType: 'blob'
   })
-}
+}
+
+export function reportLost(id) {
+  return request({
+    url: '/nacs/cards/reportLost?id=' + id,
+    method: 'put'
+  })
+}
+
+export function activateCards(id) {
+  return request({
+    url: '/nacs/cards/activate?id=' + id,
+    method: 'put'
+  })
+}
+
+export function freezeCards(id) {
+  return request({
+    url: '/nacs/cards/freeze?id=' + id,
+    method: 'put'
+  })
+}
