@@ -4,26 +4,26 @@
     <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="45%" v-dialogDrag append-to-body>
       <el-form ref="formRef" :model="formData" :rules="formRules" v-loading="formLoading" label-width="160px">
         <el-row>
-          <el-col :span="24">
-            <el-form-item label="线路ID" prop="lineId">
-              <el-input v-model="formData.lineId" placeholder="请输入线路ID" class="input-width" />
-            </el-form-item>
-          </el-col>
+<!--          <el-col :span="24">-->
+<!--            <el-form-item label="线路ID" prop="lineId">-->
+<!--              <el-input v-model="formData.lineId" placeholder="请输入线路ID" class="input-width" />-->
+<!--            </el-form-item>-->
+<!--          </el-col>-->
           <el-col :span="24">
             <el-form-item label="物理卡号" prop="cardId">
               <el-input v-model="formData.cardId" placeholder="请输入物理卡号" class="input-width" />
             </el-form-item>
           </el-col>
-          <el-col :span="24">
-            <el-form-item label="虚拟卡号" prop="cardMapBcd">
-              <el-input v-model="formData.cardMapBcd" placeholder="请输入虚拟卡号" class="input-width" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item label="线路侧中间表上传的卡号" prop="cardNo">
-              <el-input v-model="formData.cardNo" placeholder="请输入线路侧中间表上传的卡号" class="input-width" />
-            </el-form-item>
-          </el-col>
+<!--          <el-col :span="24">-->
+<!--            <el-form-item label="虚拟卡号" prop="cardMapBcd">-->
+<!--              <el-input v-model="formData.cardMapBcd" placeholder="请输入虚拟卡号" class="input-width" />-->
+<!--            </el-form-item>-->
+<!--          </el-col>-->
+<!--          <el-col :span="24">-->
+<!--            <el-form-item label="线路侧中间表上传的卡号" prop="cardNo">-->
+<!--              <el-input v-model="formData.cardNo" placeholder="请输入线路侧中间表上传的卡号" class="input-width" />-->
+<!--            </el-form-item>-->
+<!--          </el-col>-->
           <el-col :span="24">
             <el-form-item label="持卡人ID" prop="employeeId">
               <el-input v-model="formData.employeeId" placeholder="请输入持卡人ID" class="input-width" />
@@ -52,27 +52,44 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="24">
-            <el-form-item label="卡状态" prop="cardState">
-              <el-select v-model="formData.cardState" placeholder="请选择卡状态" class="input-width">
-                <el-option v-for="dict in this.getDictDatas(DICT_TYPE.NACS_CARD_STATE)" :key="dict.value"
-                  :label="dict.label" :value="parseInt(dict.value)" />
-              </el-select>
-            </el-form-item>
-          </el-col>
+<!--          <el-col :span="24">-->
+<!--            <el-form-item label="卡状态" prop="cardState">-->
+<!--              <el-select v-model="formData.cardState" placeholder="请选择卡状态" class="input-width">-->
+<!--                <el-option v-for="dict in this.getDictDatas(DICT_TYPE.NACS_CARD_STATE)" :key="dict.value"-->
+<!--                  :label="dict.label" :value="parseInt(dict.value)" />-->
+<!--              </el-select>-->
+<!--            </el-form-item>-->
+<!--          </el-col>-->
           <el-col :span="24">
             <el-form-item label="有效时间" prop="startDate">
-              <el-date-picker clearable v-model="formData.startDate" type="date" value-format="timestamp"
-                placeholder="选择有效时间" class="input-width" />
+              <el-date-picker
+                v-model="formData.startDate"
+                type="datetime"
+                placeholder="选择有效时间"
+                value-format="yyyy-MM-dd HH:mm:ss"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="24">
             <el-form-item label="失效时间" prop="endDate">
-              <el-date-picker clearable v-model="formData.endDate" type="date" value-format="timestamp"
-                placeholder="选择失效时间" class="input-width" />
+              <el-date-picker
+                v-model="formData.endDate"
+                type="datetime"
+                placeholder="选择失效时间"
+                value-format="yyyy-MM-dd HH:mm:ss"
+              />
             </el-form-item>
           </el-col>
         </el-row>
+        <!-- 快捷按钮组 -->
+        <el-form-item label="快捷选择">
+          <el-button-group>
+            <el-button size="small" type="primary" plain @click="handleQuickSelect(1)">1个月</el-button>
+            <el-button size="small" type="primary" plain @click="handleQuickSelect(12)">1年</el-button>
+            <el-button size="small" type="primary" plain @click="handleQuickSelect(120)">10年</el-button>
+            <el-button size="small" type="primary" plain @click="handleQuickSelect(360)">30年</el-button>
+          </el-button-group>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm" :disabled="formLoading">确 定</el-button>
@@ -142,23 +159,25 @@
           } finally {
             this.formLoading = false;
           }
+        } else {
+          this.title = "新增门禁卡片管理";
+          // 设置默认的开始时间和结束时间
+          this.handleQuickSelect(12); // 默认设置为1年
         }
-        this.title = "新增门禁卡片管理";
       },
       /** 开卡 */
       creadCard(form) {
-
         if (form) {
-
           this.reset();
           this.title = "开卡";
-          this.formData.employeeId= form.id;
-          this.formData.employeeCode= form.employee_code;
-          this.formData.employeeName = form.username
-          this.formData.idCard  =  form.id_card
+          this.formData.employeeId = form.id;
+          this.formData.employeeCode = form.employee_code;
+          this.formData.employeeName = form.username;
+          this.formData.idCard = form.id_card;
+          // 设置默认的开始时间和结束时间
+          this.handleQuickSelect(12); // 默认设置为1年
           this.dialogVisible = true;
         }
-
       },
       /** 提交按钮 */
       async submitForm() {
@@ -202,6 +221,119 @@
                             endDate: undefined,
         };
         this.resetForm("formRef");
+      },
+      // 处理快捷选择
+      handleQuickSelect(months) {
+        const now = new Date()
+        this.formData.startDate = this.parseTime(now, '{y}-{m}-{d} {h}:{i}:{s}')
+        
+        // 计算结束时间
+        const endDate = new Date(now)
+        endDate.setMonth(endDate.getMonth() + months)
+        this.formData.endDate = this.parseTime(endDate, '{y}-{m}-{d} {h}:{i}:{s}')
+      },
+
+      // 时间格式化方法
+      parseTime(time, pattern) {
+        if (arguments.length === 0 || !time) {
+          return null
+        }
+        const format = pattern || '{y}-{m}-{d} {h}:{i}:{s}'
+        let date
+        if (typeof time === 'object') {
+          date = time
+        } else {
+          if ((typeof time === 'string') && (/^[0-9]+$/.test(time))) {
+            time = parseInt(time)
+          } else if (typeof time === 'string') {
+            time = time.replace(new RegExp(/-/gm), '/')
+          }
+          if ((typeof time === 'number') && (time.toString().length === 10)) {
+            time = time * 1000
+          }
+          date = new Date(time)
+        }
+        const formatObj = {
+          y: date.getFullYear(),
+          m: date.getMonth() + 1,
+          d: date.getDate(),
+          h: date.getHours(),
+          i: date.getMinutes(),
+          s: date.getSeconds(),
+          a: date.getDay()
+        }
+        const time_str = format.replace(/{(y|m|d|h|i|s|a)+}/g, (result, key) => {
+          let value = formatObj[key]
+          // Note: getDay() returns 0 on Sunday
+          if (key === 'a') { return ['日', '一', '二', '三', '四', '五', '六'][value] }
+          if (result.length > 0 && value < 10) {
+            value = '0' + value
+          }
+          return value || 0
+        })
+        return time_str
+      },
+
+      /** 处理卡片挂失 */
+      async handleLostCard(row) {
+        if (row.cardState !== 0) {
+          this.$modal.msgError("卡片未激活，无法执行挂失操作");
+          return;
+        }
+        try {
+          await this.$modal.confirm('确认要挂失该卡片吗？');
+          this.loading = true;
+          // 修改卡片状态为挂失(假设状态码 1 为挂失)
+          const data = { ...row, cardState: 1 };
+          await CardsApi.updateCards(data);
+          this.$modal.msgSuccess("卡片已挂失");
+          this.getList(); // 刷新列表
+        } catch (error) {
+          console.error("挂失操作失败", error);
+          this.$modal.msgError("挂失操作失败");
+        } finally {
+          this.loading = false;
+        }
+      },
+
+      /** 处理加入黑名单 */
+      async handleBlacklist(row) {
+        if (row.cardState !== 0) {
+          this.$modal.msgError("卡片未激活，无法加入黑名单");
+          return;
+        }
+        try {
+          await this.$modal.confirm('确认要将该卡片加入黑名单吗？');
+          this.loading = true;
+          // 修改卡片状态为黑名单(假设状态码 2 为黑名单)
+          const data = { ...row, cardState: 2 };
+          await CardsApi.updateCards(data);
+          this.$modal.msgSuccess("卡片已加入黑名单");
+          this.getList(); // 刷新列表
+        } catch (error) {
+          console.error("加入黑名单操作失败", error);
+          this.$modal.msgError("加入黑名单操作失败");
+        } finally {
+          this.loading = false;
+        }
+      },
+
+      /** 处理恢复正常 */
+      async handleRestore(row) {
+        try {
+          await this.$modal.confirm('确认要将该卡片恢复正常状态吗？');
+          this.loading = true;
+          // 修改卡片状态为正常(假设状态码 0 为正常)
+          const data = { ...row, cardState: 0 };
+          await CardsApi.updateCards(data);
+          this.$modal.msgSuccess("卡片已恢复正常");
+          this.getList(); // 刷新列表
+        } catch (error) {
+          console.error("恢复操作失败", error);
+          this.$modal.msgError("恢复操作失败");
+        } finally {
+          this.loading = false;
+        }
       }
     }
   };
@@ -240,6 +372,37 @@
 .el-dialog {
   :deep(.el-dialog__body) {
     padding: 10px 0;
+  }
+}
+
+.quick-select-buttons {
+  display: flex;
+  gap: 10px; // 按钮之间的间距
+  flex-wrap: wrap; // 如果空间不够会换行
+
+  .el-button {
+    flex: 1; // 按钮平均分配空间
+    min-width: 80px; // 设置最小宽度
+    margin: 0; // 移除默认的margin
+  }
+}
+
+// 移除之前的按钮组样式
+.el-button-group {
+  margin-bottom: 10px;
+}
+.el-button-group .el-button {
+  margin-right: 10px;
+}
+
+.el-button + .el-button {
+  margin-left: 5px;
+}
+
+.el-button[disabled] {
+  cursor: not-allowed;
+  &:hover {
+    pointer-events: none;
   }
 }
 </style>

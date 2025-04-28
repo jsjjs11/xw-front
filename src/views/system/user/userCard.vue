@@ -25,11 +25,33 @@
               <span>{{ parseTime(scope.row.endDate) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" align="center" width="180">
+          <el-table-column label="操作" align="center" width="200">
             <template v-slot="scope">
-              <el-button type="text" size="mini" @click="reportLoss(scope.row)">挂失/解挂</el-button>
-              <el-button type="text" size="mini" @click="freeze(scope.row)">冻结/解冻</el-button>
-              <el-button type="text" size="mini" @click="logout(scope.row)">注销</el-button>
+              <!-- 已激活状态(1)和代发卡状态(0)：显示挂失和加入黑名单按钮 -->
+              <template v-if="scope.row.cardState === 1 || scope.row.cardState === 0">
+                <el-button
+                  size="mini"
+                  type="warning"
+                  @click="handleLostCard(scope.row)">
+                  挂失
+                </el-button>
+                <el-button
+                  size="mini"
+                  type="danger"
+                  @click="handleBlacklist(scope.row)">
+                  加入黑名单
+                </el-button>
+              </template>
+
+              <!-- 已挂失状态(2)或已注销状态(3)：显示恢复正常按钮 -->
+              <template v-else-if="scope.row.cardState === 2 || scope.row.cardState === 3">
+                <el-button
+                  size="mini"
+                  type="success"
+                  @click="handleRestore(scope.row)">
+                  恢复正常
+                </el-button>
+              </template>
             </template>
           </el-table-column>
         </el-table>
@@ -49,7 +71,7 @@
 </template>
 
 <script>
-import { getCardsPage, reportLost, freezeCards, activateCards, deleteCards } from '@/api/nacs/cards'
+import { getCardsPage, updateCards } from '@/api/nacs/cards'
 import CardsForm from '@/views/nacs/cards/CardsForm.vue'
 import { DICT_TYPE } from '@/utils/dict'
 import { parseTime } from '@/utils/ruoyi'
@@ -126,47 +148,81 @@ export default {
       this.cardList = []
       this.total = 0
     },
-    /** 挂失/解挂 */
-    reportLoss(row) {
-      const action = row.cardState === 2 ? "解挂" : "挂失";
-      this.$modal.confirm(`确定${action}该卡吗？`).then(function() {
-        if(action === "挂失") {
-          return reportLost(row.cardId)
-        } else {
-          activateCards(row.cardId)
-        }
-      }).then(()=> {
-        this.$modal.msgSuccess(`${action}成功`)
-      }).catch(() => {
-        this.$message.error(`${action}失败`)
-      });
+    // 时间格式化
+    parseTime,
+    /** 处理卡片挂失 */
+    async handleLostCard(row) {
+      // 检查卡片状态
+      if (row.cardState === 0) {
+        this.$modal.msgError("卡片未激活，不能进行挂失操作")
+        return
+      }
+      if (row.cardState !== 1) {
+        this.$modal.msgError("只有已激活的卡片才能进行挂失操作")
+        return
+      }
+
+      try {
+        await this.$modal.confirm('确认要挂失该卡片吗？')
+        this.loading = true
+        const data = { ...row, cardState: 2 }
+        await updateCards(data)
+        this.$modal.msgSuccess("卡片已挂失")
+        await this.getList()
+      } catch (error) {
+        console.error("挂失操作失败", error)
+      } finally {
+        this.loading = false
+      }
     },
-    /** 冻结/解冻 */
-    freeze(row) {
-      const action = row.cardState === 4 ? "冻结" : "解冻";
-      this.$modal.confirm(`确定${action}该卡吗？`).then(function() {
-        if(action === "冻结") {
-          return freezeCards(row.cardId)
-        } else {
-          activateCards(row.cardId)
-        }
-      }).then(()=> {
-        this.$modal.msgSuccess(`${action}成功`)
-      }).catch(() => {
-        this.$message.error(`${action}失败`)
-      });
+
+    /** 处理加入黑名单 */
+    async handleBlacklist(row) {
+      // 检查卡片状态
+      if (row.cardState === 0) {
+        this.$modal.msgError("卡片未激活，不能加入黑名单")
+        return
+      }
+      if (row.cardState !== 1) {
+        this.$modal.msgError("只有已激活的卡片才能加入黑名单")
+        return
+      }
+
+      try {
+        await this.$modal.confirm('确认要将该卡片加入黑名单吗？')
+        this.loading = true
+        const data = { ...row, cardState: 3 }
+        await updateCards(data)
+        this.$modal.msgSuccess("卡片已加入黑名单")
+        await this.getList()
+      } catch (error) {
+        console.error("加入黑名单操作失败", error)
+      } finally {
+        this.loading = false
+      }
     },
-    /** 注销 */
-    logout(row) {
-      this.$modal.confirm(`确定注销该卡吗？`).then(function() {
-        return deleteCards(row.cardId)
-      }).then(()=> {
-        this.$modal.msgSuccess(`注销成功`)
-      }).catch(() => {
-        this.$message.error(`注销失败`)
-      });
-    },
-    parseTime
+
+    /** 处理恢复正常 */
+    async handleRestore(row) {
+      // 修改状态检查逻辑，允许已挂失和已注销的卡片恢复正常
+      if (row.cardState !== 2 && row.cardState !== 3) {
+        this.$modal.msgError("只有已挂失或已注销的卡片才能恢复正常")
+        return
+      }
+
+      try {
+        await this.$modal.confirm('确认要将该卡片恢复正常状态吗？')
+        this.loading = true
+        const data = { ...row, cardState: 1 } // 改为激活状态
+        await updateCards(data)
+        this.$modal.msgSuccess("卡片已恢复正常")
+        await this.getList()
+      } catch (error) {
+        console.error("恢复操作失败", error)
+      } finally {
+        this.loading = false
+      }
+    }
   }
 }
 </script>
@@ -176,5 +232,7 @@ export default {
     padding: 0 10px;
 }
 
-
+.el-button + .el-button {
+  margin-left: 5px;
+}
 </style>
