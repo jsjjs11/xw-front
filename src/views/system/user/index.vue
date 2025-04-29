@@ -65,9 +65,10 @@
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item command="handleAuthorize" size="mini" type="primary">用户权限授权</el-dropdown-item>
                 <el-dropdown-item command="handleAuthorizeByGroup" size="mini" type="primary">用户批量授权</el-dropdown-item>
-                <el-dropdown-item command="reloadAuthorize" size="mini" type="primary">重新下载权限</el-dropdown-item>
+                <el-divider></el-divider>
+                <el-dropdown-item command="reloadAuthorize" size="mini" type="primary">重新加载权限</el-dropdown-item>
               </el-dropdown-menu>
-              </el-dropdown>
+            </el-dropdown>
           </el-col>
           <el-col :span="1.5">
             <el-button type="primary" plain icon="el-icon-view" size="mini" @click="handleView">查看</el-button>
