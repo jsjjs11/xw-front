@@ -83,12 +83,12 @@
         </el-row>
         <!-- 快捷按钮组 -->
         <el-form-item label="快捷选择">
-          <el-button-group>
+          <div class="quick-select-buttons">
             <el-button size="small" type="primary" plain @click="handleQuickSelect(1)">1个月</el-button>
             <el-button size="small" type="primary" plain @click="handleQuickSelect(12)">1年</el-button>
             <el-button size="small" type="primary" plain @click="handleQuickSelect(120)">10年</el-button>
             <el-button size="small" type="primary" plain @click="handleQuickSelect(360)">30年</el-button>
-          </el-button-group>
+          </div>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -226,7 +226,7 @@
       handleQuickSelect(months) {
         const now = new Date()
         this.formData.startDate = this.parseTime(now, '{y}-{m}-{d} {h}:{i}:{s}')
-        
+
         // 计算结束时间
         const endDate = new Date(now)
         endDate.setMonth(endDate.getMonth() + months)

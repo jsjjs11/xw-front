@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-<!--    <doc-alert title="用户体系" url="https://doc.iocoder.cn/user-center/" />
+    <!--    <doc-alert title="用户体系" url="https://doc.iocoder.cn/user-center/" />
     <doc-alert title="三方登陆" url="https://doc.iocoder.cn/social-user/" />
     <doc-alert title="Excel 导入导出" url="https://doc.iocoder.cn/excel-import-and-export/" />-->
     <!-- 搜索工作栏 -->
@@ -8,32 +8,37 @@
       <!--部门数据-->
       <el-col :span="4" :xs="24">
         <div class="head-container">
-          <el-input v-model="deptName" placeholder="请输入部门名称" clearable size="small" prefix-icon="el-icon-search" style="margin-bottom: 20px"/>
+          <el-input v-model="deptName" placeholder="请输入部门名称" clearable size="small" prefix-icon="el-icon-search"
+            style="margin-bottom: 20px" />
         </div>
         <div class="head-container">
-          <el-tree :data="deptOptions" :props="defaultProps" :expand-on-click-node="false" :filter-node-method="filterNode"
-                   ref="tree" default-expand-all highlight-current @node-click="handleNodeClick"/>
+          <el-tree :data="deptOptions" :props="defaultProps" :expand-on-click-node="false"
+            :filter-node-method="filterNode" ref="tree" default-expand-all highlight-current
+            @node-click="handleNodeClick" />
         </div>
       </el-col>
       <!--用户数据-->
       <el-col :span="20" :xs="24">
-        <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+        <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch"
+          label-width="68px">
           <el-form-item label="用户名称" prop="username">
             <el-input v-model="queryParams.username" placeholder="请输入用户名称" clearable style="width: 240px"
-                      @keyup.enter.native="handleQuery"/>
+              @keyup.enter.native="handleQuery" />
           </el-form-item>
           <el-form-item label="身份证号" prop="id_card">
             <el-input v-model="queryParams.id_card" placeholder="请输入身份证号" clearable style="width: 240px"
-                      @keyup.enter.native="handleQuery"/>
+              @keyup.enter.native="handleQuery" />
           </el-form-item>
           <el-form-item label="状态" prop="status">
             <el-select v-model="queryParams.status" placeholder="用户状态" clearable style="width: 240px">
-              <el-option v-for="dict in statusDictDatas" :key="parseInt(dict.value)" :label="dict.label" :value="parseInt(dict.value)"/>
+              <el-option v-for="dict in statusDictDatas" :key="parseInt(dict.value)" :label="dict.label"
+                :value="parseInt(dict.value)" />
             </el-select>
           </el-form-item>
           <el-form-item label="创建时间" prop="createTime">
-            <el-date-picker v-model="queryParams.createTime" style="width: 240px" value-format="yyyy-MM-dd HH:mm:ss" type="daterange"
-              range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期" :default-time="['00:00:00', '23:59:59']" />
+            <el-date-picker v-model="queryParams.createTime" style="width: 240px" value-format="yyyy-MM-dd HH:mm:ss"
+              type="daterange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期"
+              :default-time="['00:00:00', '23:59:59']" />
           </el-form-item>
           <el-form-item>
             <el-button type="primary" icon="el-icon-search" @click="handleQuery">搜索</el-button>
@@ -44,27 +49,36 @@
         <el-row :gutter="10" class="mb8">
           <el-col :span="1.5">
             <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-                       v-hasPermi="['system:user:create']">新增</el-button>
+              v-hasPermi="['system:user:create']">新增</el-button>
           </el-col>
           <el-col :span="1.5">
             <el-button type="warning" plain icon="el-icon-delete" size="mini" @click="handleDelete"
-                       v-hasPermi="['system:user:delete']">删除</el-button>
+              v-hasPermi="['system:user:delete']">删除</el-button>
           </el-col>
           <el-col :span="1.5">
             <el-button type="primary" plain icon="el-icon-edit" size="mini" @click="handleUpdate"
-                       v-hasPermi="['system:user:update']">修改</el-button>
+              v-hasPermi="['system:user:update']">修改</el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-button type="primary" plain icon="el-icon-view" size="mini" @click="handleView"
-                       >查看</el-button>
+            <el-dropdown @command="handleCommand" v-hasPermi="['system:user:authorize']">
+              <el-button size="mini" type="primary" icon="el-icon-s-check">权限授权</el-button>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item command="handleAuthorize" size="mini" type="primary">用户权限授权</el-dropdown-item>
+                <el-dropdown-item command="handleAuthorizeByGroup" size="mini" type="primary">用户批量授权</el-dropdown-item>
+                <el-dropdown-item command="reloadAuthorize" size="mini" type="primary">重新下载权限</el-dropdown-item>
+              </el-dropdown-menu>
+              </el-dropdown>
+          </el-col>
+          <el-col :span="1.5">
+            <el-button type="primary" plain icon="el-icon-view" size="mini" @click="handleView">查看</el-button>
           </el-col>
           <el-col :span="1.5">
             <el-button type="info" icon="el-icon-upload2" size="mini" @click="handleImport"
-                       v-hasPermi="['system:user:import']">导入</el-button>
+              v-hasPermi="['system:user:import']">导入</el-button>
           </el-col>
           <el-col :span="1.5">
             <el-button type="warning" icon="el-icon-download" size="mini" @click="handleExport" :loading="exportLoading"
-                       v-hasPermi="['system:user:export']">导出</el-button>
+              v-hasPermi="['system:user:export']">导出</el-button>
           </el-col>
           <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :columns="columns"></right-toolbar>
         </el-row>
@@ -72,14 +86,19 @@
         <el-table v-loading="loading" :data="userList" highlight-current-row @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="45" align="center" />
           <el-table-column label="用户编号" align="center" key="id" prop="id" v-if="columns[0].visible" />
-          <el-table-column label="用户昵称" align="center" key="username" prop="username" v-if="columns[1].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="员工姓名" align="center" key="employeeName" prop="employeeName" v-if="columns[2].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="部门" align="center" key="deptName" prop="dept.name" v-if="columns[3].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="手机号码" align="center" key="mobile" prop="mobile" v-if="columns[4].visible" width="120" />
+          <el-table-column label="用户昵称" align="center" key="username" prop="username" v-if="columns[1].visible"
+            :show-overflow-tooltip="true" />
+          <el-table-column label="员工姓名" align="center" key="employeeName" prop="employeeName" v-if="columns[2].visible"
+            :show-overflow-tooltip="true" />
+          <el-table-column label="部门" align="center" key="deptName" prop="dept.name" v-if="columns[3].visible"
+            :show-overflow-tooltip="true" />
+          <el-table-column label="手机号码" align="center" key="mobile" prop="mobile" v-if="columns[4].visible"
+            width="120" />
           <el-table-column label="身份证号" align="center" key="idCard" prop="idCard" v-if="columns[8].visible" />
           <el-table-column label="状态" key="status" v-if="columns[5].visible" align="center">
             <template v-slot="scope">
-              <el-switch v-model="scope.row.status" :active-value="0" :inactive-value="1" @change="handleStatusChange(scope.row)" />
+              <el-switch v-model="scope.row.status" :active-value="0" :inactive-value="1"
+                @change="handleStatusChange(scope.row)" />
             </template>
           </el-table-column>
           <el-table-column label="创建时间" align="center" prop="createTime" v-if="columns[6].visible" width="160">
@@ -87,23 +106,26 @@
               <span>{{ parseTime(scope.row.createTime) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="审核状态" align="center" key="auditStatus" prop="auditStatus" v-if="columns[7].visible" width="120"></el-table-column>
+          <el-table-column label="审核状态" align="center" key="auditStatus" prop="auditStatus" v-if="columns[7].visible"
+            width="120"></el-table-column>
           <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
             <template v-slot="scope">
               <el-button size="mini" type="text" icon="el-icon-bank-card" @click.stop="handleCard(scope.row)"
-                         v-hasPermi="['system:user:card']">卡片</el-button>
+                v-hasPermi="['system:user:card']">卡片</el-button>
+              <el-button size="mini" type="text" icon="el-icon-s-check" @click.stop="handleAuthorize(scope.row)"
+                v-hasPermi="['system:user:authorize']">授权</el-button>
               <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)"
-                         v-hasPermi="['system:user:update']">修改</el-button>
-              <el-dropdown  @command="(command) => handleCommand(command, scope.$index, scope.row)"
-                            v-hasPermi="['system:user:delete', 'system:user:update-password', 'system:permission:assign-user-role']">
+                v-hasPermi="['system:user:update']">修改</el-button>
+              <el-dropdown @command="(command) => handleCommand(command, scope.$index, scope.row)"
+                v-hasPermi="['system:user:delete', 'system:user:update-password', 'system:permission:assign-user-role']">
                 <el-button size="mini" type="text" icon="el-icon-d-arrow-right">更多</el-button>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="handleDelete" v-if="scope.row.id !== 1" size="mini" type="text" icon="el-icon-delete"
-                                    v-hasPermi="['system:user:delete']">删除</el-dropdown-item>
+                  <el-dropdown-item command="handleDelete" v-if="scope.row.id !== 1" size="mini" type="text"
+                    icon="el-icon-delete" v-hasPermi="['system:user:delete']">删除</el-dropdown-item>
                   <el-dropdown-item command="handleResetPwd" size="mini" type="text" icon="el-icon-key"
-                                    v-hasPermi="['system:user:update-password']">重置密码</el-dropdown-item>
+                    v-hasPermi="['system:user:update-password']">重置密码</el-dropdown-item>
                   <el-dropdown-item command="handleRole" size="mini" type="text" icon="el-icon-circle-check"
-                                    v-hasPermi="['system:permission:assign-user-role']">分配角色</el-dropdown-item>
+                    v-hasPermi="['system:permission:assign-user-role']">分配角色</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
             </template>
@@ -111,202 +133,198 @@
         </el-table>
 
         <pagination v-show="total>0" :total="total" :page.sync="queryParams.pageNo" :limit.sync="queryParams.pageSize"
-                    @pagination="getList"/>
+          @pagination="getList" />
       </el-col>
     </el-row>
 
     <!-- 添加或修改参数配置对话框 -->
-    <el-drawer
-    :title="title"
-    :visible.sync="open"
-    size="65%"
-    direction="rtl"
-    :before-close="handleClose"
-    class="drawer-container">
-    <div class="drawer-container-wrapper">
-      <el-menu :default-active="activeTab" class="menu-container" mode="horizontal" @select="handleTabChange">
-				<el-menu-item index="1">基本信息</el-menu-item>
-				<!-- <el-menu-item index="2">卡信息</el-menu-item>
+    <el-drawer :title="title" :visible.sync="open" size="65%" direction="rtl" :before-close="handleClose"
+      class="drawer-container">
+      <div class="drawer-container-wrapper">
+        <el-menu :default-active="activeTab" class="menu-container" mode="horizontal" @select="handleTabChange">
+          <el-menu-item index="1">基本信息</el-menu-item>
+          <!-- <el-menu-item index="2">卡信息</el-menu-item>
         <el-menu-item index="3">通用权限</el-menu-item>
         <el-menu-item index="4">门禁权限</el-menu-item> -->
-			</el-menu>
-      <div v-show="activeTab === '1'">
-        <el-form ref="form" :model="form" :rules="rules" label-width="80px" style="margin-left: 20px; margin-right: 20px;">
+        </el-menu>
+        <div v-show="activeTab === '1'">
+          <el-form ref="form" :model="form" :rules="rules" label-width="80px"
+            style="margin-left: 20px; margin-right: 20px;">
+            <div style="padding-top: 15px ;overflow: hidden;">
+              <el-divider direction="vertical"></el-divider>
+              <span
+                style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">基本信息</span>
+            </div>
+            <el-divider style="margin: 10px 0;"></el-divider>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="用户昵称" prop="username">
+                  <el-input v-model="form.username" placeholder="请输入用户昵称" :disabled="isViewMode" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item v-if="form.id === undefined" label="员工姓名" prop="employeeName">
+                  <el-input v-model="form.employeeName" placeholder="请输入员工姓名" :disabled="isViewMode" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item v-if="form.id === undefined" label="用户密码" prop="password">
+                  <el-input v-model="form.password" placeholder="请输入用户密码" type="password" show-password />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item v-if="form.id === undefined" label="确认密码" prop="password2">
+                  <el-input v-model="form.password2" placeholder="请输入用户密码" type="password2" show-password />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="身份证号" prop="idCard">
+                  <el-input v-model="form.idCard" placeholder="请输入身份证号码" :disabled="isViewMode" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="手机号码" prop="mobile">
+                  <el-input v-model="form.mobile" placeholder="请输入手机号码" maxlength="11" :disabled="isViewMode" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="邮箱" prop="email">
+                  <el-input v-model="form.email" placeholder="请输入邮箱" maxlength="50" :disabled="isViewMode" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="出生日期" prop="birthday">
+                  <el-date-picker v-model="form.birthday" type="date" placeholder="请选择出生日期" :disabled="isViewMode">
+                  </el-date-picker>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="用户性别">
+                  <el-select v-model="form.sex" placeholder="请选择" :disabled="isViewMode">
+                    <el-option v-for="dict in sexDictDatas" :key="parseInt(dict.value)" :label="dict.label"
+                      :value="parseInt(dict.value)" />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <div style="padding-top: 15px ;overflow: hidden;">
+              <el-divider direction="vertical"></el-divider>
+              <span
+                style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">工作信息</span>
+            </div>
+            <el-divider style="margin: 10px 0;"></el-divider>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="员工编号" prop="employee_code">
+                  <el-input v-model="form.employee_code" placeholder="请输入员工编号" :disabled="isViewMode" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="所属部门" prop="dept_id">
+                  <treeselect v-model="form.dept_id" :options="deptOptions" :show-count="true" :clearable="false"
+                    placeholder="请选择所属部门" :normalizer="normalizer" :disabled="isViewMode" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="岗位">
+                  <el-select v-model="form.postIds" multiple placeholder="请选择" :disabled="isViewMode">
+                    <el-option v-for="item in postOptions" :key="item.id" :label="item.name"
+                      :value="item.id"></el-option>
+                  </el-select>
+                </el-form-item>
+              </el-col>
+            </el-row :gutter="20">
+            <div style="padding-top: 15px ;overflow: hidden;">
+              <el-divider direction="vertical"></el-divider>
+              <span
+                style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">其他信息</span>
+            </div>
+            <el-divider style="margin: 10px 0;"></el-divider>
+            <el-row>
+              <el-col :span="24">
+                <el-form-item label="备注">
+                  <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" :disabled="isViewMode"></el-input>
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </el-form>
+        </div>
+        <div v-show="activeTab === '2'">
           <div style="padding-top: 15px ;overflow: hidden;">
-            <el-divider direction="vertical" ></el-divider>
-            <span style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">基本信息</span>
+            <el-divider direction="vertical"></el-divider>
+            <span
+              style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">卡信息</span>
           </div>
           <el-divider style="margin: 10px 0;"></el-divider>
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <el-form-item label="用户昵称" prop="username">
-                <el-input v-model="form.username" placeholder="请输入用户昵称" :disabled="isViewMode"/>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item v-if="form.id === undefined" label="员工姓名" prop="employeeName">
-                <el-input v-model="form.employeeName" placeholder="请输入员工姓名" :disabled="isViewMode"/>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <el-form-item v-if="form.id === undefined" label="用户密码" prop="password">
-                <el-input v-model="form.password" placeholder="请输入用户密码" type="password" show-password />
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item v-if="form.id === undefined" label="确认密码" prop="password2">
-                <el-input v-model="form.password2" placeholder="请输入用户密码" type="password2" show-password />
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <el-form-item label="身份证号" prop="idCard">
-                <el-input v-model="form.idCard" placeholder="请输入身份证号码" :disabled="isViewMode"/>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="手机号码" prop="mobile">
-                <el-input v-model="form.mobile" placeholder="请输入手机号码" maxlength="11" :disabled="isViewMode"/>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <el-form-item label="邮箱" prop="email">
-                <el-input v-model="form.email" placeholder="请输入邮箱" maxlength="50" :disabled="isViewMode"/>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="出生日期" prop="birthday">
-                <el-date-picker
-                  v-model="form.birthday"
-                  type="date"
-                  placeholder="请选择出生日期"
-                  :disabled="isViewMode">
-                </el-date-picker>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <el-form-item label="用户性别">
-                <el-select v-model="form.sex" placeholder="请选择" :disabled="isViewMode">
-                  <el-option v-for="dict in sexDictDatas" :key="parseInt(dict.value)" :label="dict.label" :value="parseInt(dict.value)"/>
-                </el-select>
-              </el-form-item>
-            </el-col>
-          </el-row>
+          <el-button type="primary" plain icon="el-icon-plus" @click="creatCard">新增门禁卡</el-button>
+          <el-table :data="cardList" style="margin-top: 20px;" class="access-table">
+            <el-table-column label="物理卡号" align="center" prop="cardId" />
+            <el-table-column label="卡类型" align="center" prop="cardType">
+              <template v-slot="scope">
+                <dict-tag :type="DICT_TYPE.NACS_CARD_TYPE" :value="scope.row.cardType" />
+              </template>
+            </el-table-column>
+            <el-table-column label="卡状态" align="center" prop="cardState">
+              <template v-slot="scope">
+                <dict-tag :type="DICT_TYPE.NACS_CARD_STATE" :value="scope.row.cardState" />
+              </template>
+            </el-table-column>
+            <el-table-column label="有效时间" align="center" prop="startDate" width="180">
+              <template v-slot="scope">
+                <span>{{ parseTime(scope.row.endDate) }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="失效时间" align="center" prop="endDate" width="180">
+              <template v-slot="scope">
+                <span>{{ parseTime(scope.row.endDate) }}</span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        <div v-show="activeTab === '3'">
           <div style="padding-top: 15px ;overflow: hidden;">
-            <el-divider direction="vertical" ></el-divider>
-            <span style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">工作信息</span>
+            <el-divider direction="vertical"></el-divider>
+            <span
+              style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">人脸权限</span>
           </div>
           <el-divider style="margin: 10px 0;"></el-divider>
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <el-form-item label="员工编号" prop="employee_code">
-                <el-input v-model="form.employee_code" placeholder="请输入员工编号" :disabled="isViewMode"/>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="所属部门" prop="dept_id">
-                <treeselect v-model="form.dept_id" :options="deptOptions" :show-count="true" :clearable="false"
-                            placeholder="请选择所属部门" :normalizer="normalizer" :disabled="isViewMode"/>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <el-form-item label="岗位">
-                <el-select v-model="form.postIds" multiple placeholder="请选择" :disabled="isViewMode">
-                  <el-option
-                      v-for="item in postOptions"
-                      :key="item.id"
-                      :label="item.name"
-                      :value="item.id"
-                  ></el-option>
-                </el-select>
-              </el-form-item>
-            </el-col>
-          </el-row :gutter="20">
+          <image-upload v-model="imageUrl" :limit="1" :file-size="10" :file-type="['jpg','png']" />
           <div style="padding-top: 15px ;overflow: hidden;">
-            <el-divider direction="vertical" ></el-divider>
-            <span style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">其他信息</span>
+            <el-divider direction="vertical"></el-divider>
+            <span
+              style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">指纹权限</span>
           </div>
           <el-divider style="margin: 10px 0;"></el-divider>
-          <el-row>
-            <el-col :span="24">
-              <el-form-item label="备注">
-                <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" :disabled="isViewMode"></el-input>
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </el-form>
-      </div>
-      <div v-show="activeTab === '2'">
-        <div style="padding-top: 15px ;overflow: hidden;">
-          <el-divider direction="vertical" ></el-divider>
-          <span style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">卡信息</span>
         </div>
-        <el-divider style="margin: 10px 0;"></el-divider>
-        <el-button type="primary" plain icon="el-icon-plus" @click="creatCard">新增门禁卡</el-button>
-        <el-table :data="cardList" style="margin-top: 20px;" class="access-table">
-          <el-table-column label="物理卡号" align="center" prop="cardId" />
-          <el-table-column label="卡类型" align="center" prop="cardType">
-            <template v-slot="scope">
-              <dict-tag :type="DICT_TYPE.NACS_CARD_TYPE" :value="scope.row.cardType" />
-            </template>
-          </el-table-column>
-          <el-table-column label="卡状态" align="center" prop="cardState">
-            <template v-slot="scope">
-              <dict-tag :type="DICT_TYPE.NACS_CARD_STATE" :value="scope.row.cardState" />
-            </template>
-          </el-table-column>
-          <el-table-column label="有效时间" align="center" prop="startDate" width="180">
-            <template v-slot="scope">
-              <span>{{ parseTime(scope.row.endDate) }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="失效时间" align="center" prop="endDate" width="180">
-            <template v-slot="scope">
-              <span>{{ parseTime(scope.row.endDate) }}</span>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-      <div v-show="activeTab === '3'">
-        <div style="padding-top: 15px ;overflow: hidden;">
-          <el-divider direction="vertical" ></el-divider>
-          <span style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">人脸权限</span>
+        <div v-show="activeTab === '4'">
+          <div style="padding-top: 15px ;overflow: hidden;">
+            <el-divider direction="vertical"></el-divider>
+            <span
+              style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">门禁权限</span>
+          </div>
+          <el-divider style="margin: 10px 0;"></el-divider>
+          <el-button type="primary" plain icon="el-icon-plus" @click="addAccess">新增门禁权限</el-button>
+          <el-table :data="accessList" style="margin-top: 20px;" class="access-table">
+            <el-table-column label="权限组名称" prop="accessName" />
+            <el-table-column label="权限类型" prop="accessType" />
+            <el-table-column label="权限模式" prop="accessMode" />
+            <el-table-column label="预设公共权限" prop="presetCommonAccess" />
+          </el-table>
         </div>
-        <el-divider style="margin: 10px 0;"></el-divider>
-        <image-upload v-model="imageUrl" :limit="1" :file-size="10" :file-type="['jpg','png']"/>
-        <div style="padding-top: 15px ;overflow: hidden;">
-          <el-divider direction="vertical" ></el-divider>
-          <span style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">指纹权限</span>
-        </div>
-        <el-divider style="margin: 10px 0;"></el-divider>
       </div>
-      <div v-show="activeTab === '4'" >
-        <div style="padding-top: 15px ;overflow: hidden;">
-          <el-divider direction="vertical" ></el-divider>
-          <span style="display: inline-block; font-size: 18px; font-weight: bold; text-align: center; margin-top: 5px;">门禁权限</span>
-        </div>
-        <el-divider style="margin: 10px 0;"></el-divider>
-        <el-button type="primary" plain icon="el-icon-plus" @click="addAccess" >新增门禁权限</el-button>
-        <el-table :data="accessList" style="margin-top: 20px;" class="access-table">
-          <el-table-column label="权限组名称" prop="accessName" />
-          <el-table-column label="权限类型" prop="accessType" />
-          <el-table-column label="权限模式" prop="accessMode" />
-          <el-table-column label="预设公共权限" prop="presetCommonAccess" />
-        </el-table>
-      </div>
-    </div>
-       <!-- 添加底部按钮区域 -->
+      <!-- 添加底部按钮区域 -->
       <div class="drawer-footer-wrapper">
-        <div  class="drawer-footer-button">
+        <div class="drawer-footer-button">
           <!-- <el-button
             v-if="activeTab !== '1'"
             @click="activeTab = (parseInt(activeTab) - 1).toString()">
@@ -319,9 +337,7 @@
             下一步
           </el-button> -->
           <el-button type="primary" @click="open = false">取消</el-button>
-          <el-button
-            type="primary"
-            @click="submitForm">
+          <el-button type="primary" @click="submitForm">
             确定
           </el-button><!-- v-if="activeTab === '4'"  -->
         </div>
@@ -341,7 +357,8 @@
             <el-checkbox v-model="upload.updateSupport" /> 是否更新已经存在的用户数据
           </div>
           <span>仅允许导入xls、xlsx格式文件。</span>
-          <el-link type="primary" :underline="false" style="font-size:12px;vertical-align: baseline;" @click="importTemplate">下载模板</el-link>
+          <el-link type="primary" :underline="false" style="font-size:12px;vertical-align: baseline;"
+            @click="importTemplate">下载模板</el-link>
         </div>
       </el-upload>
       <div slot="footer" class="dialog-footer">
@@ -361,12 +378,8 @@
         </el-form-item>
         <el-form-item label="角色">
           <el-select v-model="form.roleIds" multiple placeholder="请选择">
-            <el-option
-                v-for="item in roleOptions"
-                :key="parseInt(item.id)"
-                :label="item.name"
-                :value="parseInt(item.id)"
-            ></el-option>
+            <el-option v-for="item in roleOptions" :key="parseInt(item.id)" :label="item.name"
+              :value="parseInt(item.id)"></el-option>
           </el-select>
         </el-form-item>
       </el-form>
@@ -379,6 +392,8 @@
     <CardsForm ref="cardFormRef" @success="getList" />
     <!-- 用户卡片对话框 -->
     <user-card-dialog ref="userCardDialog" />
+    <!-- 授权表单对话框 -->
+    <authorize-form ref="authorizeFormRef" @success="handleSuccess" />
   </div>
 </template>
 
@@ -408,9 +423,11 @@ import {assignUserRole, listUserRoles} from "@/api/system/permission";
 import {listSimpleRoles} from "@/api/system/role";
 import {getBaseHeader} from "@/utils/request";
 import ImageUpload from '@/components/ImageUpload/index.vue'
+import AuthorizeForm from './authorize/authorizeForm.vue'
+
 export default {
   name: "SystemUser",
-  components: { Treeselect , ImageUpload, CardsForm, userCardDialog},
+  components: { Treeselect , ImageUpload, CardsForm, userCardDialog, AuthorizeForm},
   data() {
     return {
       // 遮罩层
@@ -580,6 +597,8 @@ export default {
         case 'handleRole':
           this.handleRole(row);
           break;
+        case 'handleAuthorize':
+          this.handleAuthorize();
         default:
           break;
       }
@@ -800,6 +819,21 @@ export default {
         this.$refs["userCardDialog"].show(row);
       }
     },
+    handleAuthorize(row){
+      // 统一获取选中行数据
+      row = row || {}; // 处理row为空的情况
+      const selectedRow = row.id ? row : this.selectedRows[0];
+      if (!selectedRow || !selectedRow.id) {
+        this.$message.error("请先选择要操作的数据行");
+        return;
+      }
+      // 检查选中数量
+      if (this.selectedRows.length > 1) {
+        this.$message.warning('只能选择一行数据进行操作')
+        return
+      }
+      this.$refs["authorizeFormRef"].show(row);
+    },
     /** 跳转至门禁权限管理页面 */
     addAccess() {
       if (this.form.id === undefined) {
@@ -929,6 +963,9 @@ export default {
         label: node.name,
         children: node.children
       }
+    },
+    handleSuccess() {
+      this.getList();
     }
   }
 };
