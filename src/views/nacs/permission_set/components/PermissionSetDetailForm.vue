@@ -1,10 +1,10 @@
 <template>
-  <el-dialog :title="dialogTitle" :visible.sync="visible" width="800px" append-to-body>
+  <el-dialog :title="dialogTitle" :visible.sync="visible" width="1200px" append-to-body @open="handleAuthDialogOpen" >
     <el-form ref="form" :model="formData" :rules="rules" label-width="120px">
       <el-form-item label="授权模式" prop="authMode">
         <el-select v-model="formData.authMode" placeholder="请选择授权模式" @change="handleAuthModeChange" >
           <el-option
-            v-for="dict in this.getDictDatas(DICT_TYPE.NACS_authMode)"
+            v-for="dict in this.getDictDatas(DICT_TYPE.NACS_AUTH_MODE)"
             :key="parseInt(dict.value)"
             :label="dict.label"
             :value="parseInt(dict.value)"
@@ -24,6 +24,7 @@
           }"
           filterable
           filter-placeholder="请输入门禁组名称"
+          class="custom-transfer"
         />
       </el-form-item>
 
@@ -39,6 +40,7 @@
           }"
           filterable
           filter-placeholder="请输入门禁点名称"
+          class="custom-transfer"
         />
       </el-form-item>
 
@@ -83,12 +85,15 @@ export default {
     }
   },
   methods: {
+    // 添加对话框打开事件处理
+    handleAuthDialogOpen() {
+      if (!this.formData.authType ) {
+        this.$set(this.formData, 'authMode', 0);
+        this.loadGroupOptions()
+      }
+    },
     /** 处理授权模式变更 */
     handleAuthModeChange(value) {
-      // 清空之前的选择
-      //this.formData.groupIds = []
-      //this.formData.deviceIds = []
-
       // 根据授权模式加载不同的数据
       if (value === 0) {
         this.loadGroupOptions()
@@ -306,4 +311,20 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.custom-transfer {
+  width: 100%;
+  height: 500px;
+}
+.custom-transfer ::v-deep .el-transfer-panel {
+  width: 40%;
+  height: 500px;
+}
+
+
+.custom-transfer ::v-deep .el-transfer-panel__list.is-filterable{
+    height: 490px;
+  }
+</style>
 
