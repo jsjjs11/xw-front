@@ -1,18 +1,26 @@
 /*
  * @copyright: 2021 NANJING SAC Rail Traffic Engineering CO., LTD
- * @Descripttion: 
+ * @Descripttion:
  * @version: V1.0
  * @Author: ym
  * @Date: 2025-04-15 10:47:05
  * @LastEditors: ym
- * @LastEditTime: 2025-04-15 11:40:25
+ * @LastEditTime: 2025-04-30 10:06:57
  */
 import request from '@/utils/request'
 
 // 获取门禁组列表
-export function getDGroupList(query) {
+export function getGroupEquipList(query) {
   return request({
-    url: '/nacs/d-groups/list',
+    url: '/nacs/group/getGroupEquipList',
+    method: 'get',
+    params: query
+  })
+}
+// 获取门禁组列表(树结构)
+export function getGroups(query) {
+  return request({
+    url: '/nacs/group/getGroups',
     method: 'get',
     params: query
   })
