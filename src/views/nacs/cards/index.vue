@@ -46,10 +46,10 @@
 
     <!-- 操作工具栏 -->
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="openForm(undefined)"
-                   v-hasPermi="['nacs:cards:create']">新增</el-button>
-      </el-col>
+<!--      <el-col :span="1.5">-->
+<!--        <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="openForm(undefined)"-->
+<!--                   v-hasPermi="['nacs:cards:create']">新增</el-button>-->
+<!--      </el-col>-->
       <el-col :span="1.5">
         <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport" :loading="exportLoading"
                    v-hasPermi="['nacs:cards:export']">导出</el-button>
@@ -92,7 +92,7 @@
           <el-button size="mini" type="text" icon="el-icon-edit" @click="openForm(scope.row.id)"
                      v-hasPermi="['nacs:cards:update']">修改</el-button>
           <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)"
-                     v-hasPermi="['nacs:cards:delete']">删除</el-button>
+                     v-hasPermi="['nacs:cards:delete']">注销</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -179,11 +179,11 @@ export default {
     /** 删除按钮操作 */
     async handleDelete(row) {
       const id = row.id;
-      await this.$modal.confirm('是否确认删除门禁卡片管理编号为"' + id + '"的数据项?')
+      await this.$modal.confirm('是否确认注销门禁卡片管理编号为"' + id + '"的数据项?')
       try {
-       await CardsApi.deleteCards(id);
+       await CardsApi.cancelCards(id);
        await this.getList();
-       this.$modal.msgSuccess("删除成功");
+       this.$modal.msgSuccess("注销成功");
       } catch {}
     },
     /** 导出按钮操作 */

@@ -1,8 +1,8 @@
 <template>
   <el-dialog :title="dialogTitle" :visible.sync="visible" width="500px" append-to-body>
     <el-form ref="form" :model="formData" :rules="rules" label-width="100px">
-      <el-form-item label="权限集标识" prop="setId">
-        <el-input v-model="formData.setId" placeholder="请输入权限集标识" />
+      <el-form-item v-if="formData.id" label="权限集标识" prop="setCode">
+        <el-input v-model="formData.setCode" disabled />
       </el-form-item>
       <el-form-item label="权限集名称" prop="setName">
         <el-input v-model="formData.setName" placeholder="请输入权限集名称" />
@@ -29,12 +29,11 @@ export default {
       dialogTitle: '',
       formData: {
         id: undefined,
-        setId: undefined,
+        setCode: undefined,
         setName: undefined,
         remark: undefined
       },
       rules: {
-        setId: [{ required: true, message: "权限集标识不能为空", trigger: "blur" }],
         setName: [{ required: true, message: "权限集名称不能为空", trigger: "blur" }]
       }
     }
@@ -81,7 +80,7 @@ export default {
     reset() {
       this.formData = {
         id: undefined,
-        setId: undefined,
+        setCode: undefined,
         setName: undefined,
         remark: undefined
       }

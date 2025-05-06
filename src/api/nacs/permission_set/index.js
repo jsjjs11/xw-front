@@ -5,7 +5,7 @@
  * @Author: ym
  * @Date: 2025-04-10 19:09:02
  * @LastEditors: ym
- * @LastEditTime: 2025-04-10 19:26:01
+ * @LastEditTime: 2025-04-30 16:34:51
  */
 import request from '@/utils/request'
 
@@ -95,7 +95,7 @@ export function getPermissionSetDetail(id) {
 // 获取权限集详情分页
 export function getPermissionSetDetailPage(query) {
   return request({
-    url: '/nacs/permission-set-detail/page',
+    url: '/nacs/permission-set/permissionSetDetail',
     method: 'get',
     params: query
   })

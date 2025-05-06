@@ -19,9 +19,9 @@ export function updateCards(data) {
 }
 
 // 删除门禁卡片管理
-export function deleteCards(id) {
+export function cancelCards(id) {
   return request({
-    url: '/nacs/cards/delete?id=' + id,
+    url: '/nacs/cards/cancel?id=' + id,
     method: 'delete'
   })
 }

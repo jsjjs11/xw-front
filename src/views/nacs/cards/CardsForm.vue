@@ -101,6 +101,7 @@
 
 
 <script>
+import { parseTime} from "@/utils/ruoyi";
   import * as CardsApi from '@/api/nacs/cards';
       export default {
     name: "CardsForm",
@@ -155,6 +156,9 @@
           try {
             const res = await CardsApi.getCards(id);
             this.formData = res.data;
+            this.formData.startDate = this.parseTime(res.data.startDate);
+            this.formData.endDate = this.parseTime(res.data.endDate);
+
             this.title = "修改门禁卡片管理";
           } finally {
             this.formLoading = false;
@@ -165,15 +169,15 @@
           this.handleQuickSelect(12); // 默认设置为1年
         }
       },
-      /** 开卡 */
+      /** 从人员页面开卡 */
       creadCard(form) {
         if (form) {
           this.reset();
           this.title = "开卡";
           this.formData.employeeId = form.id;
-          this.formData.employeeCode = form.employee_code;
+          this.formData.employeeCode = form.employeeCode;
           this.formData.employeeName = form.username;
-          this.formData.idCard = form.id_card;
+          this.formData.idCard = form.idCard;
           // 设置默认的开始时间和结束时间
           this.handleQuickSelect(12); // 默认设置为1年
           this.dialogVisible = true;

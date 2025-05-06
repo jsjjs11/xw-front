@@ -61,7 +61,7 @@
 export default {
   name: "PermissionSetDetailForm",
   props:[
-    'setId',"selectedList"
+    'setCode',"selectedList"
   ],// 集合编号（主表的关联字段）
   data() {
     return {
@@ -263,7 +263,7 @@ export default {
                 lineId: groupInfo.lineId,
                 logicDeciveCode: groupInfo.groupCode, // 使用门禁组的编号
                 authMode: 0,
-                setId: this.setId,
+                setCode: this.setCode,
                 remark: this.formData.remark
               }
             })
@@ -277,7 +277,7 @@ export default {
                 lineId: deviceInfo.lineId,
                 logicDeciveCode: deviceInfo.deviceCode,
                 authMode: 1,
-                setId: this.setId,
+                setCode: this.setCode,
                 remark: this.formData.remark
               }
             })
