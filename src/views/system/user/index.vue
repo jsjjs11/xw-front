@@ -87,9 +87,9 @@
         <el-table v-loading="loading" :data="userList" highlight-current-row @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="45" align="center" />
           <el-table-column label="用户编号" align="center" key="id" prop="id" v-if="columns[0].visible" />
-          <el-table-column label="用户昵称" align="center" key="username" prop="username" v-if="columns[1].visible"
+          <el-table-column label="用户名称" align="center" key="username" prop="username" v-if="columns[1].visible"
             :show-overflow-tooltip="true" />
-          <el-table-column label="员工姓名" align="center" key="employeeName" prop="employeeName" v-if="columns[2].visible"
+          <el-table-column label="用户昵称" align="center" key="nickname" prop="nickname" v-if="columns[2].visible"
             :show-overflow-tooltip="true" />
           <el-table-column label="部门" align="center" key="deptName" prop="dept.name" v-if="columns[3].visible"
             :show-overflow-tooltip="true" />
@@ -164,8 +164,8 @@
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item v-if="form.id === undefined" label="员工姓名" prop="employeeName">
-                  <el-input v-model="form.employeeName" placeholder="请输入员工姓名" :disabled="isViewMode" />
+                <el-form-item v-if="form.id === undefined" label="员工姓名" prop="nickname">
+                  <el-input v-model="form.nickname" placeholder="请输入员工姓名" :disabled="isViewMode" />
                 </el-form-item>
               </el-col>
             </el-row>
@@ -224,13 +224,13 @@
             <el-divider style="margin: 10px 0;"></el-divider>
             <el-row :gutter="20">
               <el-col :span="12">
-                <el-form-item label="员工编号" prop="employee_code">
-                  <el-input v-model="form.employee_code" placeholder="请输入员工编号" :disabled="isViewMode" />
+                <el-form-item label="员工编号" prop="employeeCode">
+                  <el-input v-model="form.employeeCode" placeholder="请输入员工编号" :disabled="isViewMode" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="所属部门" prop="dept_id">
-                  <treeselect v-model="form.dept_id" :options="deptOptions" :show-count="true" :clearable="false"
+                <el-form-item label="所属部门" prop="deptId">
+                  <treeselect v-model="form.deptId" :options="deptOptions" :show-count="true" :clearable="false"
                     placeholder="请选择所属部门" :normalizer="normalizer" :disabled="isViewMode" />
                 </el-form-item>
               </el-col>
@@ -375,7 +375,7 @@
           <el-input v-model="form.username" :disabled="true" />
         </el-form-item>
         <el-form-item label="员工姓名">
-          <el-input v-model="form.employeeName" :disabled="true" />
+          <el-input v-model="form.nickname" :disabled="true" />
         </el-form-item>
         <el-form-item label="角色">
           <el-select v-model="form.roleIds" multiple placeholder="请选择">
@@ -460,9 +460,9 @@ export default {
       // 表单参数
       form: {
         id: undefined,
-        dept_id: undefined,
+        deptId: undefined,
         username: '',
-        employeeName: '',
+        nickname: '',
         password: '',
         password2: '',
         mobile: '',
@@ -473,7 +473,7 @@ export default {
         postIds: [],
         roleIds: [],
         idCard: '',
-        employee_code: '',
+        employeeCode: '',
         birthday: null
       },
       // cardform: {},
@@ -505,7 +505,7 @@ export default {
         username: undefined,
         mobile: undefined,
         status: undefined,
-        dept_id: undefined,
+        deptId: undefined,
         createTime: []
       },
       activeTab: "1",
@@ -526,7 +526,7 @@ export default {
         username: [
           { required: true, message: "用户昵称不能为空", trigger: "blur" }
         ],
-        employeeName: [
+        nickname: [
           { required: true, message: "员工姓名不能为空", trigger: "blur" }
         ],
         password: [
@@ -539,7 +539,7 @@ export default {
         idCard: [
           { required: true, message: "身份证号不能为空", trigger: "blur" }
         ],
-        employee_code: [{ required: true, message: '员工编号不能为空', trigger: 'blur' }],
+        employeeCode: [{ required: true, message: '员工编号不能为空', trigger: 'blur' }],
         mobile: [
           {
             pattern: /^(?:(?:\+|00)86)?1(?:3[\d]|4[5-79]|5[0-35-9]|6[5-7]|7[0-8]|8[\d]|9[189])\d{8}$/,
@@ -634,7 +634,7 @@ export default {
     },
     // 节点单击事件
     handleNodeClick(data) {
-      this.queryParams.dept_id = data.id;
+      this.queryParams.deptId = data.id;
       this.getList();
     },
     // 用户状态修改
@@ -663,9 +663,9 @@ export default {
     reset() {
       this.form = {
         id: undefined,
-        dept_id: undefined,
+        deptId: undefined,
         username: '',
-        employeeName: '',
+        nickname: '',
         password: '',
         password2: '',
         mobile: '',
@@ -676,7 +676,7 @@ export default {
         postIds: [],
         roleIds: [],
         idCard: '',
-        employee_code: '',
+        employeeCode: '',
         birthday: null
       };
       this.isViewMode = false;
@@ -785,10 +785,10 @@ export default {
     handleRole(row) {
       this.reset();
       const id = row.id
-      // 处理了 form 的用户 username 和 employeeName 的展示
+      // 处理了 form 的用户 username 和 nickname 的展示
       this.form.id = id;
       this.form.username = row.username;
-      this.form.employeeName = row.employeeName;
+      this.form.nickname = row.nickname;
       // 打开弹窗
       this.openRole = true;
       // 获得角色列表
