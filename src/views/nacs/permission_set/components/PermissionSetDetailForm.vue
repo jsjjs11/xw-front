@@ -102,7 +102,7 @@ export default {
         this.loadGroupOptions()
       }
     },
-    /** 线路变更 */
+    /** 线路变更 *///TODO待完成根据线路编号去查询门禁点或门禁组
     handleLineChange(value){
       this.loadOptions()
     },

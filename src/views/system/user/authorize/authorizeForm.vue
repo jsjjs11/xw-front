@@ -30,8 +30,8 @@
         <el-table-column prop="lineName" label="线路名称" align="center" />
         <el-table-column prop="groupName" label="权限组名称" align="center">
           <template v-slot="scope">
-            <span 
-              v-if="scope.row.authMode === '0'" 
+            <span
+              v-if="scope.row.authMode === '0'"
               class="clickable-group-name"
               @click="showGroupDetails(scope.row)">
               {{ scope.row.groupName }}
@@ -73,104 +73,28 @@
         <el-table :data="accessPointList" style="width: 100%">
           <el-table-column prop="deviceName" label="门禁点名称" align="center" />
           <el-table-column prop="deviceId" label="设备编号" align="center" />
-          <el-table-column prop="lineId" label="线路ID" align="center" />
+          <el-table-column prop="lineNo" label="线路ID" align="center" />
           <el-table-column prop="groupCode" label="权限组编码" align="center" />
         </el-table>
       </el-drawer>
-
-      <!-- 人员授权抽屉 -->
-      <el-drawer
-        title="人员授权"
-        :visible.sync="authDrawerVisible"
-        direction="rtl"
-        size="80%"
-        :modal="true"
-        :append-to-body="true"
-        :modal-append-to-body="false"
-        :destroy-on-close="true">
-        <div class="auth-drawer-content">
-          <!-- 左侧权限组 -->
-          <div class="left-panel">
-            <div class="panel-title">权限组</div>
-            <div class="search-area">
-              <div class="search-item">
-                <span class="label">线路</span>
-                <el-select v-model="leftForm.lineId" placeholder="3号线" size="small">
-                  <el-option label="3号线" value="3" />
-                </el-select>
-              </div>
-              <div class="search-item">
-                <span class="label">权限组</span>
-                <el-input v-model="leftForm.groupName" placeholder="请输入权限组名称" size="small" />
-              </div>
-              <div class="button-group">
-                <el-button type="primary" size="small" icon="el-icon-search" @click="handleLeftSearch">查询</el-button>
-                <el-button size="small" icon="el-icon-refresh" @click="handleLeftReset">重置</el-button>
-              </div>
-            </div>
-            <!-- 权限组列表 -->
-            <el-table :data="leftTableData" style="width: 100%" @selection-change="handleLeftSelectionChange">
-              <el-table-column type="selection" width="55" />
-              <el-table-column prop="groupName" label="权限组名称" />
-              <el-table-column prop="lineName" label="线路" />
-              <el-table-column prop="authType" label="权限类型" />
-              <el-table-column prop="authMode" label="权限模式" />
-            </el-table>
-          </div>
-
-          <!-- 中间按钮区 -->
-          <div class="center-panel">
-            <el-button type="primary" class="transfer-btn" @click="handleTransferRight">>></el-button>
-            <el-button type="primary" class="transfer-btn" @click="handleTransferLeft"><<</el-button>
-          </div>
-
-          <!-- 右侧权限组 -->
-          <div class="right-panel">
-            <div class="panel-title">权限组</div>
-            <div class="search-area">
-              <div class="search-item">
-                <span class="label">权限组名称</span>
-                <el-input v-model="rightForm.groupName" placeholder="请输入权限组名称" size="small" />
-              </div>
-              <div class="search-item">
-                <span class="label">权限类型</span>
-                <el-select v-model="rightForm.authType" placeholder="请选择" size="small" clearable>
-                  <el-option label="门禁权限" value="1" />
-                </el-select>
-              </div>
-              <el-button type="primary" size="small" icon="el-icon-search" @click="handleRightSearch">查询</el-button>
-            </div>
-            <!-- 右侧表格 -->
-            <el-table :data="rightTableData" style="width: 100%" @selection-change="handleRightSelectionChange">
-              <el-table-column type="selection" width="55" />
-              <el-table-column prop="groupName" label="权限组..." />
-              <el-table-column prop="lineName" label="线路" />
-              <el-table-column prop="authType" label="权限类型" />
-              <el-table-column prop="authMode" label="权限模式" />
-            </el-table>
-          </div>
-        </div>
-        <div class="drawer-footer">
-          <el-button @click="authDrawerVisible = false">取 消</el-button>
-          <el-button type="primary" @click="handleAuthConfirm">确 定</el-button>
-        </div>
-      </el-drawer>
-
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+    <authorize-drawer ref="authorizeDrawerRef"/>
   </div>
 </template>
 
 <script>
-import { DICT_TYPE } from '@/utils/dict'
-//import * as deviceGroupApi from '@/api/nacs/d_groups' // 假设API路径
+import { DICT_TYPE,getLineDatas } from '@/utils/dict'
+import AuthorizeDrawer from '@/views/system/user/authorize/authorizeDrawer.vue'
 export default {
   name: 'AuthorizeForm',
+  components: { AuthorizeDrawer},
   data() {
     return {
+      lineMap: getLineDatas(),
       // 遮罩层
       loading: false,
       // 显示状态
@@ -224,50 +148,26 @@ export default {
       accessPointList: [
         {
           id: 1,
-          lineId: 'SZM2',
+          lineNo: 'SZM2',
           groupCode: 'WJC_GROUP',
           deviceId: 'WJC_GATE_01',
           deviceName: '世界之窗站1号闸机'
         },
         {
           id: 2,
-          lineId: 'SZM2',
+          lineNo: 'SZM2',
           groupCode: 'WJC_GROUP',
           deviceId: 'WJC_GATE_02',
           deviceName: '世界之窗站2号闸机'
         },
         {
           id: 3,
-          lineId: 'SZM2',
+          lineNo: 'SZM2',
           groupCode: 'WJC_GROUP',
           deviceId: 'WJC_DOOR_01',
           deviceName: '世界之窗站站厅门'
         }
       ],
-      // 人员授权抽屉显示状态
-      authDrawerVisible: false,
-      // 左侧表单数据
-      leftForm: {
-        lineId: '3',
-        groupName: ''
-      },
-      // 右侧表单数据
-      rightForm: {
-        groupName: '',
-        authType: ''
-      },
-      // 左侧表格数据
-      leftTableData: [{
-        groupName: '龙岗线',
-        lineName: '3号线',
-        authType: '门禁权限',
-        authMode: '门禁V系列'
-      }],
-      // 右侧表格数据
-      rightTableData: [],
-      // 选中的数据
-      leftSelection: [],
-      rightSelection: []
     }
   },
   methods: {
@@ -376,64 +276,9 @@ export default {
 
     /** 显示授权抽屉 */
     showAuthDrawer() {
-      this.authDrawerVisible = true;
-      this.getLeftTableData();
+      this.$refs["authorizeDrawerRef"].showAuthDrawer();
     },
 
-    /** 获取左侧表格数据 */
-    async getLeftTableData() {
-      // TODO: 调用API获取数据
-    },
-
-    /** 左侧查询 */
-    handleLeftSearch() {
-      this.getLeftTableData();
-    },
-
-    /** 左侧重置 */
-    handleLeftReset() {
-      this.leftForm = {
-        lineId: '3',
-        groupName: ''
-      };
-      this.getLeftTableData();
-    },
-
-    /** 右侧查询 */
-    handleRightSearch() {
-      this.getRightTableData();
-    },
-
-    /** 获取右侧表格数据 */
-    async getRightTableData() {
-      // TODO: 调用API获取数据
-    },
-
-    /** 处理左侧表格选择变化 */
-    handleLeftSelectionChange(selection) {
-      this.leftSelection = selection;
-    },
-
-    /** 处理右侧表格选择变化 */
-    handleRightSelectionChange(selection) {
-      this.rightSelection = selection;
-    },
-
-    /** 向右传输 */
-    handleTransferRight() {
-      // TODO: 实现向右传输逻辑
-    },
-
-    /** 向左传输 */
-    handleTransferLeft() {
-      // TODO: 实现向左传输逻辑
-    },
-
-    /** 确认授权 */
-    handleAuthConfirm() {
-      // TODO: 实现确认授权逻辑
-      this.authDrawerVisible = false;
-    }
   }
 }
 </script>

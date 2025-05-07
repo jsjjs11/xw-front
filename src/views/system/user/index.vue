@@ -396,6 +396,7 @@
     <user-card-dialog ref="userCardDialog" />
     <!-- 授权表单对话框 -->
     <authorize-form ref="authorizeFormRef" @success="handleSuccess" />
+    <authorize-drawer ref="authorizeDrawerRef"/>
   </div>
 </template>
 
@@ -426,10 +427,10 @@ import {listSimpleRoles} from "@/api/system/role";
 import {getBaseHeader} from "@/utils/request";
 import ImageUpload from '@/components/ImageUpload/index.vue'
 import AuthorizeForm from './authorize/authorizeForm.vue'
-
+import AuthorizeDrawer from '@/views/system/user/authorize/authorizeDrawer.vue'
 export default {
   name: "SystemUser",
-  components: { Treeselect , ImageUpload, CardsForm, userCardDialog, AuthorizeForm},
+  components: { Treeselect , ImageUpload, CardsForm, userCardDialog, AuthorizeForm, AuthorizeDrawer},
   data() {
     return {
       // 遮罩层
@@ -601,6 +602,10 @@ export default {
           break;
         case 'handleAuthorize':
           this.handleAuthorize();
+          break;
+        case 'handleAuthorizeByGroup':
+          this.handleAuthorizeByGroup();
+          break;
         default:
           break;
       }
@@ -820,6 +825,14 @@ export default {
         /** 添加/修改操作 */
         this.$refs["userCardDialog"].show(row);
       }
+    },
+    handleAuthorizeByGroup(){
+      if (this.selectedRows.length <= 1) {
+        this.$message.error('请先选择两个以上用户')
+        return
+      }
+      // 检查选中数量
+      this.$refs["authorizeDrawerRef"].showAuthDrawer();
     },
     handleAuthorize(row){
       // 统一获取选中行数据
