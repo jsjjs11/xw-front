@@ -50,4 +50,11 @@ export function exportLinesExcel(params) {
     params,
     responseType: 'blob'
   })
-}
+}
+
+export function listSimpleLineDatas() {
+  return request({
+    url: '/nacs/lines/list-all-simple',
+    method: 'get',
+  })
+}

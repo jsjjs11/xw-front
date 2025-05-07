@@ -134,7 +134,7 @@ export default {
     async getList() {
       try {
       this.loading = true;
-              const res = await LinesApi.getLinesPage(this.queryParams);
+        const res = await LinesApi.getLinesPage(this.queryParams);
         this.list = res.data.list;
         this.total = res.data.total;
       } finally {

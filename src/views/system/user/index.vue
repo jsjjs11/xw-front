@@ -91,8 +91,9 @@
             :show-overflow-tooltip="true" />
           <el-table-column label="用户昵称" align="center" key="nickname" prop="nickname" v-if="columns[2].visible"
             :show-overflow-tooltip="true" />
-          <el-table-column label="部门" align="center" key="deptName" prop="dept.name" v-if="columns[3].visible"
-            :show-overflow-tooltip="true" />
+          <el-table-column label="部门" align="center" key="deptName" prop="deptName" v-if="columns[3].visible"
+            :show-overflow-tooltip="true" >
+          </el-table-column>
           <el-table-column label="手机号码" align="center" key="mobile" prop="mobile" v-if="columns[4].visible"
             width="120" />
           <el-table-column label="身份证号" align="center" key="idCard" prop="idCard" v-if="columns[8].visible" />

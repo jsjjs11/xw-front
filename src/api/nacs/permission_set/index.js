@@ -95,7 +95,7 @@ export function getPermissionSetDetail(id) {
 // 获取权限集详情分页
 export function getPermissionSetDetailPage(query) {
   return request({
-    url: '/nacs/permission-set/permissionSetDetail',
+    url: '/nacs/permission-set/permission-set-detail',
     method: 'get',
     params: query
   })

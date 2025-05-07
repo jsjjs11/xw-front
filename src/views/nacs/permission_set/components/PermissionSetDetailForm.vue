@@ -11,7 +11,16 @@
           />
         </el-select>
       </el-form-item>
-
+      <el-form-item label="线路" prop="lineNo">
+        <el-select v-model="formData.lineNo" placeholder="请选择线路" @change="handleLineChange" >
+          <el-option
+            v-for="line in lineMap"
+            :key="parseInt(line.id)"
+            :label="line.name"
+            :value="line.lineNo"
+          />
+        </el-select>
+      </el-form-item>
       <!-- 门禁组穿梭框 - 按组授权模式 -->
       <el-form-item label="门禁组" prop="groupIds" v-if="formData.authMode === 0">
         <el-transfer
@@ -56,8 +65,8 @@
 </template>
 
 <script>
-//import { getDGroupList } from '@/api/nacs/d_groups'
-
+import {getLineDatas} from "@/utils/dict";
+import * as  groupsApi from "@/api/nacs/d_groups/index";
 export default {
   name: "PermissionSetDetailForm",
   props:[
@@ -65,6 +74,7 @@ export default {
   ],// 集合编号（主表的关联字段）
   data() {
     return {
+      lineMap: getLineDatas(),
       visible: false,
       dialogTitle: '',
       // 门禁组选项
@@ -91,6 +101,13 @@ export default {
         this.$set(this.formData, 'authMode', 0);
         this.loadGroupOptions()
       }
+    },
+    /** 线路变更 */
+    handleLineChange(value){
+      this.loadOptions()
+    },
+    loadOptions(){
+
     },
     /** 处理授权模式变更 */
     handleAuthModeChange(value) {
@@ -160,7 +177,7 @@ export default {
               "lineId": "7",
               "group_code": "501",
               "group_name": "北区VIP通道"
-            }
+            },
           ]}
         this.groupOptions = res.data.map(item => ({
           id: item.id,
@@ -248,6 +265,8 @@ export default {
     },
 
     submitForm() {
+
+      console.log(getLineDatas())
       this.$refs["form"].validate(async valid => {
         if (!valid) return
         try {

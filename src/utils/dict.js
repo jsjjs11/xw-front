@@ -99,7 +99,15 @@ export const DICT_TYPE = {
 
 
 }
-
+/**
+ * 获取 线路 对应的数据字典数组
+ *
+ * @param null
+ * @returns {*|Array} 线路数组
+ */
+export function getLineDatas() {
+  return store.getters.line_datas || []
+}
 /**
  * 获取 dictType 对应的数据字典数组
  *

@@ -24,6 +24,7 @@ router.beforeEach((to, from, next) => {
         isRelogin.show = true
         // 获取字典数据 add by 芋艿
         store.dispatch('dict/loadDictDatas')
+        store.dispatch('line/loadLineDatas')
         // 判断当前用户是否已拉取完 user_info 信息
         store.dispatch('GetInfo').then(userInfo => {
           isRelogin.show = false

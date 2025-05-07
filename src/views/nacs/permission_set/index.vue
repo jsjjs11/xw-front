@@ -2,9 +2,6 @@
   <div class="app-container">
     <!-- 搜索工作栏 -->
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch">
-      <el-form-item label="权限集标识" prop="setId">
-        <el-input v-model="queryParams.setId" placeholder="请输入权限集标识" clearable @keyup.enter.native="handleQuery"/>
-      </el-form-item>
       <el-form-item label="权限集名称" prop="setName">
         <el-input v-model="queryParams.setName" placeholder="请输入权限集名称" clearable @keyup.enter.native="handleQuery"/>
       </el-form-item>
@@ -30,10 +27,10 @@
       :stripe="true"
       :highlight-current-row="true"
       :show-overflow-tooltip="true"
-      @current-change="handleCurrentChange"
+      @row-dblclick="handleCurrentChange"
     >
       <el-table-column label="权限集编号" align="center" prop="id" />
-      <el-table-column label="权限集标识" align="center" prop="setId" />
+      <el-table-column label="权限集标识" align="center" prop="setCode" />
       <el-table-column label="权限集名称" align="center" prop="setName" />
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
@@ -58,8 +55,8 @@
     <PermissionSetForm ref="formRef" @success="getList"/>
     <!-- 子表的列表 -->
     <el-tabs  v-model="subTabsName">
-      <el-tab-pane label="门禁集合详细" name="PermissionSetDetail">
-        <PermissionSetDetail  :set-id="currentRow.setId" />
+      <el-tab-pane :label="currentRow.setName?currentRow.setName+'--详细':'门禁集合详细'" name="PermissionSetDetail">
+        <PermissionSetDetail  :set-code="currentRow.setCode" />
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -94,7 +91,7 @@ export default {
       queryParams: {
         pageNo: 1,
         pageSize: 10,
-        setId: null,
+        setCode: null,
         setName: null
       }
     }
@@ -107,50 +104,7 @@ export default {
     async getList() {
       try {
         this.loading = true
-        //let res = await getPermissionSetPage(this.queryParams);
-        // 模拟后端返回的数据
-        let res = {
-          code: 0,
-          data: {
-            list: [
-              {
-                id: 1,
-                setId: 'SET002',
-                setName: '设备房权限',
-                remark: '系统管理员的权限集合',
-                createTime: '2024-03-20 10:00:00',
-                updateTime: '2024-03-20 10:00:00',
-                creator: 'admin',
-                updater: 'admin'
-              },
-              {
-                id: 2,
-                setId: 'SET002',
-                setName: '设备2房权限',
-                remark: '普通用户的基础权限集合',
-                createTime: '2024-03-20 11:00:00',
-                updateTime: '2024-03-20 11:00:00',
-                creator: 'admin',
-                updater: 'admin'
-              },
-              {
-                id: 3,
-                setId: 'SET001',
-                setName: '访客权限集',
-                remark: '访客的只读权限集合',
-                createTime: '2024-03-20 12:00:00',
-                updateTime: '2024-03-20 12:00:00',
-                creator: 'admin',
-                updater: 'admin'
-              }
-            ],
-            total: 3
-          },
-          msg: "查询成功"
-        }
-
-
-        // const res = await getPermissionSetPage(this.queryParams)
+        let res = await getPermissionSetPage(this.queryParams);
         this.list = res.data.list
         this.total = res.data.total
       } finally {
@@ -181,11 +135,10 @@ export default {
       this.$modal.confirm('是否确认删除权限集编号为"' + id + '"的数据项?').then(() => {
         return deletePermissionSet(id)
       }).then(() => {
-        if (row.setId == this.currentRow.setId){
+        if (row.id == this.currentRow.id){
           this.subTabsName = '';
         }
         this.getList()
-        this.handleCurrentChange()
         this.$modal.msgSuccess("删除成功")
       }).catch(() => {})
     },
