@@ -1,124 +1,83 @@
 <template>
-  <div class="app-container">
-    <!-- 搜索工作栏 -->
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="100px">
-      <el-form-item label="线路 ID" prop="lineId">
-        <el-input v-model="queryParams.lineId" placeholder="请输入线路 ID" clearable @keyup.enter.native="handleQuery"/>
-      </el-form-item>
-      <el-form-item label="车站 ID" prop="stationId">
-        <el-input v-model="queryParams.stationId" placeholder="请输入车站 ID" clearable @keyup.enter.native="handleQuery"/>
-      </el-form-item>
-      <el-form-item label="车站名称" prop="stationName">
-        <el-input v-model="queryParams.stationName" placeholder="请输入车站名称" clearable @keyup.enter.native="handleQuery"/>
-      </el-form-item>
-      <el-form-item label="门禁系统ID" prop="deviceCode">
-        <el-input v-model="queryParams.deviceCode" placeholder="请输入门禁系统唯一编号" clearable @keyup.enter.native="handleQuery"/>
-      </el-form-item>
-      <el-form-item label="设备名称" prop="deviceName">
-        <el-input v-model="queryParams.deviceName" placeholder="请输入设备名称" clearable @keyup.enter.native="handleQuery"/>
-      </el-form-item>
-      <el-form-item label="设备类型" prop="deviceType">
-        <el-select v-model="queryParams.deviceType" placeholder="请选择设备类型" clearable size="small">
-          <el-option v-for="dict in this.getDictDatas(DICT_TYPE.NACS_DEVICE_TYPE)"
-                       :key="dict.value" :label="dict.label" :value="dict.value"/>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="上级设备BCD" prop="devicePbcd">
-        <el-input v-model="queryParams.devicePbcd" placeholder="请输入上级设备编码 BCD" clearable @keyup.enter.native="handleQuery"/>
-      </el-form-item>
-      <el-form-item label="本级设备BCD" prop="deviceBcd">
-        <el-input v-model="queryParams.deviceBcd" placeholder="请输入本级设备编码 BCD" clearable @keyup.enter.native="handleQuery"/>
-      </el-form-item>
-      <el-form-item label="设备厂商" prop="deviceManu">
-        <el-input v-model="queryParams.deviceManu" placeholder="请输入设备厂商" clearable @keyup.enter.native="handleQuery"/>
-      </el-form-item>
-      <el-form-item label="设备品牌" prop="deviceBrand">
-        <el-input v-model="queryParams.deviceBrand" placeholder="请输入设备品牌" clearable @keyup.enter.native="handleQuery"/>
-      </el-form-item>
-      <el-form-item label="设备当前状态" prop="deviceStatus">
-        <el-select v-model="queryParams.deviceStatus" placeholder="请选择设备当前状态" clearable size="small">
-          <el-option v-for="dict in this.getDictDatas(DICT_TYPE.COMMON_STATUS)"
-                       :key="dict.value" :label="dict.label" :value="dict.value"/>
-        </el-select>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" icon="el-icon-search" @click="handleQuery">搜索</el-button>
-        <el-button icon="el-icon-refresh" @click="resetQuery">重置</el-button>
-      </el-form-item>
-    </el-form>
+  <div class="page-container">
+    <el-row :gutter="20">
+      <!-- 左侧区域：两列并排 -->
+      <el-col :span="8">
+        <el-row :gutter="10">
+          <!-- 左侧：线路列表 -->
+          <el-col :span="12">
+            <div class="section-title">线路列表</div>
+            <el-radio-group v-model="selectedLine" @change="onLineChange">
+              <el-timeline>
+                <el-timeline-item
+                  v-for="line in lineList"
+                  :key="line.lineNo"
+                  size="large"
+                >
+                  <template #dot>
+                  <el-radio :label="line.lineNo">{{ line.name }}</el-radio>
+                  </template>
+                </el-timeline-item>
+              </el-timeline>
+            </el-radio-group>
+          </el-col>
 
-    <!-- 操作工具栏 -->
-    <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport" :loading="exportLoading"
-                   v-hasPermi="['nacs:devices:export']">导出</el-button>
+          <!-- 右侧：车站列表 -->
+          <el-col :span="12">
+            <div class="section-title">车站列表</div>
+            <el-radio-group v-model="selectedStation" @change="onStationChange">
+              <el-timeline>
+                <el-timeline-item
+                  v-for="station in stationList"
+                  :key="station.id"
+                  size="large"
+                >
+                  <template #dot>
+                  <el-radio :label="station.id">{{ station.name }}</el-radio>
+                  </template>
+                </el-timeline-item>
+              </el-timeline>
+            </el-radio-group>
+          </el-col>
+        </el-row>
       </el-col>
-              <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
-    </el-row>
 
-            <el-table v-loading="loading" :data="list" :stripe="true" :show-overflow-tooltip="true">
-            <el-table-column label="ID" align="center" prop="id" />
-      <el-table-column label="线路 ID" align="center" prop="lineId" />
-      <el-table-column label="车站 ID" align="center" prop="stationId" />
-      <el-table-column label="车站名称" align="center" prop="stationName" />
-      <el-table-column label="门禁系统" align="center" prop="deviceCode" />
-      <el-table-column label="设备名称" align="center" prop="deviceName" />
-      <el-table-column label="设备类型" align="center" prop="deviceType">
-        <template v-slot="scope">
-          <dict-tag :type="DICT_TYPE.NACS_DEVICE_TYPE" :value="scope.row.deviceType" />
-        </template>
-      </el-table-column>
-      <el-table-column label="上级设备BCD" align="center" prop="devicePbcd" />
-      <el-table-column label="本级设备BCD" align="center" prop="deviceBcd" />
-      <el-table-column label="设备通讯配置参数" align="center" prop="deviceCom" />
-      <el-table-column label="设备厂商" align="center" prop="deviceManu" />
-      <el-table-column label="设备品牌" align="center" prop="deviceBrand" />
-      <el-table-column label="设备状态" align="center" prop="deviceStatus">
-        <template v-slot="scope">
-          <dict-tag :type="DICT_TYPE.COMMON_STATUS" :value="scope.row.deviceStatus" />
-        </template>
-      </el-table-column>
-      <el-table-column label="设备状态更新时间" align="center" prop="deviceTime" width="180">
-        <template v-slot="scope">
-          <span>{{ parseTime(scope.row.deviceTime) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" />
-    </el-table>
-    <!-- 分页组件 -->
-    <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNo" :limit.sync="queryParams.pageSize"
-                @pagination="getList"/>
-    </div>
+      <!-- 右侧表格区域 -->
+      <el-col :span="16">
+        <el-table
+          :data="tableData"
+          border
+          style="width: 100%"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55" />
+          <el-table-column prop="name" label="门禁名称" />
+          <el-table-column prop="line" label="线路" />
+          <el-table-column prop="station" label="站点" />
+          <el-table-column prop="supplier" label="门禁供应商" />
+          <el-table-column prop="brand" label="门禁品牌" />
+          <el-table-column prop="enabledTime" label="启用时间" />
+        </el-table>
+
+        <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNo" :limit.sync="queryParams.pageSize"
+                    @pagination="getList"/>
+      </el-col>
+    </el-row>
+  </div>
 </template>
 
+
 <script>
+import {getLineDatas} from "@/utils/dict";
 import * as DevicesApi from '@/api/nacs/devices';
 export default {
-  name: "Devices",
-  components: {
-  },
   data() {
     return {
       // 遮罩层
       loading: true,
-      // 导出遮罩层
-      exportLoading: false,
-      // 显示搜索条件
-      showSearch: true,
-              // 总条数
-        total: 0,
-      // 门禁相关设备监控列表
-      list: [],
-      // 是否展开，默认全部展开
-      isExpandAll: true,
-      // 重新渲染表格状态
-      refreshTable: true,
-      // 选中行
-      currentRow: {},
-      // 查询参数
       queryParams: {
-                    pageNo: 1,
-            pageSize: 10,
+        pageNo: 1,
+        pageSize: 10,
         lineId: null,
         stationId: null,
         stationName: null,
@@ -131,55 +90,95 @@ export default {
         deviceBrand: null,
         deviceStatus: null,
       },
-            };
+      // 模拟线路
+      lineList: getLineDatas(),
+      // 当前选中的线路和车站
+      selectedLine: '',
+      selectedStation: null,
+
+      // 车站列表（随线路变化）
+      stationList: [],
+
+      // 表格相关
+      tableData: [],
+      total: 0,
+      pageSize: 10
+    };
   },
-  created() {
-    this.getList();
+  mounted() {
+    console.log(111)
+    if(this.lineList.length>1){
+      this.selectedLine = this.lineList[0].lineNo
+    }
+    this.onLineChange(); // 默认载入第一条线路的站点
   },
   methods: {
-    /** 查询列表 */
     async getList() {
       try {
-      this.loading = true;
-              const res = await DevicesApi.getDevicesPage(this.queryParams);
+        this.loading = true;
+        const res = await DevicesApi.getDevicesPage(this.queryParams);
         this.list = res.data.list;
         this.total = res.data.total;
       } finally {
         this.loading = false;
       }
     },
-    /** 搜索按钮操作 */
-    handleQuery() {
-      this.queryParams.pageNo = 1;
-      this.getList();
+    // 根据线路选择站点
+    onLineChange() {
+      // 模拟不同线路下的车站
+      const stationMap = {
+        L00001: [
+          { id: 'station1', name: '黄梅站' },
+          { id: 'station2', name: '汤山站' },
+          { id: 'station3', name: '华阳站' }
+        ],
+        L00002: [
+          { id: 'station4', name: '禁明站' },
+          { id: 'station5', name: '句容站' }
+        ]
+      };
+      this.stationList = stationMap[this.selectedLine] || [];
+      this.selectedStation = this.stationList.length ? this.stationList[0].id : null;
+      this.onStationChange(); // 刷新右侧表格
     },
-    /** 重置按钮操作 */
-    resetQuery() {
-      this.resetForm("queryForm");
-      this.handleQuery();
+    onStationChange() {
+      this.loadTableData(1);
     },
-    /** 删除按钮操作 */
-    async handleDelete(row) {
-      const id = row.id;
-      await this.$modal.confirm('是否确认删除门禁相关设备监控编号为"' + id + '"的数据项?')
-      try {
-       await DevicesApi.deleteDevices(id);
-       await this.getList();
-       this.$modal.msgSuccess("删除成功");
-      } catch {}
+    loadTableData(page) {
+      // 模拟拉取当前站点门禁数据
+      this.tableData = [
+        {
+          name: '门禁A',
+          line: this.lineList.find(l => l.lineNo === this.selectedLine).name,
+          station: this.stationList.find(s => s.id === this.selectedStation)?.name || '',
+          supplier: '安朗杰',
+          brand: '品牌X',
+          enabledTime: '2024-01-01'
+        }
+      ];
+      this.total = 1;
     },
-    /** 导出按钮操作 */
-    async handleExport() {
-      await this.$modal.confirm('是否确认导出所有门禁相关设备监控数据项?');
-      try {
-        this.exportLoading = true;
-        const data = await DevicesApi.exportDevicesExcel(this.queryParams);
-        this.$download.excel(data, '门禁相关设备监控.xls');
-      } catch {
-      } finally {
-        this.exportLoading = false;
-      }
+    handleSelectionChange(val) {
+      console.log('选中项:', val);
     },
-              }
+    handlePageChange(page) {
+      this.loadTableData(page);
+    }
+  }
 };
 </script>
+
+<style scoped>
+.page-container {
+  padding: 20px;
+}
+.left-panel {
+  border-right: 1px solid #ebeef5;
+  padding-right: 10px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+.table-actions {
+  margin-bottom: 10px;
+}
+</style>
