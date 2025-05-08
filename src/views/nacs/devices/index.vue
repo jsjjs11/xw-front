@@ -181,4 +181,11 @@ export default {
 .table-actions {
   margin-bottom: 10px;
 }
+::v-deep .el-timeline-item__tail {
+  top: 10px;
+  left: 10px;
+}
+::v-deep .el-timeline-item__dot {
+  left: 4px;
+}
 </style>
