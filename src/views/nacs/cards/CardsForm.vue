@@ -9,36 +9,36 @@
 <!--              <el-input v-model="formData.lineId" placeholder="请输入线路ID" class="input-width" />-->
 <!--            </el-form-item>-->
 <!--          </el-col>-->
-          <el-col :span="24">
+          <!-- <el-col :span="24">
             <el-form-item label="物理卡号" prop="cardId">
               <el-input v-model="formData.cardId" placeholder="请输入物理卡号" class="input-width" />
             </el-form-item>
-          </el-col>
+          </el-col> -->
 <!--          <el-col :span="24">-->
 <!--            <el-form-item label="虚拟卡号" prop="cardMapBcd">-->
 <!--              <el-input v-model="formData.cardMapBcd" placeholder="请输入虚拟卡号" class="input-width" />-->
 <!--            </el-form-item>-->
 <!--          </el-col>-->
-<!--          <el-col :span="24">-->
-<!--            <el-form-item label="线路侧中间表上传的卡号" prop="cardNo">-->
-<!--              <el-input v-model="formData.cardNo" placeholder="请输入线路侧中间表上传的卡号" class="input-width" />-->
-<!--            </el-form-item>-->
-<!--          </el-col>-->
-          <el-col :span="24">
+         <el-col :span="24">
+           <el-form-item label="卡号" prop="cardNo">
+             <el-input v-model="formData.cardNo" placeholder="请输入卡号" class="input-width" />
+           </el-form-item>
+         </el-col>
+          <!-- <el-col :span="24">
             <el-form-item label="持卡人ID" prop="employeeId">
               <el-input v-model="formData.employeeId" placeholder="请输入持卡人ID" class="input-width" />
             </el-form-item>
-          </el-col>
+          </el-col> -->
           <el-col :span="24">
             <el-form-item label="持卡人编号ID" prop="employeeCode">
               <el-input v-model="formData.employeeCode" placeholder="请输入持卡人编号ID" class="input-width" />
             </el-form-item>
           </el-col>
-          <el-col :span="24">
+          <!-- <el-col :span="24">
             <el-form-item label="持卡人姓名" prop="employeeName">
               <el-input v-model="formData.employeeName" placeholder="请输入持卡人姓名" class="input-width" />
             </el-form-item>
-          </el-col>
+          </el-col> -->
           <el-col :span="24">
             <el-form-item label="持卡人身份证号" prop="idCard">
               <el-input v-model="formData.idCard" placeholder="请输入持卡人身份证号" class="input-width" />
@@ -119,12 +119,12 @@ import { parseTime} from "@/utils/ruoyi";
         formData: {
                             id: undefined,
                             lineId: undefined,
-                            cardId: undefined,
-                            cardMapBcd: undefined,
+                            // cardId: undefined,
+                            // cardMapBcd: undefined,
                             cardNo: undefined,
-                            employeeId: undefined,
+                            // employeeId: undefined,
                             employeeCode: undefined,
-                            employeeName: undefined,
+                            // employeeName: undefined,
                             idCard: undefined,
                             cardType: undefined,
                             cardState: undefined,
@@ -134,10 +134,10 @@ import { parseTime} from "@/utils/ruoyi";
         // 表单校验
         formRules: {
                         lineId: [{ required: true, message: '线路ID不能为空', trigger: 'blur' }],
-                        cardId: [{ required: true, message: '物理卡号不能为空', trigger: 'blur' }],
-                        employeeId: [{ required: true, message: '持卡人ID不能为空', trigger: 'blur' }],
+                        cardNo: [{ required: true, message: '卡号不能为空', trigger: 'blur' }],
+                        // employeeId: [{ required: true, message: '持卡人ID不能为空', trigger: 'blur' }],
                         employeeCode: [{ required: true, message: '持卡人编号ID不能为空', trigger: 'blur' }],
-                        employeeName: [{ required: true, message: '持卡人姓名不能为空', trigger: 'blur' }],
+                        // employeeName: [{ required: true, message: '持卡人姓名不能为空', trigger: 'blur' }],
                         idCard: [{ required: true, message: '持卡人身份证号不能为空', trigger: 'blur' }],
                         cardType: [{ required: true, message: '卡类型不能为空', trigger: 'change' }],
                         startDate: [{ required: true, message: '有效时间不能为空', trigger: 'blur' }],
@@ -174,9 +174,9 @@ import { parseTime} from "@/utils/ruoyi";
         if (form) {
           this.reset();
           this.title = "开卡";
-          this.formData.employeeId = form.id;
+          // this.formData.employeeId = form.id;
           this.formData.employeeCode = form.employeeCode;
-          this.formData.employeeName = form.username;
+          // this.formData.employeeName = form.username;
           this.formData.idCard = form.idCard;
           // 设置默认的开始时间和结束时间
           this.handleQuickSelect(12); // 默认设置为1年
@@ -212,12 +212,12 @@ import { parseTime} from "@/utils/ruoyi";
         this.formData = {
                             id: undefined,
                             lineId: undefined,
-                            cardId: undefined,
-                            cardMapBcd: undefined,
+                            // cardId: undefined,
+                            // cardMapBcd: undefined,
                             cardNo: undefined,
-                            employeeId: undefined,
+                            // employeeId: undefined,
                             employeeCode: undefined,
-                            employeeName: undefined,
+                            // employeeName: undefined,
                             idCard: undefined,
                             cardType: undefined,
                             cardState: undefined,

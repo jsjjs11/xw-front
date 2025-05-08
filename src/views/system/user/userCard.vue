@@ -4,7 +4,7 @@
       <div class="card-container">
         <el-button type="primary" plain icon="el-icon-plus" @click="creatCard">新增门禁卡</el-button>
         <el-table v-loading="loading" :data="cardList" style="margin-top: 20px;">
-          <el-table-column label="物理卡号" align="center" prop="cardId" />
+          <el-table-column label="卡号" align="center" prop="cardNo" />
           <el-table-column label="卡类型" align="center" prop="cardType">
             <template v-slot="scope">
               <dict-tag :type="DICT_TYPE.NACS_CARD_TYPE" :value="scope.row.cardType" />
