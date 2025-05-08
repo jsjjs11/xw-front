@@ -25,8 +25,8 @@
             <el-input v-model="queryParams.username" placeholder="请输入用户名称" clearable style="width: 240px"
               @keyup.enter.native="handleQuery" />
           </el-form-item>
-          <el-form-item label="身份证号" prop="id_card">
-            <el-input v-model="queryParams.id_card" placeholder="请输入身份证号" clearable style="width: 240px"
+          <el-form-item label="身份证号" prop="idCard">
+            <el-input v-model="queryParams.idCard" placeholder="请输入身份证号" clearable style="width: 240px"
               @keyup.enter.native="handleQuery" />
           </el-form-item>
           <el-form-item label="状态" prop="status">
@@ -96,7 +96,7 @@
           </el-table-column>
           <el-table-column label="手机号码" align="center" key="mobile" prop="mobile" v-if="columns[4].visible"
             width="120" />
-          <el-table-column label="身份证号" align="center" key="idCard" prop="idCard" v-if="columns[8].visible" />
+          <el-table-column label="身份证号" align="center" key="idCard" prop="idCard" v-if="columns[7].visible" />
           <el-table-column label="状态" key="status" v-if="columns[5].visible" align="center">
             <template v-slot="scope">
               <el-switch v-model="scope.row.status" :active-value="0" :inactive-value="1"
@@ -108,8 +108,8 @@
               <span>{{ parseTime(scope.row.createTime) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="审核状态" align="center" key="auditStatus" prop="auditStatus" v-if="columns[7].visible"
-            width="120"></el-table-column>
+          <!-- <el-table-column label="审核状态" align="center" key="auditStatus" prop="auditStatus" v-if="columns[7].visible"
+            width="120"></el-table-column> -->
           <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
             <template v-slot="scope">
               <el-button size="mini" type="text" icon="el-icon-bank-card" @click.stop="handleCard(scope.row)"
@@ -520,8 +520,8 @@ export default {
         { key: 4, label: `手机号码`, visible: true },
         { key: 5, label: `状态`, visible: true },
         { key: 6, label: `创建时间`, visible: true },
-        { key: 7, label: '审核状态', visible: true },
-        { key: 8, label: '身份证号', visible: true }
+        // { key: 7, label: '审核状态', visible: true },
+        { key: 7, label: '身份证号', visible: true }
       ],
       // 表单校验
       rules: {
