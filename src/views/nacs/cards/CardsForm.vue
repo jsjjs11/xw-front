@@ -34,11 +34,11 @@
               <el-input v-model="formData.employeeCode" placeholder="请输入持卡人编号ID" class="input-width" />
             </el-form-item>
           </el-col>
-          <!-- <el-col :span="24">
+          <el-col :span="24">
             <el-form-item label="持卡人姓名" prop="employeeName">
               <el-input v-model="formData.employeeName" placeholder="请输入持卡人姓名" class="input-width" />
             </el-form-item>
-          </el-col> -->
+          </el-col>
           <el-col :span="24">
             <el-form-item label="持卡人身份证号" prop="idCard">
               <el-input v-model="formData.idCard" placeholder="请输入持卡人身份证号" class="input-width" />
@@ -124,7 +124,7 @@ import { parseTime} from "@/utils/ruoyi";
                             cardNo: undefined,
                             // employeeId: undefined,
                             employeeCode: undefined,
-                            // employeeName: undefined,
+                            employeeName: undefined,
                             idCard: undefined,
                             cardType: undefined,
                             cardState: undefined,
@@ -137,7 +137,7 @@ import { parseTime} from "@/utils/ruoyi";
                         cardNo: [{ required: true, message: '卡号不能为空', trigger: 'blur' }],
                         // employeeId: [{ required: true, message: '持卡人ID不能为空', trigger: 'blur' }],
                         employeeCode: [{ required: true, message: '持卡人编号ID不能为空', trigger: 'blur' }],
-                        // employeeName: [{ required: true, message: '持卡人姓名不能为空', trigger: 'blur' }],
+                        employeeName: [{ required: true, message: '持卡人姓名不能为空', trigger: 'blur' }],
                         idCard: [{ required: true, message: '持卡人身份证号不能为空', trigger: 'blur' }],
                         cardType: [{ required: true, message: '卡类型不能为空', trigger: 'change' }],
                         startDate: [{ required: true, message: '有效时间不能为空', trigger: 'blur' }],
@@ -217,7 +217,7 @@ import { parseTime} from "@/utils/ruoyi";
                             cardNo: undefined,
                             // employeeId: undefined,
                             employeeCode: undefined,
-                            // employeeName: undefined,
+                            employeeName: undefined,
                             idCard: undefined,
                             cardType: undefined,
                             cardState: undefined,

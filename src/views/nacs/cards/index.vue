@@ -20,9 +20,9 @@
       <el-form-item label="持卡人编号ID" prop="employeeCode">
         <el-input v-model="queryParams.employeeCode" placeholder="请输入持卡人编号ID" clearable @keyup.enter.native="handleQuery"/>
       </el-form-item>
-      <!-- <el-form-item label="持卡人姓名" prop="employeeName">
+      <el-form-item label="持卡人姓名" prop="employeeName">
         <el-input v-model="queryParams.employeeName" placeholder="请输入持卡人姓名" clearable @keyup.enter.native="handleQuery"/>
-      </el-form-item> -->
+      </el-form-item>
       <el-form-item label="持卡人身份证号" prop="idCard">
         <el-input v-model="queryParams.idCard" placeholder="请输入持卡人身份证号" clearable @keyup.enter.native="handleQuery"/>
       </el-form-item>
@@ -65,7 +65,7 @@
       <el-table-column label="卡号" align="center" prop="cardNo" />
       <!-- <el-table-column label="持卡人ID" align="center" prop="employeeId" /> -->
       <el-table-column label="持卡人编号ID" align="center" prop="employeeCode" />
-      <!-- <el-table-column label="持卡人姓名" align="center" prop="employeeName" /> -->
+      <el-table-column label="持卡人姓名" align="center" prop="employeeName" />
       <el-table-column label="持卡人身份证号" align="center" prop="idCard" />
       <el-table-column label="卡类型" align="center" prop="cardType">
         <template v-slot="scope">
@@ -140,7 +140,7 @@ export default {
         cardNo: null,
         // employeeId: null,
         employeeCode: null,
-        // employeeName: null,
+        employeeName: null,
         idCard: null,
         cardType: null,
         cardState: null,
