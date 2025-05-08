@@ -8,15 +8,17 @@
           <el-col :span="12">
             <div class="section-title">线路列表</div>
             <el-radio-group v-model="selectedLine" @change="onLineChange">
-              <el-timeline>
+              <el-timeline class="custom-timeline">
                 <el-timeline-item
                   v-for="line in lineList"
                   :key="line.lineNo"
                   size="large"
                 >
                   <template #dot>
-                  <el-radio :label="line.lineNo">{{ line.name }}</el-radio>
+                  <el-radio :label="line.lineNo">   {{ line.name }}</el-radio>
+
                   </template>
+
                 </el-timeline-item>
               </el-timeline>
             </el-radio-group>
@@ -26,15 +28,16 @@
           <el-col :span="12">
             <div class="section-title">车站列表</div>
             <el-radio-group v-model="selectedStation" @change="onStationChange">
-              <el-timeline>
+              <el-timeline class="custom-timeline">
                 <el-timeline-item
                   v-for="station in stationList"
                   :key="station.id"
                   size="large"
                 >
                   <template #dot>
-                  <el-radio :label="station.id">{{ station.name }}</el-radio>
+                    <el-radio :label="station.id">{{ station.name }}</el-radio>
                   </template>
+
                 </el-timeline-item>
               </el-timeline>
             </el-radio-group>
@@ -168,9 +171,10 @@ export default {
 };
 </script>
 
-<style scoped>
+<style scoped >
 .page-container {
   padding: 20px;
+  min-height: 100%;
 }
 .left-panel {
   border-right: 1px solid #ebeef5;
@@ -180,5 +184,21 @@ export default {
 }
 .table-actions {
   margin-bottom: 10px;
+}
+
+.custom-timeline{
+  margin-top: 30px;
+}
+
+::v-deep .el-timeline-item__tail {
+  left: 6px;
+  margin-top: 10px;
+}
+::v-deep .el-timeline-item__timestamp.is-top {
+  margin-bottom: 3px;
+}
+
+::v-deep .el-radio__label{
+  //display: none;
 }
 </style>
