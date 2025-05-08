@@ -93,8 +93,8 @@ export const DICT_TYPE = {
   NACS_CARD_STATE: 'nacs_card_state',                     // 门禁卡状态
   NACS_OP_DATA_TYPE: 'nacs_op_data_type',                 //数据操作类型
   NACS_CARD_TYPE:"nacs_card_type",                        //门禁卡类型
-  NACS_ACCESS_TYPE:"nacs_access_type"                     //门禁访问类型
-
+  NACS_ACCESS_TYPE:"nacs_access_type",                     //门禁访问类型
+  NACS_CHECK_STATE:"nacs_check_state"                     //审核状态
   // ......
 
 
