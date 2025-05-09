@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-dialog :title="title" :visible.sync="visible" width="900px" append-to-body>
+    <el-dialog :title="title" :visible.sync="visible" width="1000px" append-to-body>
       <div class="card-container">
         <el-button type="primary" plain icon="el-icon-plus" @click="creatCard">新增门禁卡</el-button>
         <el-table v-loading="loading" :data="cardList" style="margin-top: 20px;">
@@ -25,7 +25,7 @@
               <span>{{ parseTime(scope.row.endDate) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" align="center" width="200">
+          <el-table-column label="操作" align="center" width="260">
             <template v-slot="scope">
               <!-- 已激活状态(1)和代发卡状态(0)：显示挂失和加入黑名单按钮 -->
               <template v-if="scope.row.cardState === 1 || scope.row.cardState === 0">
@@ -37,14 +37,20 @@
                 </el-button>
                 <el-button
                   size="mini"
+                  type="warning"
+                  @click="handleFreezeCard(scope.row)">
+                  冻结
+                </el-button>
+                <el-button
+                  size="mini"
                   type="danger"
                   @click="handleBlacklist(scope.row)">
                   加入黑名单
                 </el-button>
               </template>
 
-              <!-- 已挂失状态(2)或已注销状态(3)：显示恢复正常按钮 -->
-              <template v-else-if="scope.row.cardState === 2 || scope.row.cardState === 3">
+              <!-- 已冻结状态(4)已挂失状态(2)或已注销状态(3)：显示恢复正常按钮 -->
+              <template v-else-if="scope.row.cardState === 4 || scope.row.cardState === 2 || scope.row.cardState === 3">
                 <el-button
                   size="mini"
                   type="success"
@@ -71,7 +77,7 @@
 </template>
 
 <script>
-import { getCardsPage, updateCards } from '@/api/nacs/cards'
+import { getCardsPage, updateCards, freezeCards, activateCards, cancelCards, reportLost } from '@/api/nacs/cards'
 import CardsForm from '@/views/nacs/cards/CardsForm.vue'
 import { DICT_TYPE } from '@/utils/dict'
 import { parseTime } from '@/utils/ruoyi'
@@ -165,17 +171,47 @@ export default {
       try {
         await this.$modal.confirm('确认要挂失该卡片吗？')
         this.loading = true
-        const data = { ...row, cardState: 2 }
-        await updateCards(data)
+        // const data = { ...row, cardState: 2 }
+        // await updateCards(data)
+        await reportLost(row.id)
         this.$modal.msgSuccess("卡片已挂失")
         await this.getList()
       } catch (error) {
+        if (error !== 'cancel') {
+          this.$modal.msgError('挂失失败')
+        }
         console.error("挂失操作失败", error)
       } finally {
         this.loading = false
       }
     },
+    /** 处理卡片冻结 */
+    async handleFreezeCard(row) {
+      // 检查卡片状态
+      if (row.cardState === 0) {
+        this.$modal.msgError("卡片未激活，不能进行冻结操作")
+        return
+      }
+      if (row.cardState !== 1) {
+        this.$modal.msgError("只有已激活的卡片才能进行冻结操作")
+        return
+      }
 
+      try {
+        await this.$modal.confirm('确认要冻结该卡片吗？')
+        this.loading = true
+        await freezeCards(row.id)
+        this.$modal.msgSuccess("卡片已冻结")
+        await this.getList()
+      } catch (error) {
+        if (error !== 'cancel') {
+          this.$modal.msgError('冻结失败')
+        }
+        console.error("冻结操作失败", error)
+      } finally {
+        this.loading = false
+      }
+    },
     /** 处理加入黑名单 */
     async handleBlacklist(row) {
       // 检查卡片状态
@@ -191,11 +227,15 @@ export default {
       try {
         await this.$modal.confirm('确认要将该卡片加入黑名单吗？')
         this.loading = true
-        const data = { ...row, cardState: 3 }
-        await updateCards(data)
+        // const data = { ...row, cardState: 3 }
+        // await updateCards(data)
+        await cancelCards(row.id)
         this.$modal.msgSuccess("卡片已加入黑名单")
         await this.getList()
       } catch (error) {
+        if (error !== 'cancel') {
+          this.$modal.msgError('加入黑名单失败')
+        }
         console.error("加入黑名单操作失败", error)
       } finally {
         this.loading = false
@@ -205,7 +245,7 @@ export default {
     /** 处理恢复正常 */
     async handleRestore(row) {
       // 修改状态检查逻辑，允许已挂失和已注销的卡片恢复正常
-      if (row.cardState !== 2 && row.cardState !== 3) {
+      if (row.cardState !== 2 && row.cardState !== 3 && row.cardState !== 4) {
         this.$modal.msgError("只有已挂失或已注销的卡片才能恢复正常")
         return
       }
@@ -213,8 +253,9 @@ export default {
       try {
         await this.$modal.confirm('确认要将该卡片恢复正常状态吗？')
         this.loading = true
-        const data = { ...row, cardState: 1 } // 改为激活状态
-        await updateCards(data)
+        // const data = { ...row, cardState: 1 } // 改为激活状态
+        // await updateCards(data)
+        await activateCards(row.id)
         this.$modal.msgSuccess("卡片已恢复正常")
         await this.getList()
       } catch (error) {
