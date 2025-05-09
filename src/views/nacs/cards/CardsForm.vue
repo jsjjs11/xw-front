@@ -176,7 +176,7 @@ import { parseTime} from "@/utils/ruoyi";
           this.title = "开卡";
           // this.formData.employeeId = form.id;
           this.formData.employeeCode = form.employeeCode;
-          // this.formData.employeeName = form.username;
+          this.formData.employeeName = form.username;
           this.formData.idCard = form.idCard;
           // 设置默认的开始时间和结束时间
           this.handleQuickSelect(12); // 默认设置为1年
