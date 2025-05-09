@@ -77,7 +77,7 @@
 </template>
 
 <script>
-import { getCardsPage, updateCards, freezeCards, activateCards, cancelCards, reportLost } from '@/api/nacs/cards'
+import { getCardsPage, updateCards, freezeCards, activateCards, addBlacklist, reportLost } from '@/api/nacs/cards'
 import CardsForm from '@/views/nacs/cards/CardsForm.vue'
 import { DICT_TYPE } from '@/utils/dict'
 import { parseTime } from '@/utils/ruoyi'
@@ -229,7 +229,7 @@ export default {
         this.loading = true
         // const data = { ...row, cardState: 3 }
         // await updateCards(data)
-        await cancelCards(row.id)
+        await addBlacklist(row.id)
         this.$modal.msgSuccess("卡片已加入黑名单")
         await this.getList()
       } catch (error) {

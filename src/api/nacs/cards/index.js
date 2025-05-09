@@ -52,6 +52,7 @@ export function exportCardsExcel(params) {
   })
 }
 
+// 挂失门禁卡管理
 export function reportLost(id) {
   return request({
     url: '/nacs/cards/reportLost?id=' + id,
@@ -59,6 +60,7 @@ export function reportLost(id) {
   })
 }
 
+// 激活门禁卡片管理
 export function activateCards(id) {
   return request({
     url: '/nacs/cards/activate?id=' + id,
@@ -66,9 +68,19 @@ export function activateCards(id) {
   })
 }
 
+// 冻结门禁卡片管理
 export function freezeCards(id) {
   return request({
     url: '/nacs/cards/freeze?id=' + id,
     method: 'put'
   })
 }
+
+// 门禁卡加入黑名单
+export function addBlacklist(id) {
+  return request({
+    url: '/nacs/cards/blacklist?id=' + id,
+    method: 'put'
+  })
+}
+
