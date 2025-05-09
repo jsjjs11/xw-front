@@ -101,7 +101,7 @@ export default {
       queryParams: {
         pageNo: 1,
         pageSize: 10,
-        employeeId: undefined
+        idCard: undefined
       },
       userInfo:undefined,
       // 字典定义
@@ -122,6 +122,7 @@ export default {
     async getList() {
       try {
         this.loading = true
+        console.log(this.queryParams)
         const response = await getCardsPage(this.queryParams)
         this.cardList = response.data.list
         this.total = response.data.total
@@ -136,7 +137,7 @@ export default {
     async show(form) {
       this.visible = true
       this.userInfo = form;
-      this.queryParams.employeeId = form.id;
+      this.queryParams.idCard = form.idCard;
       await this.getList()
     },
     /** 关闭弹框 */
@@ -149,7 +150,7 @@ export default {
       this.queryParams = {
         pageNo: 1,
         pageSize: 10,
-        employeeId: undefined
+        idCard: undefined
       }
       this.cardList = []
       this.total = 0
