@@ -49,8 +49,8 @@
                 </el-button>
               </template>
 
-              <!-- 已冻结状态(4)已挂失状态(2)或已注销状态(3)：显示恢复正常按钮 -->
-              <template v-else-if="scope.row.cardState === 4 || scope.row.cardState === 2 || scope.row.cardState === 3">
+              <!-- 已冻结状态(4)已挂失状态(2)或已注销状态(3)或黑名单状态(5)：显示恢复正常按钮 -->
+              <template v-else-if="scope.row.cardState === 4 || scope.row.cardState === 2 || scope.row.cardState === 3 || scope.row.cardState === 5">
                 <el-button
                   size="mini"
                   type="success"
@@ -245,8 +245,8 @@ export default {
     /** 处理恢复正常 */
     async handleRestore(row) {
       // 修改状态检查逻辑，允许已挂失和已注销的卡片恢复正常
-      if (row.cardState !== 2 && row.cardState !== 3 && row.cardState !== 4) {
-        this.$modal.msgError("只有已挂失或已注销的卡片才能恢复正常")
+      if (row.cardState !== 2 && row.cardState !== 3 && row.cardState !== 4 && row.cardState !== 5) {
+        this.$modal.msgError("只有已挂失、已冻结、已注销或黑名单的卡片才能恢复正常")
         return
       }
 
@@ -260,6 +260,9 @@ export default {
         await this.getList()
       } catch (error) {
         console.error("恢复操作失败", error)
+        if (error !== 'cancel') {
+          this.$modal.msgError('恢复失败')
+        }
       } finally {
         this.loading = false
       }
