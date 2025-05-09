@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="drawer-content">
     <!-- 人员授权抽屉 -->
     <el-drawer
       title="人员授权"
@@ -27,7 +27,7 @@
       <div style="text-align: center">
       <el-transfer
         style="text-align: left; display: inline-block"
-        v-model="value4"
+        v-model="value"
         filterable
         :left-default-checked="[]"
         :right-default-checked="[]"
@@ -62,7 +62,10 @@ export default {
         lineNo:''
       },
       lineMap: getLineDatas(),
-      authDrawerVisible:false
+      authDrawerVisible:false,
+      data:[], // 传输组件数据源
+      value: [], // 已选中的门禁点ID数组
+      loading: false // 加载状态
     }
   },
   methods: {
@@ -75,6 +78,57 @@ export default {
     handleAuthConfirm() {
       // TODO: 实现确认授权逻辑
       this.authDrawerVisible = false;
+    },
+    /** 处理线路选择 */
+    handleLineChange(value) {
+      this.formData.lineNo = value;
+      this.getLeftTableData();
+    },
+    handleChange(value, direction, movedKeys) {
+      console.log('传输变化:', value, direction, movedKeys);
+      // 可以根据方向(direction: 'left'或'right')处理不同的逻辑
+      if (direction === 'right') {
+        // 从左侧移动到右侧(新增授权)
+        this.$message.success(`已添加 ${movedKeys.length} 个门禁点授权`);
+      } else if (direction === 'left') {
+        // 从右侧移动到左侧(取消授权)
+        this.$message.warning(`已移除 ${movedKeys.length} 个门禁点授权`);
+      }
+    },
+    /** 获取左侧表格数据 */
+    getLeftTableData() {
+      if(!this.formData.lineNo){
+        this.$message.error('请选择线路');
+        return;
+      }
+      try {
+        this.loading = true;
+        // 模拟数据
+        const mockData = {
+          'L00001': [ // 线路1
+            { key: '101', label: '线路1-门禁点1' },
+            { key: '102', label: '线路1-门禁点2' },
+            { key: '103', label: '线路1-门禁点3' },
+          ],
+          'L00002': [ // 线路2
+            { key: '201', label: '线路2-门禁点1' },
+            { key: '202', label: '线路2-门禁点2' },
+            { key: '203', label: '线路2-门禁点3' },
+            { key: '204', label: '线路2-门禁点4' },
+          ],
+          'L00003': [ // 线路3
+            { key: '301', label: '线路3-门禁点1' },
+            { key: '302', label: '线路3-门禁点2' },
+          ]
+        };
+        console.log(this.formData.lineNo)
+        this.data = mockData[this.formData.lineNo] || [];
+      } catch (error) {
+        console.error('获取门禁点数据失败', error);
+        this.$message.error('获取门禁点数据失败');
+      } finally {
+        this.loading = false;
+      }
     }
   }
 }
