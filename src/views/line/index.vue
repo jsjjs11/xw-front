@@ -46,7 +46,17 @@
       <el-table-column label="主键ID" align="center" prop="id" />
       <el-table-column label="线路编号" align="center" prop="lineNo" />
       <el-table-column label="线路名称" align="center" prop="name" />
-      <el-table-column label="线路颜色" align="center" prop="color" />
+      <el-table-column label="线路颜色" align="center" prop="color" >
+        <template v-slot="scope">
+          <el-tag
+            :color=scope.row.color
+           >
+          </el-tag>
+
+
+
+        </template>
+      </el-table-column>
       <el-table-column label="负责人用户ID" align="center" prop="leaderUserId" />
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
