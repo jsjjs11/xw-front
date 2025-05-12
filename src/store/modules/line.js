@@ -29,6 +29,7 @@ const actions = {
           id: lineData.id,
           lineNo: lineData.lineNo,
           name: lineData.name,
+          color: lineData.color,
         })
       })
       // 存储到 Store 中

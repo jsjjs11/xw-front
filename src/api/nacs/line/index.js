@@ -58,3 +58,11 @@ export function listSimpleLineDatas() {
     method: 'get',
   })
 }
+
+export function line2Station(params) {
+  return request({
+    url: '/nacs/station/simple-list',
+    method: 'get',
+    params,
+  })
+}
