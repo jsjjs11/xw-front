@@ -1,0 +1,22 @@
+#定义 stages(阶段)，任务根据这里的顺序执行
+stages:
+  - sonarqube_scan
+# 定义job（任务），多个任务分开定义
+sonarqube_scan_job:
+  #阶段，取自开始的stages
+  stage: sonarqube_scan
+ 
+  #定义该job执行的脚本
+  #注意-Dsonar.host.url 是sonarqube服务器地址
+  #-Dsonar.login 是sonarqube服务器地址账号
+  #-Dsonar.password 是sonarqube服务器地址密码
+  #-Dsonar.java.binaries=. sonar4.12版本之后，分析java代码需要提供该参数。
+  script:
+    - sonar-scanner -Dsonar.projectName=$CI_PROJECT_NAME -Dsonar.projectKey=$CI_PROJECT_NAME  -Dsonar.language=js -Dsonar.sources=src -Dsonar.sourceEncoding=UTF-8 -Dsonar.host.url=http://10.137.32.51:9000  -Dsonar.login=admin -Dsonar.password=sac2021 -Dsonar.pdf.password=sac2021 -Dsonar.pdf.username=admin
+  #标签，只有这个标签的runner才会执行任务;在gilab-runner注册时填写的tag-list
+  tags:
+    - sonar
+  when: always
+  #只有指定的分支提交才会执行
+  only:
+    - master

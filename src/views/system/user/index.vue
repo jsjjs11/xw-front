@@ -89,7 +89,7 @@
           <el-table-column label="用户编号" align="center" key="id" prop="id" v-if="columns[0].visible" />
           <el-table-column label="用户名称" align="center" key="username" prop="username" v-if="columns[1].visible"
             :show-overflow-tooltip="true" />
-          <el-table-column label="用户昵称" align="center" key="nickname" prop="nickname" v-if="columns[2].visible"
+          <el-table-column label="员工姓名" align="center" key="nickname" prop="nickname" v-if="columns[2].visible"
             :show-overflow-tooltip="true" />
           <el-table-column label="部门" align="center" key="deptName" prop="deptName" v-if="columns[3].visible"
             :show-overflow-tooltip="true" >
@@ -160,12 +160,12 @@
             <el-divider style="margin: 10px 0;"></el-divider>
             <el-row :gutter="20">
               <el-col :span="12">
-                <el-form-item label="用户昵称" prop="username">
-                  <el-input v-model="form.username" placeholder="请输入用户昵称" :disabled="isViewMode" />
+                <el-form-item label="用户名称" v-if="form.id === undefined" prop="username">
+                  <el-input v-model="form.username" placeholder="请输入用户名称" :disabled="isViewMode" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item v-if="form.id === undefined" label="员工姓名" prop="nickname">
+                <el-form-item  label="员工姓名" prop="nickname">
                   <el-input v-model="form.nickname" placeholder="请输入员工姓名" :disabled="isViewMode" />
                 </el-form-item>
               </el-col>
