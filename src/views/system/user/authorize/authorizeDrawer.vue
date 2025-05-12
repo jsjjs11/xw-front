@@ -12,26 +12,39 @@
       :destroy-on-close="true">
       <div>
         <el-form ref="form" :model="formData"  label-width="120px">
-        <el-form-item label="线路选择" prop="lineNo">
-          <el-select v-model="formData.lineNo" placeholder="请选择线路" @change="handleLineChange" >
-            <el-option
-              v-for="line in lineMap"
-              :key="parseInt(line.id)"
-              :label="line.name"
-              :value="line.lineNo"
-            />
-          </el-select>
-        </el-form-item>
+          <el-row>
+            <el-col :span="5">
+              <el-form-item label="权限模式" prop="authMode">
+                <el-select v-model="formData.authMode" placeholder="请选择权限模式" @change="handleAuthModeChange">
+                  <el-option v-for="dict in authModeDictDatas" :key="parseInt(dict.value)" :label="dict.label"
+                          :value="parseInt(dict.value)" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="5">
+              <el-form-item label="线路选择" prop="lineNo">
+                <el-select v-model="formData.lineNo" placeholder="请选择线路" @change="handleLineChange" 
+                  :disabled="!isLineSelectEnabled">
+                  <el-option
+                    v-for="line in lineMap"
+                    :key="parseInt(line.id)"
+                    :label="line.name"
+                    :value="line.lineNo"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
         </el-form>
       </div>
       <div style="text-align: center">
       <el-transfer
-        style="text-align: left; display: inline-block"
+        style="text-align: left; display: inline-block;"
         v-model="value"
         filterable
         :left-default-checked="[]"
         :right-default-checked="[]"
-        :titles="['可选门禁点', '已选门禁点']"
+        :titles="['可选门禁', '已选门禁']"
         :button-texts="['到左边', '到右边']"
         :format="{
         noChecked: '${total}',
@@ -40,7 +53,7 @@
         @change="handleChange"
         :data="data"
         class="custom-transfer">
-
+      <!-- :render-content="renderFunc" -->
       </el-transfer>
       </div>
       <div class="drawer-footer">
@@ -53,19 +66,25 @@
 </template>
 
 <script>
-import { getLineDatas } from '@/utils/dict'
+import { getLineDatas, getDictDatas, DICT_TYPE } from '@/utils/dict'
 export default {
   name: 'AuthorizeDrawer',
   data() {
     return {
       formData:{
+        authMode: 0,
         lineNo:''
       },
       lineMap: getLineDatas(),
-      authDrawerVisible:false,
+      authDrawerVisible: false,
       data:[], // 传输组件数据源
       value: [], // 已选中的门禁点ID数组
-      loading: false // 加载状态
+      loading: false, // 加载状态
+      authModeDictDatas: getDictDatas(DICT_TYPE.NACS_AUTH_MODE), // 权限模式字典数据
+      isLineSelectEnabled: true, // 是否允许线路选择
+      selectedGroups: [], // 已选中的门禁权限组
+      selectedPoints: [], // 已选中的门禁点
+      selectedCollections: [], // 已选中的门禁集合
     }
   },
   methods: {
@@ -79,6 +98,19 @@ export default {
       // TODO: 实现确认授权逻辑
       this.authDrawerVisible = false;
     },
+    /** 处理权限模式选择 */
+    handleAuthModeChange(value) {
+      this.formData.authMode = value;
+      this.isLineSelectEnabled = (value === 0 || value === 1);
+      if(!this.isLineSelectEnabled) {
+        this.formData.lineNo = '';
+        this.data = [];
+        this.getLeftTableData();
+      }
+      if(this.formData.authMode !== 2) {
+        this.getLeftTableData();
+      }
+    },
     /** 处理线路选择 */
     handleLineChange(value) {
       this.formData.lineNo = value;
@@ -86,50 +118,132 @@ export default {
     },
     handleChange(value, direction, movedKeys) {
       console.log('传输变化:', value, direction, movedKeys);
-      // 可以根据方向(direction: 'left'或'right')处理不同的逻辑
+      // 根据方向(direction: 'left'或'right')处理不同的逻辑
       if (direction === 'right') {
         // 从左侧移动到右侧(新增授权)
+        if(this.formData.authMode === 0) {
+          this.selectedGroups = [...this.selectedGroups, ...movedKeys];
+        } else if(this.formData.authMode === 1) {
+          this.selectedPoints = [...this.selectedPoints, ...movedKeys];
+        } else if(this.formData.authMode === 2) {
+          this.selectedCollections = [...this.selectedCollections, 
+            ...this.data.filter(item => movedKeys.includes(item.key))];
+        }
         this.$message.success(`已添加 ${movedKeys.length} 个门禁点授权`);
       } else if (direction === 'left') {
-        // 从右侧移动到左侧(取消授权)
+        // 从右侧移除时更新对应类型的已选项
+        if(this.formData.authMode === 0) {
+          this.selectedGroups = this.selectedGroups.filter(k => !movedKeys.includes(k));
+        } else if(this.formData.authMode === 1) {
+          this.selectedPoints = this.selectedPoints.filter(k => !movedKeys.includes(k));
+        } else if(this.formData.authMode === 2) {
+          this.selectedCollections = this.selectedCollections.filter(c => !movedKeys.includes(c.key));
+        }
         this.$message.warning(`已移除 ${movedKeys.length} 个门禁点授权`);
+      }
+      // 切换模式时自动刷新数据
+      if(this.formData.authMode !== 2) {
+        this.getLeftTableData();
       }
     },
     /** 获取左侧表格数据 */
     getLeftTableData() {
-      if(!this.formData.lineNo){
+      if(!this.formData.lineNo && (this.formData.authMode === 0 || this.formData.authMode === 1)){
         this.$message.error('请选择线路');
         return;
       }
       try {
         this.loading = true;
         // 模拟数据
-        const mockData = {
-          'L00001': [ // 线路1
-            { key: '101', label: '线路1-门禁点1' },
-            { key: '102', label: '线路1-门禁点2' },
-            { key: '103', label: '线路1-门禁点3' },
-          ],
-          'L00002': [ // 线路2
-            { key: '201', label: '线路2-门禁点1' },
-            { key: '202', label: '线路2-门禁点2' },
-            { key: '203', label: '线路2-门禁点3' },
-            { key: '204', label: '线路2-门禁点4' },
-          ],
-          'L00003': [ // 线路3
-            { key: '301', label: '线路3-门禁点1' },
-            { key: '302', label: '线路3-门禁点2' },
+        const mockGroups = {
+          'L00001': [
+            { key: 'g101', label: '线路1-权限组1', type: 'group' },
+            { key: 'g102', label: '线路1-权限组2', type: 'group' }
           ]
         };
-        console.log(this.formData.lineNo)
-        this.data = mockData[this.formData.lineNo] || [];
+        
+        const mockPoints = {
+          'L00001': [
+            { key: 'p101', label: '线路1-门禁点1', type: 'point' },
+            { key: 'p102', label: '线路1-门禁点2', type: 'point' }
+          ]
+        };
+        
+        const mockCollections = [
+          { key: 'c1', label: '集合1', type: 'collection', items: ['g101', 'p101'] },
+          { key: 'c2', label: '集合2', type: 'collection', items: ['g102', 'p102'] }
+        ];
+        
+        // const mockCollections = [
+        //   {
+        //     key: 'c1',
+        //     label: '集合1',
+        //     type: 'collection',
+        //     children: [
+        //       { 
+        //         key: 'g101', 
+        //         label: '线路1-权限组1', 
+        //         type: 'group',
+        //         disabled: true // 禁止直接选择
+        //       },
+        //       { 
+        //         key: 'p101', 
+        //         label: '线路1-门禁点1', 
+        //         type: 'point',
+        //         disabled: true // 禁止直接选择
+        //       }
+        //     ]
+        //   },
+        //   {
+        //     key: 'c2',
+        //     label: '集合2',
+        //     type: 'collection',
+        //     children: [
+        //       { 
+        //         key: 'g102', 
+        //         label: '线路1-权限组2', 
+        //         type: 'group',
+        //         disabled: true
+        //       },
+        //       { 
+        //         key: 'p102', 
+        //         label: '线路1-门禁点2', 
+        //         type: 'point',
+        //         disabled: true
+        //       }
+        //     ]
+        //   }
+        // ];
+        // 根据权限模式选择数据
+        let sourceData = [];
+        switch(this.formData.authMode) {
+          case 0: // 门禁权限组
+            sourceData = mockGroups[this.formData.lineNo] || [];
+            // 过滤掉已在集合中的权限组
+            sourceData = sourceData.filter(item => 
+              !this.selectedCollections.some(col => col.items.includes(item.key))
+            );
+            break;
+          case 1: // 门禁点
+            sourceData = mockPoints[this.formData.lineNo] || [];
+            // 过滤掉已在集合中的门禁点
+            sourceData = sourceData.filter(item => 
+              !this.selectedCollections.some(col => col.items.includes(item.key))
+            );
+            break;
+          case 2: // 门禁集合
+            sourceData = mockCollections;
+            break;
+        }
+        this.data = sourceData;
       } catch (error) {
-        console.error('获取门禁点数据失败', error);
-        this.$message.error('获取门禁点数据失败');
+        console.error('获取门禁数据失败', error);
+        this.$message.error('获取门禁数据失败');
       } finally {
         this.loading = false;
       }
-    }
+    },
+  
   }
 }
 </script>
@@ -138,12 +252,14 @@ export default {
 .custom-transfer {
   width: calc(100% - 100px);
   height: calc(100vh - 210px);
+  /* flex-wrap: nowrap; 禁止换行 */
+  overflow: hidden;
+  overflow-x: auto; /* 添加横向滚动 */
 }
 .custom-transfer ::v-deep .el-transfer-panel {
   width: 40%;
   height: 100%;
 }
-
 
 .auth-drawer-content {
   text-align: center;
@@ -175,4 +291,5 @@ export default {
   flex: 1;
   overflow: auto;
 }
+
 </style>
