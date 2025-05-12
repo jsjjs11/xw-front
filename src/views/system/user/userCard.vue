@@ -2,7 +2,7 @@
   <div>
     <el-dialog :title="title" :visible.sync="visible" width="1000px" append-to-body>
       <div class="card-container">
-        <el-button type="primary" plain icon="el-icon-plus" @click="creatCard">新增门禁卡</el-button>
+        <el-button type="primary" plain icon="el-icon-plus" @click="creatCard">开卡</el-button>
         <el-table v-loading="loading" :data="cardList" style="margin-top: 20px;">
           <el-table-column label="卡号" align="center" prop="cardNo" />
           <el-table-column label="卡类型" align="center" prop="cardType">

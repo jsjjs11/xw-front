@@ -55,10 +55,19 @@
         >
           <el-table-column type="selection" width="55" />
           <el-table-column prop="deviceName" label="门禁名称" />
+          <el-table-column prop="deviceType" label="线网设备类型" >
+            <template v-slot="scope">
+              <dict-tag :type="DICT_TYPE.NACS_DEVICE_TYPE" :value="scope.row.deviceType" />
+            </template>
+          </el-table-column>
           <el-table-column prop="stationName" label="站点" />
           <el-table-column prop="deviceBrand" label="门禁供应商" />
           <el-table-column prop="deviceManu" label="门禁品牌" />
-          <el-table-column prop="deviceTime" label="启用时间" />
+          <el-table-column prop="deviceTime" label="启用时间" >
+          <template v-slot="scope">
+            <span>{{ parseTime(scope.row.deviceTime) }}</span>
+          </template>
+          </el-table-column>
         </el-table>
 
         <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNo" :limit.sync="queryParams.pageSize"
@@ -122,7 +131,7 @@ export default {
           border-color: ${item.color} !important;
         }
         .color-radio-${item.lineNo}   .el-radio__inner {
-          border: 1px solid ${item.color}; !important;
+          border: 2px solid ${item.color}; !important;
 
         }
       `
