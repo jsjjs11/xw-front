@@ -21,7 +21,7 @@
       <!-- 操作按钮 -->
       <div class="operation-buttons">
         <el-button type="primary" icon="el-icon-user" @click="showAuthDrawer">人员授权</el-button>
-        <el-button type="info" icon="el-icon-edit" @click="handleRegisterAuth">注销授权</el-button>
+        <el-button type="info" icon="el-icon-edit" @click="handleRegisterAuth(scope.row)">注销授权</el-button>
       </div>
 
       <!-- 权限列表表格 -->
@@ -87,7 +87,8 @@
 </template>
 
 <script>
-import { DICT_TYPE,getLineDatas } from '@/utils/dict'
+import { DICT_TYPE, getLineDatas, getDictDatas } from '@/utils/dict'
+import * as AuthorizationApi from '@/api/nacs/authorize'
 import AuthorizeDrawer from '@/views/system/user/authorize/authorizeDrawer.vue'
 export default {
   name: 'AuthorizeForm',
@@ -116,7 +117,7 @@ export default {
         ]
       },
       // 权限类型选项
-      authTypeOptions: [],
+      authTypeOptions: getDictDatas(DICT_TYPE.NACS_AUTH_MODE),
       // 表格数据
       tableData: [{
         lineName: '2号线',
@@ -136,7 +137,8 @@ export default {
       // 查询参数
       queryParams: {
         pageNo: 1,
-        pageSize: 10
+        pageSize: 10,
+        idCard: undefined,
       },
       // 字典定义
       DICT_TYPE,
@@ -172,9 +174,11 @@ export default {
   },
   methods: {
     /** 显示弹框 */
-    show() {
+    async show(form) {
       this.visible = true
       this.reset()
+      this.queryParams.idCard = form.idCard;
+      await this.getList()
     },
     /** 表单重置 */
     reset() {
@@ -196,8 +200,22 @@ export default {
       // TODO: 实现人员授权逻辑
     },
     /** 注销授权 */
-    handleRegisterAuth() {
+    async handleRegisterAuth(row) {
       // TODO: 实现注销授权逻辑
+      try {
+        await this.$modal.confirm('确认注销该权限的授权吗？')
+        this.loading = true
+        await AuthorizationApi.deleteCardPermissionsList(row.id)
+        this.$modal.msgSuccess("该权限已申请注销")
+        await this.getList()
+      } catch (error) {
+        if (error !== 'cancel') {
+          this.$modal.msgError('申请注销权限失败')
+        }
+        console.error("申请注销权限失败", error)
+      } finally {
+        this.loading = false
+      }
     },
     /** 查询按钮操作 */
     handleQuery() {
@@ -220,13 +238,9 @@ export default {
       try {
         this.loading = true;
         // TODO: 调用接口获取数据
-        // const response = await getAuthList({
-        //   ...this.queryParams,
-        //   groupName: this.formData.groupName,
-        //   authType: this.formData.authType
-        // });
-        // this.tableData = response.data.list;
-        // this.total = response.data.total;
+        const response = await AuthorizationApi.getCardPermissionsListPage(this.queryParams);
+        this.tableData = response.data.list;
+        this.total = response.data.total;
       } catch (error) {
         console.error('获取权限列表失败', error);
         this.$modal.msgError('获取权限列表失败');
@@ -276,7 +290,7 @@ export default {
 
     /** 显示授权抽屉 */
     showAuthDrawer() {
-      this.$refs["authorizeDrawerRef"].showAuthDrawer();
+      this.$refs["authorizeDrawerRef"].showAuthDrawer(this.queryParams.idCard);
     },
 
   }

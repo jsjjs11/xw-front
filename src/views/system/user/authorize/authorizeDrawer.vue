@@ -40,7 +40,7 @@
       <div style="text-align: center">
       <el-transfer
         style="text-align: left; display: inline-block;"
-        v-model="value"
+        v-model="filteredValue"
         filterable
         :left-default-checked="[]"
         :right-default-checked="[]"
@@ -66,7 +66,8 @@
 </template>
 
 <script>
-import { getLineDatas, getDictDatas, DICT_TYPE } from '@/utils/dict'
+import { getLineDatas, getDictDatas, DICT_TYPE } from '@/utils/dict';
+import * as AuthorizationApi from '@/api/nacs/authorize';
 export default {
   name: 'AuthorizeDrawer',
   data() {
@@ -85,17 +86,84 @@ export default {
       selectedGroups: [], // 已选中的门禁权限组
       selectedPoints: [], // 已选中的门禁点
       selectedCollections: [], // 已选中的门禁集合
+      selectedItems: [], // 已选中的门禁项（包含权限组、门禁点、门禁集合）
+      AuthorizeForm:{
+        idCard: undefined,
+        authItems: undefined,
+      },
+      authItems: [
+        {
+          authMode: 0,
+          groupCode:[],
+        },
+        {
+          authMode: 1,
+          deviceCode:[],
+        },
+        {
+          authMode: 2,
+          collectionCode:[],
+        }
+      ],
+    }
+  },
+  computed: {
+    // 根据当前权限模式过滤显示的值
+    filteredValue: {
+      get() {
+        // if(this.formData.authMode === 0) { // 门禁权限组模式
+        //   return this.selectedItems
+        //     .filter(item => item.type === 'group')
+        //     .map(item => item.key);
+        // } else if(this.formData.authMode === 1) { // 门禁点模式
+        //   return this.selectedItems
+        //     .filter(item => item.type === 'point')
+        //     .map(item => item.key);
+        // } else { // 门禁集合模式
+        //   return this.selectedCollections.map(item => item.key);
+        // }
+        if(this.formData.authMode === 0) { // 门禁权限组模式
+          return [
+            ...this.selectedGroups,
+            ...this.selectedCollections.flatMap(collection => 
+              collection.children.filter(child => child.authMode === 0).map(child => child.groupCode)
+            )
+          ];
+        } else if(this.formData.authMode === 1) { // 门禁点模式
+          return [
+            ...this.selectedPoints,
+            ...this.selectedCollections.flatMap(collection => 
+              collection.children.filter(child => child.authMode === 1).map(child => child.deviceCode)
+            )
+          ];
+        } else { // 门禁集合模式
+          return this.selectedCollections.map(item => item.collectionCode);
+        }
+      },
+      set(newValue) {
+
+      }
     }
   },
   methods: {
     /** 显示授权抽屉 */
-    showAuthDrawer() {
+    showAuthDrawer(data) {
       this.authDrawerVisible = true;
-      //this.getLeftTableData();
+      this.AuthorizeForm.idCard = data;
     },
     /** 确认授权 */
-    handleAuthConfirm() {
+    async handleAuthConfirm() {
       // TODO: 实现确认授权逻辑
+      this.authItems[0].groupCode = this.selectedGroups;
+      this.authItems[1].deviceCode = this.selectedPoints;
+      this.authItems[2].collectionCode = this.selectedCollections.map(item => item.collectionCode);
+      const params = {
+        idCard: this.AuthorizeForm.idCard,
+        authItems: this.authItems,
+      };
+      console.log('确认授权参数:', params);
+      await AuthorizationApi.createCardPermissionsList(params);
+      this.$message.success('授权成功');
       this.authDrawerVisible = false;
     },
     /** 处理权限模式选择 */
@@ -118,29 +186,83 @@ export default {
     },
     handleChange(value, direction, movedKeys) {
       console.log('传输变化:', value, direction, movedKeys);
+      if (!movedKeys || movedKeys.length === 0) return;
       // 根据方向(direction: 'left'或'right')处理不同的逻辑
+      // if (direction === 'right') {
+      //   // 从左侧移动到右侧(新增授权)
+      //   const movedItems = this.data.filter(item => movedKeys.includes(item.key));
+        
+      //   if(this.formData.authMode === 2) { // 门禁集合模式
+      //     this.selectedCollections = [...this.selectedCollections, ...movedItems];
+      //     // 提取集合中的所有子项
+      //     const allItems = movedItems.reduce((acc, collection) => {
+      //       return [...acc, ...collection.children];
+      //     }, []);
+      //     this.selectedItems = [...this.selectedItems, ...allItems];
+      //   } else {
+      //     this.selectedItems = [...this.selectedItems, ...movedItems];
+      //   }
+        
+      //   this.$message.success(`已添加 ${movedKeys.length} 个授权项`);
+      // } else if (direction === 'left') {
+      //   // 从右侧移除时更新对应类型的已选项
+      //   if(this.formData.authMode === 2) {
+      //     this.selectedCollections = this.selectedCollections.filter(c => !movedKeys.includes(c.key));
+      //     // 移除对应集合的所有子项
+      //     const removedCollections = this.selectedCollections.filter(c => movedKeys.includes(c.key));
+      //     const itemsToRemove = removedCollections.reduce((acc, collection) => {
+      //       return [...acc, ...collection.children.map(child => child.key)];
+      //     }, []);
+      //     this.selectedItems = this.selectedItems.filter(item => !itemsToRemove.includes(item.key));
+      //   } else {
+      //     this.selectedItems = this.selectedItems.filter(item => !movedKeys.includes(item.key));
+      //   }
+        
+      //   this.$message.warning(`已移除 ${movedKeys.length} 个授权项`);
+      // }
+      // console.log('已选中项:', this.selectedItems);
       if (direction === 'right') {
         // 从左侧移动到右侧(新增授权)
-        if(this.formData.authMode === 0) {
-          this.selectedGroups = [...this.selectedGroups, ...movedKeys];
-        } else if(this.formData.authMode === 1) {
-          this.selectedPoints = [...this.selectedPoints, ...movedKeys];
-        } else if(this.formData.authMode === 2) {
-          this.selectedCollections = [...this.selectedCollections, 
-            ...this.data.filter(item => movedKeys.includes(item.key))];
+        const movedItems = this.data.filter(item => {
+          if(!item) return false;
+          if(this.formData.authMode === 2) {
+            return item.collectionCode && movedKeys.includes(item.collectionCode);
+          } else if(this.formData.authMode === 0) {
+            return item.groupCode && movedKeys.includes(item.groupCode);
+          } else {
+            return item.deviceCode && movedKeys.includes(item.deviceCode);
+          }
+        });
+        
+        if(this.formData.authMode === 0) { // 门禁权限组模式
+          this.selectedGroups = [...this.selectedGroups, ...movedItems.map(item => item.groupCode)];
+        } else if(this.formData.authMode === 1) { // 门禁点模式
+          this.selectedPoints = [...this.selectedPoints, ...movedItems.map(item => item.deviceCode)];
+        } else if(this.formData.authMode === 2) { // 门禁集合模式
+          this.selectedCollections = [...this.selectedCollections, ...movedItems];
         }
-        this.$message.success(`已添加 ${movedKeys.length} 个门禁点授权`);
+        
+        this.$message.success(`已添加 ${movedKeys.length} 个授权项`);
       } else if (direction === 'left') {
         // 从右侧移除时更新对应类型的已选项
         if(this.formData.authMode === 0) {
-          this.selectedGroups = this.selectedGroups.filter(k => !movedKeys.includes(k));
+          this.selectedGroups = this.selectedGroups.filter(k => k && !movedKeys.includes(k));
         } else if(this.formData.authMode === 1) {
-          this.selectedPoints = this.selectedPoints.filter(k => !movedKeys.includes(k));
+          this.selectedPoints = this.selectedPoints.filter(k => k && !movedKeys.includes(k));
         } else if(this.formData.authMode === 2) {
-          this.selectedCollections = this.selectedCollections.filter(c => !movedKeys.includes(c.key));
+          this.selectedCollections = this.selectedCollections.filter(c => 
+            c && c.collectionCode && !movedKeys.includes(c.collectionCode)
+          );
         }
-        this.$message.warning(`已移除 ${movedKeys.length} 个门禁点授权`);
+        this.$message.warning(`已移除 ${movedKeys.length} 个授权项`);
       }
+      
+      console.log('已选中项:', {
+        groups: this.selectedGroups,
+        points: this.selectedPoints,
+        collections: this.selectedCollections
+      });
+
       // 切换模式时自动刷新数据
       if(this.formData.authMode !== 2) {
         this.getLeftTableData();
@@ -149,6 +271,7 @@ export default {
     /** 获取左侧表格数据 */
     getLeftTableData() {
       if(!this.formData.lineNo && (this.formData.authMode === 0 || this.formData.authMode === 1)){
+        this.data = [];
         this.$message.error('请选择线路');
         return;
       }
@@ -157,82 +280,93 @@ export default {
         // 模拟数据
         const mockGroups = {
           'L00001': [
-            { key: 'g101', label: '线路1-权限组1', type: 'group' },
-            { key: 'g102', label: '线路1-权限组2', type: 'group' }
+            { groupCode: 'g101', groupName: '线路1-权限组1', authMode: 0 },
+            { groupCode: 'g102', groupName: '线路1-权限组2', authMode: 0 }
           ]
         };
-        
+
         const mockPoints = {
           'L00001': [
-            { key: 'p101', label: '线路1-门禁点1', type: 'point' },
-            { key: 'p102', label: '线路1-门禁点2', type: 'point' }
+            { deviceCode: 'p101', deviceName: '线路1-门禁点1', authMode: 1 },
+            { deviceCode: 'p102', deviceName: '线路1-门禁点2', authMode: 1 }
           ]
         };
-        
+
         const mockCollections = [
-          { key: 'c1', label: '集合1', type: 'collection', items: ['g101', 'p101'] },
-          { key: 'c2', label: '集合2', type: 'collection', items: ['g102', 'p102'] }
+          {
+            collectionCode: 'c1',
+            collectionName: '集合1',
+            authMode: 2,
+            children: [
+              { 
+                groupCode: 'g101', 
+                groupName: '线路1-权限组1', 
+                authMode: 0,
+                disabled: true // 禁止直接选择
+              },
+              { 
+                deviceCode: 'p101', 
+                deviceName: '线路1-门禁点1', 
+                authMode: 1,
+                disabled: true // 禁止直接选择
+              }
+            ]
+          },
+          {
+            collectionCode: 'c2',
+            collectionName: '集合2',
+            authMode: 2,
+            children: [
+              { 
+                groupCode: 'g102', 
+                groupName: '线路1-权限组2', 
+                authMode: 0,
+                disabled: true
+              },
+              { 
+                deviceCode: 'p102', 
+                deviceName: '线路1-门禁点2', 
+                authMode: 1,
+                disabled: true
+              }
+            ]
+          }
         ];
-        
-        // const mockCollections = [
-        //   {
-        //     key: 'c1',
-        //     label: '集合1',
-        //     type: 'collection',
-        //     children: [
-        //       { 
-        //         key: 'g101', 
-        //         label: '线路1-权限组1', 
-        //         type: 'group',
-        //         disabled: true // 禁止直接选择
-        //       },
-        //       { 
-        //         key: 'p101', 
-        //         label: '线路1-门禁点1', 
-        //         type: 'point',
-        //         disabled: true // 禁止直接选择
-        //       }
-        //     ]
-        //   },
-        //   {
-        //     key: 'c2',
-        //     label: '集合2',
-        //     type: 'collection',
-        //     children: [
-        //       { 
-        //         key: 'g102', 
-        //         label: '线路1-权限组2', 
-        //         type: 'group',
-        //         disabled: true
-        //       },
-        //       { 
-        //         key: 'p102', 
-        //         label: '线路1-门禁点2', 
-        //         type: 'point',
-        //         disabled: true
-        //       }
-        //     ]
-        //   }
-        // ];
         // 根据权限模式选择数据
         let sourceData = [];
         switch(this.formData.authMode) {
           case 0: // 门禁权限组
-            sourceData = mockGroups[this.formData.lineNo] || [];
+            sourceData = (mockGroups[this.formData.lineNo] || []).map(item => ({
+              key: item.groupCode,
+              label: item.groupName,
+              ...item
+            }));
             // 过滤掉已在集合中的权限组
             sourceData = sourceData.filter(item => 
-              !this.selectedCollections.some(col => col.items.includes(item.key))
+              !this.selectedCollections.some(collection => 
+                collection.children.some(child => child.groupCode === item.groupCode)
+              )
             );
             break;
           case 1: // 门禁点
-            sourceData = mockPoints[this.formData.lineNo] || [];
+            sourceData = (mockPoints[this.formData.lineNo] || []).map(item => ({
+              key: item.deviceCode,
+              label: item.deviceName,
+              ...item
+            }));
             // 过滤掉已在集合中的门禁点
             sourceData = sourceData.filter(item => 
-              !this.selectedCollections.some(col => col.items.includes(item.key))
+              !this.selectedCollections.some(collection => 
+                collection.children.some(child => child.deviceCode === item.deviceCode)
+              )
             );
             break;
           case 2: // 门禁集合
-            sourceData = mockCollections;
+            sourceData = mockCollections.map(item => ({
+              key: item.collectionCode,
+              label: item.collectionName,
+              ...item
+            }));
             break;
         }
         this.data = sourceData;
