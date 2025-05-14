@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 创建门禁权限授权操作列
 export function createCardPermissionsList(data) {
   return request({
-    url: '/nacs/card-permissions-list/create',
+    url: '/nacs/card-permissions/create',
     method: 'post',
     data: data
   })
@@ -12,7 +12,7 @@ export function createCardPermissionsList(data) {
 // 更新门禁权限授权操作列
 export function updateCardPermissionsList(data) {
   return request({
-    url: '/nacs/card-permissions-list/update',
+    url: '/nacs/card-permissions/update',
     method: 'put',
     data: data
   })
@@ -21,7 +21,7 @@ export function updateCardPermissionsList(data) {
 // 删除门禁权限授权操作列
 export function deleteCardPermissionsList(id) {
   return request({
-    url: '/nacs/card-permissions-list/delete?id=' + id,
+    url: '/nacs/card-permissions/delete?id=' + id,
     method: 'delete'
   })
 }
@@ -29,7 +29,7 @@ export function deleteCardPermissionsList(id) {
 // 获得门禁权限授权操作列
 export function getCardPermissionsList(id) {
   return request({
-    url: '/nacs/card-permissions-list/get?id=' + id,
+    url: '/nacs/card-permissions/get?id=' + id,
     method: 'get'
   })
 }
@@ -37,7 +37,7 @@ export function getCardPermissionsList(id) {
 // 获得门禁权限授权操作列分页
 export function getCardPermissionsListPage(params) {
   return request({
-    url: '/nacs/card-permissions-list/page',
+    url: '/nacs/card-permissions/page',
     method: 'get',
     params
   })
@@ -45,7 +45,7 @@ export function getCardPermissionsListPage(params) {
 // 导出门禁权限授权操作列 Excel
 export function exportCardPermissionsListExcel(params) {
   return request({
-    url: '/nacs/card-permissions-list/export-excel',
+    url: '/nacs/card-permissions/export-excel',
     method: 'get',
     params,
     responseType: 'blob'
