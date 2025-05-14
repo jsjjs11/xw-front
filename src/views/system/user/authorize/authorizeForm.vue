@@ -290,7 +290,7 @@ export default {
 
     /** 显示授权抽屉 */
     showAuthDrawer() {
-      this.$refs["authorizeDrawerRef"].showAuthDrawer(this.queryParams.idCard);
+      this.$refs["authorizeDrawerRef"].showAuthDialog(this.queryParams.idCard, this.total);
     },
 
   }
