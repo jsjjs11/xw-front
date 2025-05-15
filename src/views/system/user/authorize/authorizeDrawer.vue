@@ -150,27 +150,6 @@ export default {
 		}
 	},
 	mounted() {
-    const styleElement = document.createElement('style');
-    styleElement.type = 'text/css';
-
-    const cssRules  = this.lineList
-      .map(
-        item => `
-        .color-radio-${item.lineNo}  .el-radio__input.is-checked .el-radio__inner {
-          background-color: ${item.color} !important;
-          border-color: ${item.color} !important;
-        }
-        .color-radio-${item.lineNo}   .el-radio__inner {
-          border: 2px solid ${item.color}; !important;
-        }
-      `
-      )
-      .join('\n')
-
-    styleElement.innerHTML = cssRules;
-    document.head.appendChild(styleElement);
-
-
     if(this.lineList.length>1){
       this.form.selectedLine = this.lineList[0].lineNo
     }
