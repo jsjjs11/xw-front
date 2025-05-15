@@ -230,62 +230,68 @@ export default {
 					this.isIndeterminate = true;
 				}
 				// 获取门禁列表
-				// const res = await LineApi.getAuthList({lineNo:this.selectedLine,stationNo:this.selectedStation});
-				// this.authList = res.data;
+				const res = await AuthorizationApi.getStationDeviceList(this.form.selectedStation);
+				this.authList = res.data.map(item => ({
+					authMode: 1,
+					key: item.deviceCode,
+					label: item.deviceName,
+					...item
+				}));
+				console.log('门禁列表:', this.authList);
 				// 模拟数据 - 根据选中的车站返回不同的门禁点
 				// console.log('选中的车站:', this.form.selectedStation);
-      this.authList = this.form.selectedStation.flatMap(stationNo => {
-        if(stationNo === 'S00001') {
-          return [
-            {
-              key: 'bgz-001',
-              label: '八卦洲A区门禁组',
-              authMode: 0,
-              groupCode: 'bgz-001',
-              groupName: '八卦洲A区门禁组'
-            },
-            {
-              key: 'bgz-002',
-              label: '八卦洲B区门禁组', 
-              authMode: 0,
-              groupCode: 'bgz-002',
-              groupName: '八卦洲B区门禁组'
-            },
-            {
-              key: 'bgz-dev-001',
-              label: '八卦洲1号门禁点',
-              authMode: 1,
-              deviceCode: 'bgz-dev-001',
-              deviceName: '八卦洲1号门禁点'
-            }
-          ];
-        } else if(stationNo === 'S00002') {
-          return [
-            {
-              key: 'bds-001',
-              label: '笆斗山办公区门禁组',
-              authMode: 0,
-              groupCode: 'bds-001',
-              groupName: '笆斗山办公区门禁组'
-            },
-            {
-              key: 'bds-dev-001',
-              label: '笆斗山1号门禁点',
-              authMode: 1,
-              deviceCode: 'bds-dev-001',
-              deviceName: '笆斗山1号门禁点'
-            },
-            {
-              key: 'bds-dev-002',
-              label: '笆斗山2号门禁点',
-              authMode: 1,
-              deviceCode: 'bds-dev-002',
-              deviceName: '笆斗山2号门禁点'
-            }
-          ];
-        }
-        return [];
-      });
+      // this.authList = this.form.selectedStation.flatMap(stationNo => {
+      //   if(stationNo === 'S00001') {
+      //     return [
+      //       {
+      //         key: 'bgz-001',
+      //         label: '八卦洲A区门禁组',
+      //         authMode: 0,
+      //         groupCode: 'bgz-001',
+      //         groupName: '八卦洲A区门禁组'
+      //       },
+      //       {
+      //         key: 'bgz-002',
+      //         label: '八卦洲B区门禁组', 
+      //         authMode: 0,
+      //         groupCode: 'bgz-002',
+      //         groupName: '八卦洲B区门禁组'
+      //       },
+      //       {
+      //         key: 'bgz-dev-001',
+      //         label: '八卦洲1号门禁点',
+      //         authMode: 1,
+      //         deviceCode: 'bgz-dev-001',
+      //         deviceName: '八卦洲1号门禁点'
+      //       }
+      //     ];
+      //   } else if(stationNo === 'S00002') {
+      //     return [
+      //       {
+      //         key: 'bds-001',
+      //         label: '笆斗山办公区门禁组',
+      //         authMode: 0,
+      //         groupCode: 'bds-001',
+      //         groupName: '笆斗山办公区门禁组'
+      //       },
+      //       {
+      //         key: 'bds-dev-001',
+      //         label: '笆斗山1号门禁点',
+      //         authMode: 1,
+      //         deviceCode: 'bds-dev-001',
+      //         deviceName: '笆斗山1号门禁点'
+      //       },
+      //       {
+      //         key: 'bds-dev-002',
+      //         label: '笆斗山2号门禁点',
+      //         authMode: 1,
+      //         deviceCode: 'bds-dev-002',
+      //         deviceName: '笆斗山2号门禁点'
+      //       }
+      //     ];
+      //   }
+      //   return [];
+      // });
 			} else {
 				this.authList = [];
 			}
