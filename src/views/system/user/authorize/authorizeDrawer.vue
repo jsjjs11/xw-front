@@ -65,6 +65,7 @@
 							<el-col :span="4">
 								<div class="column station-list">
 									<div class="section-title">车站列表</div>
+									<el-checkbox :indeterminate="isIndeterminate" v-model="checkAll" @change="handleCheckAllChange">全选</el-checkbox>
 									<el-checkbox-group v-model="form.selectedStation" @change="onStationChange">
 										<el-checkbox v-for="station in stationList" :key="station.stationNo" :label="station.stationNo">
 											{{ station.name }}
@@ -144,30 +145,11 @@ export default {
 			values: [],
 			selectedStationsCache: new Set(),
 			existAuth: 0,
+			checkAll: false,
+			isIndeterminate: false,
 		}
 	},
 	mounted() {
-    const styleElement = document.createElement('style');
-    styleElement.type = 'text/css';
-
-    const cssRules  = this.lineList
-      .map(
-        item => `
-        .color-radio-${item.lineNo}  .el-radio__input.is-checked .el-radio__inner {
-          background-color: ${item.color} !important;
-          border-color: ${item.color} !important;
-        }
-        .color-radio-${item.lineNo}   .el-radio__inner {
-          border: 2px solid ${item.color}; !important;
-        }
-      `
-      )
-      .join('\n')
-
-    styleElement.innerHTML = cssRules;
-    document.head.appendChild(styleElement);
-
-
     if(this.lineList.length>1){
       this.form.selectedLine = this.lineList[0].lineNo
     }
@@ -214,7 +196,9 @@ export default {
 		async onLineChange() {
       if(this.form.selectedLine){
         const res = await LineApi.line2Station({lineNo:this.form.selectedLine});
-        this.stationList = res.data
+        this.stationList = res.data;
+				this.checkAll = false;
+				this.isIndeterminate = false;
         // this.form.selectedStation = this.stationList.length ? this.stationList[0].stationNo : null;
 				// 恢复之前选中的车站
 				this.form.selectedStation = this.stationList
@@ -223,15 +207,28 @@ export default {
 					// console.log('恢复选中的车站:', this.form.selectedStation);
         // 不自动触发onStationChange，保留原有门禁数据
 				if(this.form.selectedStation.length > 0) {
+					if(this.form.selectedStation.length === this.stationList.length) {
+						this.checkAll = true;
+						this.isIndeterminate = false;
+					}
 					await this.onStationChange();
 				}
       }
     },
+		/** 全选 */
+		handleCheckAllChange(val) {
+			this.form.selectedStation = val ? this.stationList.map(station => station.stationNo) : [];
+			this.selectedStationsCache = new Set(this.form.selectedStation);
+			this.isIndeterminate = false;
+		},
 		/** 获取门禁数据 */
 		async onStationChange() {
 			if(this.form.selectedStation && this.form.selectedStation.length > 0){
 				// 更新已选车站缓存
       	this.selectedStationsCache = new Set(this.form.selectedStation);
+				if(this.form.selectedStation.length < this.stationList.length) {
+					this.isIndeterminate = true;
+				}
 				// 获取门禁列表
 				// const res = await LineApi.getAuthList({lineNo:this.selectedLine,stationNo:this.selectedStation});
 				// this.authList = res.data;
