@@ -247,7 +247,7 @@ export default {
 				}
 				// 缓存群组数据
 				groups? groups.forEach(group => {
-					const key = `${group.groupCode}`;
+					const key = `${res.data.lineNo}-${group.groupCode}`;
 					this.allAuthCache.set(key, {
 						...group,
 						authMode: 0,
@@ -261,12 +261,13 @@ export default {
 				stations ? stations.forEach(station => {
 					if (station.devices) {
 						station.devices.forEach(device => {
-							const key = `${device.deviceCode}`;
+							const key = `${res.data.lineNo}-${device.deviceCode}`;
+							const label = `${station.stationName}-${device.deviceName}`;
 							this.allAuthCache.set(key, {
 								...device,
 								authMode: 1,
 								key: key,
-								label: device.deviceName,
+								label: label,
 								lineNo: this.form.selectedLine, // 标记所属线路
 								stationNo: station.stationNo     // 标记所属车站
 							});
