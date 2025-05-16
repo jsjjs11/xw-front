@@ -1,9 +1,14 @@
 <template>
 	<div>
-		<el-dialog
+		<el-drawer
 			title="用户授权"
-			width="60%"
-			:visible.sync="dialogVisible"
+			direction="rtl"
+      size="70%"
+			:modal="true"
+      :append-to-body="true"
+      :modal-append-to-body="false"
+      :destroy-on-close="true"
+			:visible.sync="drawerVisible"
 			:before-close="handleClose">
 				<el-form ref="form" :model="form" label-width="100px">
 					<el-form-item label="授权时区" prop="timeZone">
@@ -79,6 +84,7 @@
 								<div class="column auth-transfer">
 									<div class="section-title">门禁列表</div>
 									<el-transfer
+										:key="transferKey"
 										style="text-align: left; display: inline-block;"
 										v-model="values"
 										filterable
@@ -99,14 +105,14 @@
 					</el-form-item>
 				</el-form>
 				<div class="dialog-footer">
-					<el-button @click="dialogVisible = false">取 消</el-button>
+					<el-button @click="drawerVisible = false">取 消</el-button>
 					<el-button type="primary" @click="handleAuthConfirm">确 定</el-button>
 				</div>
-		</el-dialog>
+		</el-drawer>
 	</div>
 </template>
 <script>
-import * as LineApi from '@/api/nacs/line';
+// import * as LineApi from '@/api/nacs/line';
 import {getLineDatas} from "@/utils/dict";
 import * as AuthorizationApi from '@/api/nacs/authorize';
 export default {
@@ -127,7 +133,7 @@ export default {
         idCard: undefined,
         authItems: undefined,
       },
-			dialogVisible: false,
+			drawerVisible: false,
 			quickButtons: [
         { type: 'day', label: '一天' },
         { type: 'week', label: '一周' },
@@ -144,28 +150,34 @@ export default {
 			authList: [],
 			values: [],
 			selectedStationsCache: new Set(),
+			selectedAuthsCache: new Set(),
+			deviceCache: new Map(), // 各车站设备数据缓存
+			allAuthCache: new Map(), // 全局门禁数据缓存
+			transferKey: 0,
 			existAuth: 0,
 			checkAll: false,
 			isIndeterminate: false,
 		}
 	},
 	mounted() {
-    if(this.lineList.length>1){
-      this.form.selectedLine = this.lineList[0].lineNo
-    }
-    this.onLineChange(); // 默认载入第一条线路的站点
+    
   },
 	methods: {
 		/** 显示授权弹窗 */
     showAuthDialog(data, total) {
-      this.dialogVisible = true;
+      this.drawerVisible = true;
       this.AuthorizeForm.idCard = data;
 			this.existAuth = total;
+			if(this.lineList.length>1){
+				this.form.selectedLine = this.lineList[0].lineNo
+			}
+			this.onLineChange(); // 默认载入第一条线路的站点
     },
 		/** 关闭授权弹窗 */
     handleClose() {
-      this.dialogVisible = false;
+      this.drawerVisible = false;
       this.reset();
+			this.allAuthCache.clear(); // 关闭时清空全局缓存
 		},
 		handleQuickDate(type) {
       const start = new Date()
@@ -192,27 +204,81 @@ export default {
       }
       this.form.dateRange = [start, end]
     },
-		/** 获取车站数据 */
+		/** 获取车站以及门禁数据 */
 		async onLineChange() {
       if(this.form.selectedLine){
-        const res = await LineApi.line2Station({lineNo:this.form.selectedLine});
-        this.stationList = res.data;
-				this.checkAll = false;
-				this.isIndeterminate = false;
-        // this.form.selectedStation = this.stationList.length ? this.stationList[0].stationNo : null;
-				// 恢复之前选中的车站
-				this.form.selectedStation = this.stationList
-					.filter(station => this.selectedStationsCache.has(station.stationNo))
-					.map(station => station.stationNo) || [];
-					// console.log('恢复选中的车站:', this.form.selectedStation);
-        // 不自动触发onStationChange，保留原有门禁数据
-				if(this.form.selectedStation.length > 0) {
-					if(this.form.selectedStation.length === this.stationList.length) {
-						this.checkAll = true;
-						this.isIndeterminate = false;
+				this.deviceCache.clear(); // 清空设备缓存
+				// 清空当前线路的旧缓存（保留其他线路的缓存）
+				this.allAuthCache.forEach((value, key) => {
+					if (value.lineNo === this.form.selectedLine) {
+						this.allAuthCache.delete(key);
 					}
-					await this.onStationChange();
+				});
+				// this.values = Array.from(this.selectedAuthsCache)
+				console.log('已选权限:', this.values);
+        // const res = await LineApi.line2Station({lineNo:this.form.selectedLine});
+        // this.stationList = res.data;
+				const res = await AuthorizationApi.getGroupsOrDevicesList(this.form.selectedLine);
+				const {groups, stations} = res.data;
+				console.log(res.data)
+				// 车站数据
+				this.stationList = stations ? stations.map(item => ({
+					stationNo: item.stationNo,
+					name: item.stationName,
+				})) : [];
+				// 默认全选所有车站
+    		this.form.selectedStation = this.stationList.map(station => station.stationNo);
+				this.selectedStationsCache = new Set(this.form.selectedStation);
+				this.checkAll = true;
+				this.isIndeterminate = false;
+				if (stations && stations.length > 0) {
+					stations.forEach(station =>{
+						if (station.devices) {
+							const devices = station.devices.map(device => ({
+								authMode: 1,
+								key: device.deviceCode,
+								label: device.deviceName,
+								stationNo: station.stationNo,
+								...device
+							}));
+							this.deviceCache.set(station.stationNo, devices);
+						}
+					})
 				}
+				// 缓存群组数据
+				groups? groups.forEach(group => {
+					const key = `${group.groupCode}`;
+					this.allAuthCache.set(key, {
+						...group,
+						authMode: 0,
+						key: key,
+						label: group.groupName,
+						lineNo: this.form.selectedLine // 标记所属线路
+					});
+				}) : [];
+
+				// 缓存设备数据
+				stations ? stations.forEach(station => {
+					if (station.devices) {
+						station.devices.forEach(device => {
+							const key = `${device.deviceCode}`;
+							this.allAuthCache.set(key, {
+								...device,
+								authMode: 1,
+								key: key,
+								label: device.deviceName,
+								lineNo: this.form.selectedLine, // 标记所属线路
+								stationNo: station.stationNo     // 标记所属车站
+							});
+						});
+					}
+				}) : [];
+				this.updateAuthList();
+				this.transferKey += 1;
+				// this.form.selectedStation = this.stationList
+				// 	.filter(station => this.selectedStationsCache.has(station.stationNo))
+				// 	.map(station => station.stationNo) || [];
+				// console.log('恢复选中的车站:', this.form.selectedStation);
       }
     },
 		/** 全选 */
@@ -220,26 +286,38 @@ export default {
 			this.form.selectedStation = val ? this.stationList.map(station => station.stationNo) : [];
 			this.selectedStationsCache = new Set(this.form.selectedStation);
 			this.isIndeterminate = false;
+			this.onStationChange();
 		},
-		/** 获取门禁数据 */
-		async onStationChange() {
+		/** 根据车站更新门禁数据 */
+		onStationChange() {
 			if(this.form.selectedStation && this.form.selectedStation.length > 0){
 				// 更新已选车站缓存
-      	this.selectedStationsCache = new Set(this.form.selectedStation);
-				if(this.form.selectedStation.length < this.stationList.length) {
+				this.selectedStationsCache = new Set(this.form.selectedStation);
+				this.values = Array.from(this.selectedAuthsCache)
+				// console.log('已选权限:', this.values);
+				// 更新全选状态
+				if (this.form.selectedStation.length === this.stationList.length) {
+					this.checkAll = true;
+					this.isIndeterminate = false;
+				} else if (this.form.selectedStation.length > 0) {
 					this.isIndeterminate = true;
+				} else {
+					this.checkAll = false;
+					this.isIndeterminate = false;
 				}
+				this.updateAuthList();
+				this.transferKey += 1;
 				// 获取门禁列表
-				const res = await AuthorizationApi.getStationDeviceList(this.form.selectedStation);
-				this.authList = res.data.map(item => ({
-					authMode: 1,
-					key: item.deviceCode,
-					label: item.deviceName,
-					...item
-				}));
-				console.log('门禁列表:', this.authList);
+				// const res = await AuthorizationApi.getStationDeviceList(this.form.selectedStation);
+				// const currentAuthList = res.data.map(item => ({
+				// 	authMode: 1,
+				// 	key: item.deviceCode,
+				// 	label: item.deviceName,
+				// 	...item
+				// }));
+				// this.transferKey += 1;
+				// console.log('门禁列表:', this.authList);
 				// 模拟数据 - 根据选中的车站返回不同的门禁点
-				// console.log('选中的车站:', this.form.selectedStation);
       // this.authList = this.form.selectedStation.flatMap(stationNo => {
       //   if(stationNo === 'S00001') {
       //     return [
@@ -294,14 +372,52 @@ export default {
       // });
 			} else {
 				this.authList = [];
+				console.log('已选权限:', this.values);
 			}
-			console.log('门禁列表:', this.authList);
+			// console.log('门禁列表:', this.authList);
 		},
 
+		updateAuthList() {
+			// 获取所有选中车站的设备
+			const selectedDevices = Array.from(this.selectedStationsCache)
+				.flatMap(stationNo => this.deviceCache.get(stationNo) || []);
+			// 合并群组和设备
+			this.authList = [
+				...this.authList.filter(item => item.authMode === 0), // 保留群组
+				...selectedDevices
+  		];
+			// 当前线路的群组
+			const currentGroups = Array.from(this.allAuthCache.values())
+				.filter(item => item.authMode === 0 && item.lineNo === this.form.selectedLine);
+
+			// 当前选中车站的设备
+			const currentDevices = Array.from(this.selectedStationsCache)
+				.flatMap(stationNo => 
+					Array.from(this.allAuthCache.values()).filter(item => 
+						item.authMode === 1 && 
+						item.stationNo === stationNo &&
+						item.lineNo === this.form.selectedLine
+					)
+				);
+
+			// 所有已选权限的数据（包括其他线路的）
+			const selectedAuths = Array.from(this.selectedAuthsCache)
+				.map(key => this.allAuthCache.get(key))
+				.filter(item => item !== undefined);
+
+			// 合并数据：当前群组 + 当前设备 + 已选权限（去重）
+			this.authList = [...currentGroups, ...currentDevices, ...selectedAuths]
+				.filter((item, index, self) => 
+					self.findIndex(i => i.key === item.key) === index
+				);
+			console.log(this.authList)
+		},
 		/** 穿梭框变化 */
 		handleChange(value, direction, movedKeys) {
 			console.log('传输变化:', value, direction, movedKeys);
       if (!movedKeys || movedKeys.length === 0) return;
+			// 更新已选权限缓存
+    	this.selectedAuthsCache = new Set(value);
 			if (direction === 'right') {
 				this.values = value;
 				this.$message.success(`已添加 ${movedKeys.length} 个授权项`);
@@ -320,7 +436,6 @@ export default {
 					return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
 				})
 				.join(',');
-
 			// 按authMode分类门禁项
 			const authItems = this.values.reduce((result, key) => {
 				const item = this.authList.find(a => a.key === key);
@@ -362,7 +477,7 @@ export default {
 					await AuthorizationApi.createCardPermissionsList(params);
 					this.$message.success('授权成功');
 					this.reset();
-					this.dialogVisible = false;
+					this.drawerVisible = false;
 				} catch (error) {
 					console.log('授权失败:', error);
 					this.$message.error('授权失败');
@@ -372,16 +487,12 @@ export default {
 					await AuthorizationApi.updateCardPermissionsList(params);
 					this.$message.success('授权成功');
 					this.reset();
-					this.dialogVisible = false;
+					this.drawerVisible = false;
 				} catch (error) {
 					console.log('授权失败:', error);
 					this.$message.error('授权失败');
 				}
 			}
-			// const res = await createCardPermissionsList(params);
-			// this.$message.success('授权成功');
-			// this.reset();
-			// this.dialogVisible = false;
 		},
 		reset() {
 			this.form = {
@@ -393,6 +504,8 @@ export default {
 				authItems: [],
 			};
 			this.selectedStationsCache.clear();
+			this.selectedAuthsCache.clear();
+			this.deviceCache.clear();
 		}
 	}
 }
@@ -456,12 +569,12 @@ export default {
 /* 滚动条设置 */
 .line-list,
 .station-list {
-  height: 450px;
+  height: 550px;
   overflow-y: auto;
 }
 
 .auth-transfer {
-  height: 450px;
+  height: 550px;
   overflow: auto; /* 同时具备横向和纵向滚动 */
 }
 
@@ -505,11 +618,12 @@ export default {
   border-top: 1px solid #e8e8e8;
 }
 ::v-deep .el-transfer {
-	margin-left: 7px;
+	margin-left: 30px;
 }
 ::v-deep .el-transfer-panel {
-	width: 250px;
-	height: 390px;
+	margin-top: 10px;
+	width: 300px;
+	height: 480px;
 	overflow: auto;
 	
 }

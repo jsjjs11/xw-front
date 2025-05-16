@@ -51,10 +51,10 @@ export function exportCardPermissionsListExcel(params) {
     responseType: 'blob'
   })
 }
-// 查询车站站点的门禁点
-export function getStationDeviceList(id) {
+// 查询车站站点的门禁点和门禁权限组
+export function getGroupsOrDevicesList(id) {
   return request({
-    url: 'nacs/devices/getByStationNo?stationNo=' + id,
+    url: '/nacs/card-permissions/groups-or-devices?lineNo=' + id,
     method: 'get'
   })
 }
