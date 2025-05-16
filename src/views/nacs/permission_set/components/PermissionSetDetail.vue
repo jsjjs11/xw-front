@@ -28,6 +28,8 @@
       <el-col :span="1.5">
         <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
           v-hasPermi="['nacs:permission-set-detail:create']">新增</el-button>
+        <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd222"
+                   v-hasPermi="['nacs:permission-set-detail:create']">新增222</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
@@ -61,16 +63,17 @@
 
     <!-- 对话框(添加 / 修改) -->
     <PermissionSetDetailForm ref="formRef" :set-code="setCode" :selected-list="list" @success="getList" />
+    <TreeTransfer ref="TreeTransferRef"  />
   </div>
 </template>
 
 <script>
 import { getPermissionSetDetailPage, deletePermissionSetDetail } from '@/api/nacs/permission_set/index.js'
 import PermissionSetDetailForm from './PermissionSetDetailForm.vue'
-
+import TreeTransfer from './TreeTransfer.vue'
 export default {
   name: "PermissionSetDetail",
-  components: { PermissionSetDetailForm },
+  components: { PermissionSetDetailForm,TreeTransfer },
   props:[
     'setCode'
   ],// 集合编号（主表的关联字段）
@@ -141,6 +144,9 @@ export default {
     handleAdd() {
       this.$refs["formRef"].open()
 
+    },
+    handleAdd222() {
+      this.$refs["TreeTransferRef"].open()
     },
     /** 删除按钮操作 */
     handleDelete(row) {

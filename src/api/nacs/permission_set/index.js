@@ -100,3 +100,11 @@ export function getPermissionSetDetailPage(query) {
     params: query
   })
 }
+
+export function getDevice(query) {
+  return request({
+    url: '/nacs/card-permissions/groups-or-devices',
+    method: 'get',
+    params: query
+  })
+}
