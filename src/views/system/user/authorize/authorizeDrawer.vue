@@ -163,7 +163,7 @@ export default {
   },
 	methods: {
 		/** 显示授权弹窗 */
-    showAuthDialog(data, total) {
+    async showAuthDialog(data, total) {
       this.drawerVisible = true;
       this.AuthorizeForm.idCard = data;
 			this.existAuth = total;
@@ -171,6 +171,26 @@ export default {
 				this.form.selectedLine = this.lineList[0].lineNo
 			}
 			this.onLineChange(); // 默认载入第一条线路的站点
+			try {
+				const res = await AuthorizationApi.getCardPermissionsList(this.AuthorizeForm.idCard)
+				// console.log('读取到的已选权限',res.data)
+				if(res.data && res.data.length > 0) {
+					this.values = res.data.map(item => {
+						if (item.authMode === 0) {
+							// 处理群组权限
+							return `${item.lineNo}-${item.groupCode}`;
+						} else {
+							return `${item.lineNo}-${item.deviceCode}`;
+						}
+					});
+					// console.log('已选权限:', this.values);
+					// 更新已选权限缓存
+					this.selectedAuthsCache = new Set(this.values);
+				}
+			} catch(error) {
+				console.log(error)
+				this.$message.error('获取用户授权信息失败');
+			}
     },
 		/** 关闭授权弹窗 */
     handleClose() {
@@ -214,12 +234,12 @@ export default {
 					}
 				});
 				// this.values = Array.from(this.selectedAuthsCache)
-				console.log('已选权限:', this.values);
+				// console.log('已选权限:', this.values);
         // const res = await LineApi.line2Station({lineNo:this.form.selectedLine});
         // this.stationList = res.data;
 				const res = await AuthorizationApi.getGroupsOrDevicesList(this.form.selectedLine);
 				const {groups, stations} = res.data;
-				console.log(res.data)
+				// console.log(res.data)
 				// 车站数据
 				this.stationList = stations ? stations.map(item => ({
 					stationNo: item.stationNo,
@@ -319,7 +339,6 @@ export default {
 				// console.log('门禁列表:', this.authList);
 			} else {
 				this.authList = [];
-				console.log('已选权限:', this.values);
 			}
 		},
 
@@ -356,7 +375,7 @@ export default {
 				.filter((item, index, self) => 
 					self.findIndex(i => i.key === item.key) === index
 				);
-			console.log(this.authList)
+			// console.log(this.authList)
 		},
 		/** 穿梭框变化 */
 		handleChange(value, direction, movedKeys) {
@@ -371,8 +390,7 @@ export default {
 				this.values = value;
 				this.$message.warning(`已移除 ${movedKeys.length} 个授权项`);
 			}
-			console.log('已选权限:', this.values);
-			console.log(this.authList)
+			// console.log('已选权限:', this.values);
 		},
 
 		/** 提交授权 */
@@ -453,35 +471,6 @@ export default {
 				dateRange: dateRangeStr,
 			};
 			console.log('提交授权参数:', params);
-			// // 按authMode分类门禁项
-			// const authItems = this.values.reduce((result, key) => {
-			// 	const item = this.authList.find(a => a.key === key);
-			// 	if (!item) return result;
-				
-			// 	if (item.authMode === 0) {
-			// 		result.push({
-			// 			authMode: 0,
-			// 			lineNo: item.lineNo,         // 新增 lineNo 字段
-			// 			groupCodes: item.groupCode
-			// 		});
-			// 	} else {
-			// 		result.push({
-			// 			authMode: 1,
-			// 			lineNo: item.lineNo,         // 新增 lineNo 字段
-			// 			stationNo: item.stationNo,    // 新增 stationNo 字段
-			// 			deviceCodes: item.deviceCode // 改为数组存储多个 deviceCode
-			// 		});
-			// 	}
-			// 	return result;
-			// }, []);
-
-			// const params = {
-			// 	idCard: this.AuthorizeForm.idCard,
-			// 	authItems,
-			// 	timeZone: this.form.timeZone,
-			// 	dateRange: dateRangeStr,
-			// };
-			// console.log('提交授权参数:', params);
 			if (this.existAuth === 0) {
 				try {
 					await AuthorizationApi.createCardPermissionsList(params);

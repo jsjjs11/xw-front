@@ -27,9 +27,9 @@ export function deleteCardPermissionsList(id) {
 }
 
 // 获得门禁权限授权操作列
-export function getCardPermissionsList(id) {
+export function getCardPermissionsList(idCard) {
   return request({
-    url: '/nacs/card-permissions/get?id=' + id,
+    url: '/nacs/card-permissions/get?idCard=' + idCard,
     method: 'get'
   })
 }
