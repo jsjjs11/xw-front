@@ -112,7 +112,6 @@
 	</div>
 </template>
 <script>
-// import * as LineApi from '@/api/nacs/line';
 import {getLineDatas} from "@/utils/dict";
 import * as AuthorizationApi from '@/api/nacs/authorize';
 export default {
@@ -177,7 +176,7 @@ export default {
     handleClose() {
       this.drawerVisible = false;
       this.reset();
-			this.allAuthCache.clear(); // 关闭时清空全局缓存
+			// this.allAuthCache.clear(); // 关闭时清空全局缓存
 		},
 		handleQuickDate(type) {
       const start = new Date()
@@ -318,64 +317,10 @@ export default {
 				// }));
 				// this.transferKey += 1;
 				// console.log('门禁列表:', this.authList);
-				// 模拟数据 - 根据选中的车站返回不同的门禁点
-      // this.authList = this.form.selectedStation.flatMap(stationNo => {
-      //   if(stationNo === 'S00001') {
-      //     return [
-      //       {
-      //         key: 'bgz-001',
-      //         label: '八卦洲A区门禁组',
-      //         authMode: 0,
-      //         groupCode: 'bgz-001',
-      //         groupName: '八卦洲A区门禁组'
-      //       },
-      //       {
-      //         key: 'bgz-002',
-      //         label: '八卦洲B区门禁组', 
-      //         authMode: 0,
-      //         groupCode: 'bgz-002',
-      //         groupName: '八卦洲B区门禁组'
-      //       },
-      //       {
-      //         key: 'bgz-dev-001',
-      //         label: '八卦洲1号门禁点',
-      //         authMode: 1,
-      //         deviceCode: 'bgz-dev-001',
-      //         deviceName: '八卦洲1号门禁点'
-      //       }
-      //     ];
-      //   } else if(stationNo === 'S00002') {
-      //     return [
-      //       {
-      //         key: 'bds-001',
-      //         label: '笆斗山办公区门禁组',
-      //         authMode: 0,
-      //         groupCode: 'bds-001',
-      //         groupName: '笆斗山办公区门禁组'
-      //       },
-      //       {
-      //         key: 'bds-dev-001',
-      //         label: '笆斗山1号门禁点',
-      //         authMode: 1,
-      //         deviceCode: 'bds-dev-001',
-      //         deviceName: '笆斗山1号门禁点'
-      //       },
-      //       {
-      //         key: 'bds-dev-002',
-      //         label: '笆斗山2号门禁点',
-      //         authMode: 1,
-      //         deviceCode: 'bds-dev-002',
-      //         deviceName: '笆斗山2号门禁点'
-      //       }
-      //     ];
-      //   }
-      //   return [];
-      // });
 			} else {
 				this.authList = [];
 				console.log('已选权限:', this.values);
 			}
-			// console.log('门禁列表:', this.authList);
 		},
 
 		updateAuthList() {
@@ -426,6 +371,8 @@ export default {
 				this.values = value;
 				this.$message.warning(`已移除 ${movedKeys.length} 个授权项`);
 			}
+			console.log('已选权限:', this.values);
+			console.log(this.authList)
 		},
 
 		/** 提交授权 */
@@ -437,34 +384,67 @@ export default {
 					return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
 				})
 				.join(',');
+			
 			// 按authMode分类门禁项
-			const authItems = this.values.reduce((result, key) => {
+			const authItems = [];
+			const groupMap = new Map();
+			const deviceMap = new Map();
+
+			// 先分类处理
+			this.values.forEach(key => {
 				const item = this.authList.find(a => a.key === key);
-				if (!item) return result;
+				if (!item) return;
 				
 				if (item.authMode === 0) {
-					const group = result.find(r => r.authMode === 0);
-					if (group) {
-						group.groupCode.push(item.groupCode);
-					} else {
-						result.push({
-							authMode: 0,
-							groupCode: [item.groupCode]
-						});
+					// 群组处理
+					if (!groupMap.has(item.lineNo)) {
+						groupMap.set(item.lineNo, []);
 					}
+					groupMap.get(item.lineNo).push({
+						groupCode: item.groupCode,
+						groupName: item.groupName
+					});
 				} else {
-					const device = result.find(r => r.authMode === 1);
-					if (device) {
-						device.deviceCode.push(item.deviceCode);
-					} else {
-						result.push({
-							authMode: 1,
-							deviceCode: [item.deviceCode]
+					// 设备处理
+					const deviceKey = `${item.lineNo}-${item.stationNo}`;
+					if (!deviceMap.has(deviceKey)) {
+						deviceMap.set(deviceKey, {
+							lineNo: item.lineNo,
+							stationNo: item.stationNo,
+							devices: []
 						});
 					}
+					deviceMap.get(deviceKey).devices.push({
+						deviceCode: item.deviceCode,
+						deviceName: item.deviceName
+					});
 				}
-				return result;
-			}, []);
+			});
+
+			// 构建群组项
+			groupMap.forEach((groups, lineNo) => {
+				authItems.push({
+					authMode: 0,
+					groups: groups.map(group => ({
+						lineNo: lineNo,
+						groupCode: group.groupCode,
+						groupName: group.groupName
+					}))
+				});
+			});
+
+			// 构建设备项
+			deviceMap.forEach(deviceInfo => {
+				authItems.push({
+					authMode: 1,
+					devices: deviceInfo.devices.map(device => ({
+						lineNo: deviceInfo.lineNo,
+						stationNo: deviceInfo.stationNo,
+						deviceCode: device.deviceCode,
+						deviceName: device.deviceName
+					}))
+				});
+			});
 
 			const params = {
 				idCard: this.AuthorizeForm.idCard,
@@ -473,6 +453,35 @@ export default {
 				dateRange: dateRangeStr,
 			};
 			console.log('提交授权参数:', params);
+			// // 按authMode分类门禁项
+			// const authItems = this.values.reduce((result, key) => {
+			// 	const item = this.authList.find(a => a.key === key);
+			// 	if (!item) return result;
+				
+			// 	if (item.authMode === 0) {
+			// 		result.push({
+			// 			authMode: 0,
+			// 			lineNo: item.lineNo,         // 新增 lineNo 字段
+			// 			groupCodes: item.groupCode
+			// 		});
+			// 	} else {
+			// 		result.push({
+			// 			authMode: 1,
+			// 			lineNo: item.lineNo,         // 新增 lineNo 字段
+			// 			stationNo: item.stationNo,    // 新增 stationNo 字段
+			// 			deviceCodes: item.deviceCode // 改为数组存储多个 deviceCode
+			// 		});
+			// 	}
+			// 	return result;
+			// }, []);
+
+			// const params = {
+			// 	idCard: this.AuthorizeForm.idCard,
+			// 	authItems,
+			// 	timeZone: this.form.timeZone,
+			// 	dateRange: dateRangeStr,
+			// };
+			// console.log('提交授权参数:', params);
 			if (this.existAuth === 0) {
 				try {
 					await AuthorizationApi.createCardPermissionsList(params);
@@ -507,6 +516,7 @@ export default {
 			this.selectedStationsCache.clear();
 			this.selectedAuthsCache.clear();
 			this.deviceCache.clear();
+			this.allAuthCache.clear(); // 关闭时清空全局缓存
 		}
 	}
 }
@@ -620,6 +630,8 @@ export default {
 }
 ::v-deep .el-transfer {
 	margin-left: 30px;
+	// display: flex !important;
+	flex-wrap: nowrap !important;
 }
 ::v-deep .el-transfer-panel {
 	margin-top: 10px;
