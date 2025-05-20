@@ -1,151 +1,196 @@
 <template>
 	<div class="app-container">
-		<div class="search-container">
-			<span style="font-size: 14px;">时间组名称</span>
-			<el-input 
-				v-model="periodName" 
-				placeholder="请输入时间组名称" 
-				style="width: 200px; margin-right: 10px;"></el-input>
-			<el-button type="primary" @click="handleSearch" icon="el-icon-search" size="small">查询</el-button>
-			<el-button type="primary" @click="handleReset" icon="el-icon-refresh" size="small">重置</el-button>
-		</div>
-		<div class="operation-container">
-			<el-row :gutter="10" class="mb8">
-				<el-col :span="1.5">
-					<el-button type="primary" plain icon="el-icon-plus" size="mini" @click="openForm(undefined)"
-										v-hasPermi="['nacs:time_period:create']">新增</el-button>
-				</el-col>
-					<right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+		<el-button type = "primary" @click = "handleAddTimeZone" icon="el-icon-plus">创建新时区</el-button>
+		<div v-for="(zone, zoneIndex) in timeZoneList" :key="zoneIndex" class="time-period-container">
+			<el-row type="flex" justify="space-between" align="middle" class="time-period-header">
+				<span class="time-period-title">{{ zone.timePeriodName }}</span>
+				<div>
+					<el-button type="text" size="mini" @click="handleZoneDelete">删除</el-button>
+					<el-switch v-model="status" active-color="rgb(12 140 255)" inactive-color="#ff4949"></el-switch>
+				</div>
 			</el-row>
-		</div>
-		<div class="table-container">
-			<el-table v-loading="loading" :data="list" :stripe="true" :show-overflow-tooltip="true">
-				<el-table-column type="selection" width="45" align="center" />
-				<el-table-column label="编号" align="center" key="id" prop="id" />
-				<el-table-column label="时间组名称" align="center" key="periodName" prop="periodName" />
-				<el-table-column label="状态" align="center" key="status" prop="status">
-					<template v-slot="scope">
-              <el-switch v-model="scope.row.status" :active-value="0" :inactive-value="1" @change="handleStatusChange(scope.row)" />
-            </template>
-				</el-table-column>
-				<el-table-column label="创建人" align="center" key="creator" prop="creator" />
-				<el-table-column label="创建时间" align="center" key="createTime" prop="createTime" >
-					<template v-slot="scope">
-						<span>{{ parseTime(scope.row.createTime) }}</span>
+			<el-table :data="zone.tableData" border style="width: 100%">
+				<el-table-column type="selection" width="50" align="center" />
+				<el-table-column type="index" label="序号" width="100" align="center" />
+				<el-table-column v-for="(day, index) in week" :key="index" :label="day" width="130" align="center">
+					<template slot-scope="scope">
+						<el-switch v-model="scope.row.timeRanges[index].status" active-color="rgb(12 140 255)" inactive-color="#ff4949"></el-switch>
 					</template>
 				</el-table-column>
-				<el-table-column label="更新人" align="center" key="updater" prop="updater" />
-				<el-table-column label="更新时间" align="center" key="updateTime" prop="updateTime" >
-					<template v-slot="scope">
-						<span>{{ parseTime(scope.row.updateTime) }}</span>
-					</template>
-				</el-table-column>
-				<el-table-column label="操作状态" align="center" key="op_state" prop="op_state" />
-				<el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-					<template v-slot="scope">
-						<el-button size="mini" type="text" icon="el-icon-edit" @click="openForm(scope.row.id)"
-											v-hasPermi="['nacs:time_period:update']">修改</el-button>
-						<el-button size="mini" type="text" icon="el-icon-view" @click="checkForm(scope.row.id)">查看</el-button>					
-						<el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)"
-											v-hasPermi="['nacs:time_period:delete']">删除</el-button>
+				<el-table-column label="开始时间" prop="startTime" width="180" align="center" />
+				<el-table-column label="结束时间" prop="endTime" width="180" align="center" />
+				<el-table-column label="操作" prop="operation" width="calc(100% - 1420px)" align="center">
+					<template slot-scope="scope">
+						<el-button type="text" size="mini" @click="handleEdit(scope.row, zoneIndex)">修改</el-button>
+						<el-button type="text" size="mini" @click="handleDelete(scope.row, zoneIndex)">删除</el-button>
 					</template>
 				</el-table-column>
 			</el-table>
-			<pagination v-show="total>0" :total="total" :page.sync="queryParams.pageNo" :limit.sync="queryParams.pageSize"
-				@pagination="getList"/>
+			<el-button @click="handleAdd(zoneIndex)" icon="el-icon-plus" style = "width:100%; margin-top:10px">增加新时段</el-button>
 		</div>
-		<TimeForm ref="timeForm" @success="getList"></TimeForm>
+		<time-zone ref="timeZoneRef" @confirm="handleTimeZoneConfirm" />
+		<time-range-form ref="timerangeFormRef" @confirm="handleTimeRangeConfirm" />
 	</div>
 </template>
 <script>
-import * as TimeApi from '@/api/nacs/time_period';
-import TimeForm  from './TimeForm.vue';
+import TimeRangeForm from '@/views/nacs/time_period/TimeRangeForm.vue';
+import TimeZone from '@/views/nacs/time_period/TimeZone.vue';
 export default {
-	name: 'TimePeriod',
+	name: "TimePeriod",
 	components: {
-		TimeForm,
+		TimeRangeForm,
+		TimeZone
 	},
 	data() {
+		const week = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
 		return {
-			list: [],
-			total: 0,
-			periodName: '',
-			showSearch: false,
-			loading: false,
-			queryParams: {
-				pageNo: 1,
-				pageSize: 10,
-				periodName: ''
-			},
-			
+			week: week,
+			// TimeRangesName: "全时区",
+			status: true,
+			timeZoneList: [
+				{
+					timePeriodName: "全时区",
+					tableData: [
+						{
+							timeRanges:  week.map(() => ({ status: true })),
+							week,
+							startTime: "00:00:00",
+							endTime: "23:59:59",
+						},
+					]
+				}
+			],
+			tableData: [
+				{
+					timeRanges:  week.map(() => ({ status: true })),
+					week,
+					startTime: "00:00:00",
+					endTime: "23:59:59",
+				},
+			],
+			editingRow: null,
+			editingZoneIndex: null,
 		}
 	},
-	created() {
-    this.getList();
-  },
 	methods: {
-		/** 查询列表 */
-    async getList() {
-      try {
-      	this.loading = true;
-				const res = await TimeApi.getTimePeriodPage(this.queryParams);
-				this.list = res.data.list;
-				this.total = res.data.total;
-      } finally {
-        this.loading = false;
-      }
-    },
-		
-		/** 搜索按钮操作 */
-    handleSearch() {
-      this.queryParams.pageNo = 1;
-      this.getList();
-    },
-    /** 重置按钮操作 */
-    handleReset() {
-      this.resetForm("queryForm");
-      this.handleSearch();
-    },
-		openForm(id) {
-			this.$refs['timeForm'].openForm(id);
+		handleAddTimeZone() {
+			this.$refs["timeZoneRef"].openForm();
 		},
-		checkForm(id) {
-			this.$refs['timeForm'].checkForm(id);
+		handleTimeZoneConfirm(data) {
+			const week = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+			const tableData = data.timeRanges.map(range => {
+				return {
+					timeRanges: week.map(day => ({
+						status: range.weekdays.includes(day)
+					})),
+					week: [...week],
+					startTime: range.startTime || "00:00:00",
+					endTime: range.endTime || "23:59:59"
+				};
+			});
+			
+			this.timeZoneList.push({
+				timePeriodName: data.name,
+				tableData: tableData
+			});
+			console.log(this.timeZoneList.tableData)
 		},
-		handleDelete(row) {
-			this.$confirm('确认删除该时间段吗？').then(() => {
-				TimeApi.deleteTimePeriod(row.id).then(() => {
-					this.$message.success('删除成功');
-					this.getList();
-				}).catch(() => {
-					this.$message.error('删除失败');
+		handleZoneDelete() {
+			if (this.editingZoneIndex === null) return;
+			this.$confirm('确定要删除该时区吗?', '提示', {
+				confirmButtonText: '确定',
+				cancelButtonText: '取消',
+				type: 'warning'
+			}).then(() => {
+				this.timeZoneList.splice(this.editingZoneIndex, 1);
+				this.editingZoneIndex = null;
+				this.$message({
+					type: 'success',
+					message: '删除成功!'
 				});
 			}).catch(() => {
+				this.$message({
+					type: 'info',
+					message: '已取消删除'
+				});          
 			});
 		},
-		// 时间段状态修改
-    handleStatusChange(row) {
-      let text = row.status === CommonStatusEnum.ENABLE ? "正常" : "停用";
-      this.$modal.confirm('确认要"' + text + '""' + row.periodName + '"时间段吗?').then(function() {
-				return changeUserStatus(row.id, row.status);
+		handleAdd(zoneIndex) {
+			const week = this.week;
+			this.timeZoneList[zoneIndex].tableData.push({
+				timeRanges: this.createNewTimeRanges(),
+				week: [...week],
+				startTime: "00:00:00",
+				endTime: "23:59:59",
+			})
+		},
+		createNewTimeRanges() {
+			return this.week.map(() => ({ status: true }));
+		},
+		handleEdit(row, zoneIndex) {
+			this.editingRow = {...row};
+			this.editingZoneIndex = zoneIndex;
+			this.$refs["timerangeFormRef"].show(row);
+			console.log(row)
+		},
+		handleTimeRangeConfirm(data) {
+			console.log(data);
+			const zoneIndex = this.editingZoneIndex;
+			const index = this.timeZoneList[zoneIndex].tableData.findIndex(row => 
+				row.startTime === this.editingRow.startTime && row.endTime === this.editingRow.endTime
+			);
+			if (index !== -1) {
+				this.$set(this.timeZoneList[zoneIndex].tableData, index, {
+					...this.timeZoneList[zoneIndex].tableData[index],
+					timeRanges: data.timeRanges,
+					startTime: data.startTime,
+					endTime: data.endTime,
+				});
+				this.editingRow = null;
+			}
+		},
+		handleDelete(row, zoneIndex) {
+			this.editingZoneIndex = zoneIndex;
+			this.$confirm('确定要删除该时段吗?', '提示', {
+				confirmButtonText: '确定',
+				cancelButtonText: '取消',
+				type: 'warning'
 			}).then(() => {
-				this.$modal.msgSuccess(text + "成功");
-			}).catch(function() {
-				row.status = row.status === CommonStatusEnum.ENABLE ? CommonStatusEnum.DISABLE
-						: CommonStatusEnum.ENABLE;
+				const index = this.timeZoneList[zoneIndex].tableData.indexOf(row);
+				if (index !== -1) {
+					this.timeZoneList[zoneIndex].tableData.splice(index, 1);
+					this.$message({
+						type: 'success',
+						message: '删除成功!'
+					});
+				}
+			}).catch(() => {
+				this.$message({
+					type: 'info',
+					message: '已取消删除'
+				});          
 			});
-    },
+		},
 	}
 }
 </script>
 <style lang="scss" scoped>
-.search-container {
-	margin-bottom: 15px; 
-	display: flex; 
-	align-items: center; 
-	gap: 10px;
+.time-period-header {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	background-color: rgb(229 246 255);
+	.el-button {
+		margin-right: 20px;
+	}
+	.el-switch {
+		margin-right: 20px;
+	}
 }
-.table-container {
-	padding: 15px 0px 0px 0px;
+.time-period-title {
+	font-size: 16px;
+	margin-left: 50px;
+	margin-top: 15px;
+	margin-bottom: 15px;
+	font-weight: bold;
 }
 </style>
