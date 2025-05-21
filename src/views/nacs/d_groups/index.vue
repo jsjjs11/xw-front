@@ -37,7 +37,7 @@
           <el-table-column label="门禁点编号" align="center" key="id" prop="id" />
           <el-table-column label="门禁点名称" align="center" key="deviceName" prop="deviceName" :show-overflow-tooltip="true" />
           <el-table-column label="线路名称" align="center" key="lineNo" prop="lineNo"  :show-overflow-tooltip="true" />
-          <el-table-column label="门禁组编号" align="center" key="groupCode" prop="groupCode":show-overflow-tooltip="true" />
+          <el-table-column label="门禁组编号" align="center" key="code" prop="code":show-overflow-tooltip="true" />
           <el-table-column label="访问类型" align="center" key="accessType" prop="accessType"  width="120">
 
 
@@ -83,7 +83,7 @@ export default {
       groupsOptions: undefined,
 
       // 门禁组名称
-      groupName: undefined,
+      name: undefined,
       defaultProps: {
         children: "children",
         label: "name"
@@ -93,8 +93,8 @@ export default {
         pageNo: 1,
         pageSize: 10,
         lineNo: undefined,
-        groupCode: undefined,
-        groupName: undefined,
+        code: undefined,
+        name: undefined,
         accessType:undefined,
       }
     };
@@ -137,11 +137,11 @@ export default {
         pageNo: 1,
         pageSize: 10,
         lineNo: undefined,
-        groupCode: undefined,
-        groupName: undefined
+        code: undefined,
+        name: undefined
       };
       if(data.type=='group'){
-        this.queryParams.groupCode = data.id;
+        this.queryParams.code = data.id;
 
       }else if(data.type=='line'){
         this.queryParams.lineNo = data.id;
