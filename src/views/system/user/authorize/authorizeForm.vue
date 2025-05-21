@@ -289,8 +289,17 @@ export default {
     },
 
     /** 显示授权抽屉 */
-    showAuthDrawer() {
-      this.$refs["authorizeDrawerRef"].showAuthDialog(this.queryParams.idCard, this.total);
+    async showAuthDrawer() {
+      try {
+        const response = await AuthorizationApi.checkApply(this.queryParams.idCard);
+        if (response.data) {
+          this.$refs["authorizeDrawerRef"].showAuthDialog(this.queryParams.idCard, this.total);
+        } else {
+          this.$modal.msgInfo('您已申请过权限，请等待管理员审核');
+        }
+      } catch (error) {
+        console.error('检查是否有未审核的权限申请失败', error);
+      }
     },
 
   }

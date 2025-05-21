@@ -58,3 +58,11 @@ export function getGroupsOrDevicesList(id) {
     method: 'get'
   })
 }
+
+// 检查用户是否有未审核的权限申请
+export function checkApply(idCard) {
+  return request({
+    url: '/nacs/card-permissions/check-pending-auth?idCard=' + idCard,
+    method: 'get'
+  })
+}

@@ -7,15 +7,23 @@ import request from '@/utils/request'
 // 获得线路信息分页
 export function getCheckPage(params) {
   return request({
-    url: '/nacs/check/page',
+    url: '/nacs/permissions/page',
     method: 'get',
     params
   })
 }
 
-export function getCheckDetail(checkId) {
+export function getCheckDetail(authNo) {
   return request({
-    url: '/nacs/check/detail/' + checkId,
+    url: '/nacs/permissions/list-waiting-review?authNo=' + authNo,
     method: 'get'
+  })
+}
+
+export function reviewCheck(params) {
+  return request({
+    url: '/nacs/permissions/review',
+    method: 'post',
+    params
   })
 }
