@@ -77,7 +77,7 @@
 									</div>
 									<div class="detail-item">
 										<label>权限授予人：</label>
-										<span>{{ row.idCard }}</span> 
+										<span>{{ row.employeeName }}</span> 
 										<!-- employeeName -->
 									</div>
 									<div class="detail-item">
@@ -232,6 +232,7 @@ export default {
 					cardNo: res.data[0].cardNo,
 					createTime: row.createTime, // 保持原有分页数据
 					idCard: res.data[0].idCard,
+					employeeName: res.data.map(item =>item.employeeName).filter(Boolean).join('、'),
 					lineNo: res.data[0].lineNo,
 					timePeriodId: res.data[0].timePeriodId,
 					// 合并group和device信息
