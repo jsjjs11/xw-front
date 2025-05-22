@@ -1,43 +1,38 @@
 <template>
 	<div class="app-container">
-		<el-row :gutter="20">
-			<el-col :span="20" >
-				<!-- 查询表单 -->
-				<el-form :inline="true" :model="queryForm" size="small" ref="queryForm" class="search-form">
-					<el-form-item label="审核单号">
-						<el-input v-model="queryForm.authNo" placeholder="请输入审核单号"></el-input>
-					</el-form-item>
-					<!-- <el-form-item label="发起人">
-						<el-input v-model="queryForm.checkUser" placeholder="请输入发起人"></el-input>
-					</el-form-item> -->
-					<el-form-item label="负责人">
-						<el-input v-model="queryForm.leaderUserId" placeholder="请输入负责人"></el-input>
-					</el-form-item>
-					<el-form-item label="审核状态">
-						<el-select v-model="queryForm.status" placeholder="请选择状态">
-							<el-option v-for="dict in checkStateDictDatas" :key = "parseInt(dict.value)" :label="dict.label"
-							:value="parseInt(dict.value)"></el-option>
-							<!-- <el-option label="待审核" value="0"></el-option>
-							<el-option label="已通过" value="1"></el-option>
-							<el-option label="已驳回" value="2"></el-option> -->
-						</el-select>
-					</el-form-item>
-					<el-form-item label="发起时间">
-						<el-date-picker
-							v-model="queryForm.dateRange"
-							type="daterange"
-							range-separator="至"
-							start-placeholder="开始日期"
-							end-placeholder="结束日期">
-						</el-date-picker>
-					</el-form-item>
-					<el-form-item>
-						<el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
-						<el-button icon="el-icon-refresh" @click="handleReset">重置</el-button>
-					</el-form-item>
-				</el-form>
-			</el-col>
-		</el-row>
+		<!-- 查询表单 -->
+		<el-form :inline="true" :model="queryParams" size="small" ref="queryForm" class="search-form">
+			<el-form-item label="审核单号">
+				<el-input v-model="queryParams.authNo" placeholder="请输入审核单号" clearable @keyup.enter.native="handleSearch"></el-input>
+			</el-form-item>
+			<!-- <el-form-item label="发起人">
+				<el-input v-model="queryParams.checkUser" placeholder="请输入发起人"></el-input>
+			</el-form-item> -->
+			<el-form-item label="负责人">
+				<el-input v-model="queryParams.leaderUserId" placeholder="请输入负责人" clearable  @keyup.enter.native="handleSearch"></el-input>
+			</el-form-item>
+			<el-form-item label="审核状态">
+				<el-select v-model="queryParams.reviewState" placeholder="请选择审核状态" clearable @keyup.enter.native="handleSearch">
+					<el-option v-for="dict in checkStateDictDatas" :key = "parseInt(dict.value)" :label="dict.label"
+					:value="parseInt(dict.value)"></el-option>
+				</el-select>
+			</el-form-item>
+			<el-form-item label="发起时间">
+				<el-date-picker
+					v-model="queryParams.createTime"
+					type="daterange"
+					range-separator="至"
+					start-placeholder="开始日期"
+					end-placeholder="结束日期"
+					value-format="yyyy-MM-dd HH:mm:ss"
+					:default-time="['00:00:00', '23:59:59']">
+				</el-date-picker>
+			</el-form-item>
+			<el-form-item>
+				<el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
+				<el-button icon="el-icon-refresh" @click="handleReset">重置</el-button>
+			</el-form-item>
+		</el-form>
 		<div class="table-container">
 			<el-table ref="tableRef" :data="list" style="width: 100%; height: 655px;" v-loading="loading" :stripe="true" 
 				:show-overflow-tooltip="true" row-key="authNo" @row-click="handleRowClick">
@@ -52,7 +47,7 @@
 						<dict-tag :type="DICT_TYPE.NACS_CHECK_STATE" :value="scope.row.reviewState"/>
 					</template>
 				</el-table-column>
-				<el-table-column label="负责人" align="center" prop="leaderUserId"></el-table-column>
+				<el-table-column label="负责人" align="center" prop="leaderUserName"></el-table-column>
 				<el-table-column label="操作" align="center" width="250">
 					<template slot-scope="scope">
 						<el-button type="text" @click.stop="handleView(scope.row)" :icon="activeRow === scope.row.authNo ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"
@@ -137,13 +132,6 @@ export default {
 	},
 	data() {
 		return {
-			queryForm: {
-        authNo: '',
-        // checkUser: '',
-        leaderUserId: '',
-        status: '',
-        dateRange: []
-      },
 			list: [
 				// {
 				// 	authNo: 'CK20250001',
@@ -175,6 +163,10 @@ export default {
 			queryParams: {
 				pageNo: 1,
 				pageSize: 10,
+				authNo: null,
+				leaderUserName: null,
+        reviewState: null,
+        createTime: []
 			},
 			checkStateDictDatas: getDictDatas(DICT_TYPE.NACS_CHECK_STATE),
 			activeRow: null  // 当前展开行的id
@@ -213,6 +205,14 @@ export default {
     /** 重置按钮操作 */
     handleReset() {
       this.resetForm("queryForm");
+			this.queryParams = {
+        pageNo: 1,
+        pageSize: 10,
+        authNo: null,
+        leaderUserName: null,
+        reviewState: null,
+        createTime: []
+      };
       this.handleSearch();
     },
 		/** 详情按钮操作 */
