@@ -129,7 +129,7 @@ export default {
 			},
 			loading: true,
 			AuthorizeForm:{
-        idCard: undefined,
+        idCard: [],
         authItems: undefined,
       },
 			drawerVisible: false,
@@ -165,7 +165,7 @@ export default {
 		/** 显示授权弹窗 */
     async showAuthDialog(data, total) {
       this.drawerVisible = true;
-      this.AuthorizeForm.idCard = data;
+      this.AuthorizeForm.idCard.push(data);
 			this.existAuth = total;
 			if(this.lineList.length>1){
 				this.form.selectedLine = this.lineList[0].lineNo
@@ -310,7 +310,7 @@ export default {
 		},
 		/** 根据车站更新门禁数据 */
 		onStationChange() {
-			if(this.form.selectedStation && this.form.selectedStation.length > 0){
+			// if(this.form.selectedStation && this.form.selectedStation.length > 0){
 				// 更新已选车站缓存
 				this.selectedStationsCache = new Set(this.form.selectedStation);
 				this.values = Array.from(this.selectedAuthsCache)
@@ -325,7 +325,27 @@ export default {
 					this.checkAll = false;
 					this.isIndeterminate = false;
 				}
-				this.updateAuthList();
+				// this.updateAuthList();
+				// 筛选设备数据
+				const filteredDevices = Array.from(this.allAuthCache.values())
+					.filter(item => {
+						if (item.authMode === 0) return true; // 保留所有群组
+						if (item.authMode === 1) {
+							return this.selectedStationsCache.has(item.stationNo); // 根据车站筛选设备
+						}
+						return false;
+					});
+				
+				// 合并已选权限
+				const selectedAuths = Array.from(this.selectedAuthsCache)
+					.map(key => this.allAuthCache.get(key))
+					.filter(item => item !== undefined);
+				
+				// 更新门禁列表
+				this.authList = [...filteredDevices, ...selectedAuths]
+					.filter((item, index, self) => 
+						self.findIndex(i => i.key === item.key) === index
+					);
 				this.transferKey += 1;
 				// 获取门禁列表
 				// const res = await AuthorizationApi.getStationDeviceList(this.form.selectedStation);
@@ -337,34 +357,36 @@ export default {
 				// }));
 				// this.transferKey += 1;
 				// console.log('门禁列表:', this.authList);
-			} else {
-				this.authList = [];
-			}
+			// } else {
+			// 	this.authList = [];
+			// }
 		},
 
 		updateAuthList() {
 			// 获取所有选中车站的设备
-			const selectedDevices = Array.from(this.selectedStationsCache)
-				.flatMap(stationNo => this.deviceCache.get(stationNo) || []);
-			// 合并群组和设备
-			this.authList = [
-				...this.authList.filter(item => item.authMode === 0), // 保留群组
-				...selectedDevices
-  		];
+			// const selectedDevices = Array.from(this.selectedStationsCache)
+			// 	.flatMap(stationNo => this.deviceCache.get(stationNo) || []);
+			// // 合并群组和设备
+			// this.authList = [
+			// 	...this.authList.filter(item => item.authMode === 0), // 保留群组
+			// 	...selectedDevices
+  		// ];
 			// 当前线路的群组
 			const currentGroups = Array.from(this.allAuthCache.values())
 				.filter(item => item.authMode === 0 && item.lineNo === this.form.selectedLine);
 
 			// 当前选中车站的设备
-			const currentDevices = Array.from(this.selectedStationsCache)
-				.flatMap(stationNo => 
-					Array.from(this.allAuthCache.values()).filter(item => 
-						item.authMode === 1 && 
-						item.stationNo === stationNo &&
-						item.lineNo === this.form.selectedLine
-					)
-				);
-
+			// const currentDevices = Array.from(this.selectedStationsCache)
+			// 	.flatMap(stationNo => 
+			// 		Array.from(this.allAuthCache.values()).filter(item => 
+			// 			item.authMode === 1 && 
+			// 			item.stationNo === stationNo &&
+			// 			item.lineNo === this.form.selectedLine
+			// 		)
+			// 	);
+			// 获取当前线路的所有设备（无论车站是否选中）
+    	const currentDevices = Array.from(this.allAuthCache.values())
+        .filter(item => item.authMode === 1 && item.lineNo === this.form.selectedLine);
 			// 所有已选权限的数据（包括其他线路的）
 			const selectedAuths = Array.from(this.selectedAuthsCache)
 				.map(key => this.allAuthCache.get(key))
@@ -471,7 +493,7 @@ export default {
 				dateRange: dateRangeStr,
 			};
 			console.log('提交授权参数:', params);
-			if (this.existAuth === 0) {
+			// if (this.existAuth === 0) {
 				try {
 					await AuthorizationApi.createCardPermissionsList(params);
 					this.$message.success('授权成功');
@@ -481,17 +503,17 @@ export default {
 					console.log('授权失败:', error);
 					this.$message.error('授权失败');
 				}
-			} else {
-				try {
-					await AuthorizationApi.updateCardPermissionsList(params);
-					this.$message.success('授权成功');
-					this.reset();
-					this.drawerVisible = false;
-				} catch (error) {
-					console.log('授权失败:', error);
-					this.$message.error('授权失败');
-				}
-			}
+			// } else {
+			// 	try {
+			// 		await AuthorizationApi.updateCardPermissionsList(params);
+			// 		this.$message.success('授权成功');
+			// 		this.reset();
+			// 		this.drawerVisible = false;
+			// 	} catch (error) {
+			// 		console.log('授权失败:', error);
+			// 		this.$message.error('授权失败');
+			// 	}
+			// }
 		},
 		reset() {
 			this.form = {
@@ -627,6 +649,11 @@ export default {
 	width: 300px;
 	height: 480px;
 	overflow: auto;
-	
+	.el-transfer-panel__body {
+		height: 420px;
+	}
+	.el-transfer-panel__list.is-filterable {
+		height:360px;
+	}
 }
 </style>

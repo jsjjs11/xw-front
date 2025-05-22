@@ -832,7 +832,7 @@ export default {
         return
       }
       // 检查选中数量
-      this.$refs["authorizeDrawerRef"].showAuthDrawer();
+      this.$refs["authorizeDrawerRef"].showAuthDialog(this.queryParams.idCard, this.total);
     },
     handleAuthorize(row){
       // 统一获取选中行数据

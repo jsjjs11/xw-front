@@ -306,6 +306,7 @@ export default {
 			gap: 30px;
 			padding-bottom: 15px;
 			min-height: 120px;
+			margin-left: 100px;
 
 			.detail-column {
 				display: flex;

@@ -291,7 +291,8 @@ export default {
     /** 显示授权抽屉 */
     async showAuthDrawer() {
       try {
-        const response = await AuthorizationApi.checkApply(this.queryParams.idCard);
+        const params = [this.queryParams.idCard];
+        const response = await AuthorizationApi.checkApply(params);
         if (response.data) {
           this.$refs["authorizeDrawerRef"].showAuthDialog(this.queryParams.idCard, this.total);
         } else {

@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 创建门禁权限授权操作列
 export function createCardPermissionsList(data) {
   return request({
-    url: '/nacs/card-permissions/create',
+    url: '/nacs/card-permissions/review',
     method: 'post',
     data: data
   })
@@ -27,10 +27,11 @@ export function deleteCardPermissionsList(id) {
 }
 
 // 获得门禁权限授权操作列
-export function getCardPermissionsList(idCard) {
+export function getCardPermissionsList(data) {
   return request({
-    url: '/nacs/card-permissions/get?idCard=' + idCard,
-    method: 'get'
+    url: '/nacs/card-permissions/get',
+    method: 'post',
+    data: data
   })
 }
 
@@ -60,9 +61,10 @@ export function getGroupsOrDevicesList(id) {
 }
 
 // 检查用户是否有未审核的权限申请
-export function checkApply(idCard) {
+export function checkApply(data) {
   return request({
-    url: '/nacs/card-permissions/check-pending-auth?idCard=' + idCard,
-    method: 'get'
+    url: '/nacs/card-permissions/check-pending-auth',
+    method: 'post',
+    data: data
   })
 }

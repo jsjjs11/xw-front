@@ -20,10 +20,10 @@ export function getCheckDetail(authNo) {
   })
 }
 
-export function reviewCheck(params) {
+export function reviewCheck(data) {
   return request({
     url: '/nacs/permissions/review',
     method: 'post',
-    params
+    data: data
   })
 }
