@@ -325,27 +325,27 @@ export default {
 					this.checkAll = false;
 					this.isIndeterminate = false;
 				}
-				// this.updateAuthList();
-				// 筛选设备数据
-				const filteredDevices = Array.from(this.allAuthCache.values())
-					.filter(item => {
-						if (item.authMode === 0) return true; // 保留所有群组
-						if (item.authMode === 1) {
-							return this.selectedStationsCache.has(item.stationNo); // 根据车站筛选设备
-						}
-						return false;
-					});
+				this.updateAuthList();
+				// // 筛选设备数据
+				// const filteredDevices = Array.from(this.allAuthCache.values())
+				// 	.filter(item => {
+				// 		if (item.authMode === 0) return true; // 保留所有群组
+				// 		if (item.authMode === 1) {
+				// 			return this.selectedStationsCache.has(item.stationNo); // 根据车站筛选设备
+				// 		}
+				// 		return false;
+				// 	});
 				
-				// 合并已选权限
-				const selectedAuths = Array.from(this.selectedAuthsCache)
-					.map(key => this.allAuthCache.get(key))
-					.filter(item => item !== undefined);
+				// // 合并已选权限
+				// const selectedAuths = Array.from(this.selectedAuthsCache)
+				// 	.map(key => this.allAuthCache.get(key))
+				// 	.filter(item => item !== undefined);
 				
-				// 更新门禁列表
-				this.authList = [...filteredDevices, ...selectedAuths]
-					.filter((item, index, self) => 
-						self.findIndex(i => i.key === item.key) === index
-					);
+				// // 更新门禁列表
+				// this.authList = [...filteredDevices, ...selectedAuths]
+				// 	.filter((item, index, self) => 
+				// 		self.findIndex(i => i.key === item.key) === index
+				// 	);
 				this.transferKey += 1;
 				// 获取门禁列表
 				// const res = await AuthorizationApi.getStationDeviceList(this.form.selectedStation);
@@ -376,17 +376,17 @@ export default {
 				.filter(item => item.authMode === 0 && item.lineNo === this.form.selectedLine);
 
 			// 当前选中车站的设备
-			// const currentDevices = Array.from(this.selectedStationsCache)
-			// 	.flatMap(stationNo => 
-			// 		Array.from(this.allAuthCache.values()).filter(item => 
-			// 			item.authMode === 1 && 
-			// 			item.stationNo === stationNo &&
-			// 			item.lineNo === this.form.selectedLine
-			// 		)
-			// 	);
-			// 获取当前线路的所有设备（无论车站是否选中）
-    	const currentDevices = Array.from(this.allAuthCache.values())
-        .filter(item => item.authMode === 1 && item.lineNo === this.form.selectedLine);
+			const currentDevices = Array.from(this.selectedStationsCache)
+				.flatMap(stationNo => 
+					Array.from(this.allAuthCache.values()).filter(item => 
+						item.authMode === 1 && 
+						item.stationNo === stationNo &&
+						item.lineNo === this.form.selectedLine
+					)
+				);
+			// // 获取当前线路的所有设备（无论车站是否选中）
+    	// const currentDevices = Array.from(this.allAuthCache.values())
+      //   .filter(item => item.authMode === 1 && item.lineNo === this.form.selectedLine);
 			// 所有已选权限的数据（包括其他线路的）
 			const selectedAuths = Array.from(this.selectedAuthsCache)
 				.map(key => this.allAuthCache.get(key))
