@@ -487,7 +487,7 @@ export default {
 			});
 
 			const params = {
-				idCard: this.AuthorizeForm.idCard,
+				idCards: this.AuthorizeForm.idCard,
 				authItems,
 				timeZone: this.form.timeZone,
 				dateRange: dateRangeStr,

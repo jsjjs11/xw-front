@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 创建门禁权限授权操作列
 export function createCardPermissionsList(data) {
   return request({
-    url: '/nacs/card-permissions/review',
+    url: '/nacs/card-permissions/create',
     method: 'post',
     data: data
   })
