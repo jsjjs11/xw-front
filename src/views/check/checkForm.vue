@@ -97,7 +97,12 @@ export default {
         this.params.remark = this.currentAudit.remark;
         try {
           CheckApi.reviewCheck(this.params)
-          this.auditDialogVisible = false
+          this.$emit('success', {
+            authNo: this.params.authNo,
+            reviewState: 1 // 1表示已通过
+          });
+          this.auditDialogVisible = false;
+          this.$modal.msgSuccess("审核通过成功");
         } catch (error) {
           this.$message.error('审核失败，请重试')
         }
@@ -110,7 +115,8 @@ export default {
           this.params.remark = this.currentAudit.remark;
           try {
             CheckApi.reviewCheck(this.params)
-            this.auditDialogVisible = false
+            this.auditDialogVisible = false;
+            this.$modal.msgSuccess("审核已驳回");
           } catch (error) {
             this.$message.error('审核失败，请重试')
           }

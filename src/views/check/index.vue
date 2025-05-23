@@ -35,7 +35,7 @@
 		</el-form>
 		<div class="table-container">
 			<el-table ref="tableRef" :data="list" style="width: 100%; height: 655px;" v-loading="loading" :stripe="true" 
-				:show-overflow-tooltip="true" row-key="authNo" @row-click="handleRowClick">
+				:show-overflow-tooltip="true" row-key="authNo" >
 				<el-table-column type="selection" width="45" align="center" :reserve-selection="true"></el-table-column>
 				<el-table-column type="index" width="40" align="center" />
 				<el-table-column label="审核单号" align="center" prop="authNo"></el-table-column>
@@ -116,6 +116,7 @@
 				@pagination="getList"/>
 		</div>
 		<CheckForm ref="formRef" @success="getList" />
+		<CheckForm ref="formRef" @success="handleCheckSuccess" />
 	</div>
 </template>
 <script>
@@ -263,17 +264,29 @@ export default {
 				this.loading = false;
 			}
 		},
-		handleRowClick(row) {
-			if (this.activeRow === row.authNo) {
-				this.activeRow = null;
-			} else {
-				this.activeRow = row.authNo;
-			}
-		},
+		// handleRowClick(row) {
+		// 	if (this.activeRow === row.authNo) {
+		// 		this.activeRow = null;
+		// 	} else {
+		// 		this.activeRow = row.authNo;
+		// 	}
+		// },
 		/** 审核按钮操作 */
 		handleCheck(row) {
 			this.$refs["formRef"].open(row);
 			this.getList();
+		},
+		/** 审核成功回调 */
+		handleCheckSuccess({authNo, reviewState}) {
+			this.list = this.list.map(item => {
+				if (item.authNo === authNo) {
+					return {
+						...item,
+						reviewState
+					};
+				}
+				return item;
+			});
 		}
 	}
 }
