@@ -51,6 +51,7 @@ const actions = {
           lineNo: lineData.lineNo,
           name: lineData.name,
           color: lineData.color,
+          authMode:lineData.authMode
         })
       })
       // 存储到 Store 中

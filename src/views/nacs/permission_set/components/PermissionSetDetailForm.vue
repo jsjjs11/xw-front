@@ -68,7 +68,7 @@
                     <el-link type="primary" v-if="option.authMode==0"  :underline="false"  style="text-decoration: underline;">{{ option.label }}
                       <i class="el-icon-view el-icon--right"></i>
                     </el-link>
-                    <span v-else>{{ option.label+"1"}}</span>
+                    <span v-else>{{ option.label}}</span>
                   </div>
                 </el-transfer>
 
