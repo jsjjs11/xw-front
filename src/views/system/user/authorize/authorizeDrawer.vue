@@ -165,13 +165,14 @@ export default {
 		/** 显示授权弹窗 */
     async showAuthDialog(data, total) {
       this.drawerVisible = true;
-      this.AuthorizeForm.idCard.push(data);
+			this.AuthorizeForm.idCard = Array.isArray(data) ? data : [data];
 			this.existAuth = total;
 			if(this.lineList.length>1){
 				this.form.selectedLine = this.lineList[0].lineNo
 			}
 			this.onLineChange(); // 默认载入第一条线路的站点
 			try {
+				console.log('用户身份证号：',this.AuthorizeForm.idCard)
 				const res = await AuthorizationApi.getCardPermissionsList(this.AuthorizeForm.idCard)
 				// console.log('读取到的已选权限',res.data)
 				if(res.data && res.data.length > 0) {
@@ -238,60 +239,55 @@ export default {
         // const res = await LineApi.line2Station({lineNo:this.form.selectedLine});
         // this.stationList = res.data;
 				const res = await AuthorizationApi.getGroupsOrDevicesList(this.form.selectedLine);
-				const {groups, stations} = res.data;
+				const {groups, stations, devices} = res.data;
 				// console.log(res.data)
 				// 车站数据
 				this.stationList = stations ? stations.map(item => ({
 					stationNo: item.stationNo,
-					name: item.stationName,
+					name: item.name,
 				})) : [];
 				// 默认全选所有车站
     		this.form.selectedStation = this.stationList.map(station => station.stationNo);
 				this.selectedStationsCache = new Set(this.form.selectedStation);
 				this.checkAll = true;
 				this.isIndeterminate = false;
-				if (stations && stations.length > 0) {
-					stations.forEach(station =>{
-						if (station.devices) {
-							const devices = station.devices.map(device => ({
-								authMode: 1,
-								key: device.deviceCode,
-								label: device.deviceName,
-								stationNo: station.stationNo,
-								...device
-							}));
-							this.deviceCache.set(station.stationNo, devices);
-						}
-					})
-				}
+				// if (stations && stations.length > 0) {
+				// 	stations.forEach(station =>{
+				// 		if (station.devices) {
+				// 			const devices = station.devices.map(device => ({
+				// 				authMode: 1,
+				// 				key: device.deviceCode,
+				// 				label: device.deviceName,
+				// 				stationNo: station.stationNo,
+				// 				...device
+				// 			}));
+				// 			this.deviceCache.set(station.stationNo, devices);
+				// 		}
+				// 	})
+				// }
 				// 缓存群组数据
 				groups? groups.forEach(group => {
-					const key = `${res.data.lineNo}-${group.groupCode}`;
+					const key = `${res.data.lineNo}-${group.code}`;
 					this.allAuthCache.set(key, {
 						...group,
-						authMode: 0,
+						authMode: 2,
 						key: key,
-						label: group.groupName,
+						label: group.name,
 						lineNo: this.form.selectedLine // 标记所属线路
 					});
 				}) : [];
 
 				// 缓存设备数据
-				stations ? stations.forEach(station => {
-					if (station.devices) {
-						station.devices.forEach(device => {
-							const key = `${res.data.lineNo}-${device.deviceCode}`;
-							const label = `${station.stationName}-${device.deviceName}`;
-							this.allAuthCache.set(key, {
-								...device,
-								authMode: 1,
-								key: key,
-								label: label,
-								lineNo: this.form.selectedLine, // 标记所属线路
-								stationNo: station.stationNo     // 标记所属车站
-							});
-						});
-					}
+				devices ? devices.forEach(device => {
+					const key = `${res.data.lineNo}-${device.code}`;
+					this.allAuthCache.set(key, {
+						...device,
+						authMode: 1,
+						key: key,
+						label: device.name,
+						lineNo: this.form.selectedLine, // 标记所属线路
+						stationNo: device.stationNo     // 标记所属车站
+					});
 				}) : [];
 				this.updateAuthList();
 				this.transferKey += 1;
@@ -353,7 +349,7 @@ export default {
   		// ];
 			// 当前线路的群组
 			const currentGroups = Array.from(this.allAuthCache.values())
-				.filter(item => item.authMode === 0 && item.lineNo === this.form.selectedLine);
+				.filter(item => item.authMode === 2 && item.lineNo === this.form.selectedLine);
 
 			// 当前选中车站的设备
 			const currentDevices = Array.from(this.selectedStationsCache)

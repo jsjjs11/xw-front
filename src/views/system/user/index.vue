@@ -832,7 +832,8 @@ export default {
         return
       }
       // 检查选中数量
-      this.$refs["authorizeDrawerRef"].showAuthDialog(this.queryParams.idCard, this.total);
+      const idCards = this.selectedRows.map(item => item.idCard)
+      this.$refs["authorizeDrawerRef"].showAuthDialog(idCards, this.total);
     },
     handleAuthorize(row){
       // 统一获取选中行数据
