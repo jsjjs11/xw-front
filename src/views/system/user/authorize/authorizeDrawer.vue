@@ -173,20 +173,33 @@ export default {
 			this.onLineChange(); // 默认载入第一条线路的站点
 			try {
 				const res = await AuthorizationApi.getCardPermissionsList(this.AuthorizeForm.idCard)
-				// console.log('读取到的已选权限',res.data)
+				console.log('读取到的已选权限',res.data)
+				// 清空当前已选权限
+        this.values = [];
+        this.selectedAuthsCache = new Set();
 				if(res.data && res.data.length > 0) {
-					this.values = res.data.map(item => {
-						if (item.authMode === 0) {
-							// 处理群组权限
-							return `${item.lineNo}-${item.groupCode}`;
-						} else {
-							return `${item.lineNo}-${item.deviceCode}`;
-						}
+					// 处理返回的权限数据
+					res.data.forEach(item => {
+						const key = `${item.lineNo}-${item.id}`;
+						const name = item.groupName ? item.groupName : item.deviceName;
+						this.allAuthCache.set(key, {
+							...item,
+							authMode: item.authMode,
+							key: key,
+							label: name,
+							lineNo: item.lineNo, // 标记所属线路
+							stationNo: item.stationNo // 标记所属车站
+						});
+						this.values.push(key);
+						this.selectedAuthsCache.add(key);
 					});
-					// console.log('已选权限:', this.values);
+					console.log('全局缓存:', this.allAuthCache);
+					console.log('已选权限:', this.values);
 					// 更新已选权限缓存
-					this.selectedAuthsCache = new Set(this.values);
+					this.transferKey += 1;
+					this.updateAuthList();
 				}
+				console.log(this.selectedAuthsCache)
 			} catch(error) {
 				console.log(error)
 				this.$message.error('获取用户授权信息失败');
@@ -228,11 +241,11 @@ export default {
       if(this.form.selectedLine){
 				this.deviceCache.clear(); // 清空设备缓存
 				// 清空当前线路的旧缓存（保留其他线路的缓存）
-				this.allAuthCache.forEach((value, key) => {
-					if (value.lineNo === this.form.selectedLine) {
-						this.allAuthCache.delete(key);
-					}
-				});
+				// this.allAuthCache.forEach((value, key) => {
+				// 	if (value.lineNo === this.form.selectedLine) {
+				// 		this.allAuthCache.delete(key);
+				// 	}
+				// });
 				// this.values = Array.from(this.selectedAuthsCache)
 				// console.log('已选权限:', this.values);
         // const res = await LineApi.line2Station({lineNo:this.form.selectedLine});
@@ -250,20 +263,6 @@ export default {
 				this.selectedStationsCache = new Set(this.form.selectedStation);
 				this.checkAll = true;
 				this.isIndeterminate = false;
-				// if (stations && stations.length > 0) {
-				// 	stations.forEach(station =>{
-				// 		if (station.devices) {
-				// 			const devices = station.devices.map(device => ({
-				// 				authMode: 1,
-				// 				key: device.deviceCode,
-				// 				label: device.deviceName,
-				// 				stationNo: station.stationNo,
-				// 				...device
-				// 			}));
-				// 			this.deviceCache.set(station.stationNo, devices);
-				// 		}
-				// 	})
-				// }
 				// 缓存群组数据
 				groups? groups.forEach(group => {
 					const key = `${res.data.lineNo}-${group.id}`;
@@ -407,7 +406,6 @@ export default {
 			this.values.forEach(key => {
 				const item = this.authList.find(a => a.key === key);
 				if (!item) return;
-				console.log(item)
 				if (item.authMode === 1) {
 					authItems.push({
 						authMode: 1,
@@ -436,7 +434,7 @@ export default {
 				timeZone: this.form.timeZone,
 				dateRange: dateRangeStr,
 			};
-			console.log('提交授权参数:', params);
+			// console.log('提交授权参数:', params);
 			// if (this.existAuth === 0) {
 				try {
 					await AuthorizationApi.createCardPermissionsList(params);

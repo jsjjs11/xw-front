@@ -428,6 +428,7 @@ import {getBaseHeader} from "@/utils/request";
 import ImageUpload from '@/components/ImageUpload/index.vue'
 import AuthorizeForm from './authorize/authorizeForm.vue'
 import AuthorizeDrawer from '@/views/system/user/authorize/authorizeDrawer.vue'
+import * as AuthorizationApi from '@/api/nacs/authorize'
 export default {
   name: "SystemUser",
   components: { Treeselect , ImageUpload, CardsForm, userCardDialog, AuthorizeForm, AuthorizeDrawer},
@@ -826,14 +827,21 @@ export default {
         this.$refs["userCardDialog"].show(row);
       }
     },
-    handleAuthorizeByGroup(){
+    async handleAuthorizeByGroup(){
+      // 检查选中数量
       if (this.selectedRows.length <= 1) {
         this.$message.error('请先选择两个以上用户')
         return
       }
-      // 检查选中数量
+      // 检查是否有未审核权限
       const idCards = this.selectedRows.map(item => item.idCard)
-      this.$refs["authorizeDrawerRef"].showAuthDialog(idCards, this.total);
+      const response = await AuthorizationApi.checkApply(idCards);
+        if (response.data.length === 0) {
+          this.$refs["authorizeDrawerRef"].showAuthDialog(idCards, this.total);
+        } else {
+          const resultString = response.data.join('、');
+          this.$modal.msgError(resultString + '已申请过权限，请等待管理员审核');
+        }
     },
     handleAuthorize(row){
       // 统一获取选中行数据
