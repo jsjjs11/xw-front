@@ -172,7 +172,6 @@ export default {
 			}
 			this.onLineChange(); // 默认载入第一条线路的站点
 			try {
-				console.log('用户身份证号：',this.AuthorizeForm.idCard)
 				const res = await AuthorizationApi.getCardPermissionsList(this.AuthorizeForm.idCard)
 				// console.log('读取到的已选权限',res.data)
 				if(res.data && res.data.length > 0) {
@@ -267,7 +266,7 @@ export default {
 				// }
 				// 缓存群组数据
 				groups? groups.forEach(group => {
-					const key = `${res.data.lineNo}-${group.code}`;
+					const key = `${res.data.lineNo}-${group.id}`;
 					this.allAuthCache.set(key, {
 						...group,
 						authMode: 2,
@@ -279,7 +278,7 @@ export default {
 
 				// 缓存设备数据
 				devices ? devices.forEach(device => {
-					const key = `${res.data.lineNo}-${device.code}`;
+					const key = `${res.data.lineNo}-${device.id}`;
 					this.allAuthCache.set(key, {
 						...device,
 						authMode: 1,
@@ -408,14 +407,14 @@ export default {
 			this.values.forEach(key => {
 				const item = this.authList.find(a => a.key === key);
 				if (!item) return;
-				
+				console.log(item)
 				if (item.authMode === 1) {
 					authItems.push({
 						authMode: 1,
 						lineNo: item.lineNo,
 						stationNo: item.stationNo,
-						deviceCode: item.deviceCode,
-						deviceName: item.deviceName,
+						deviceCode: item.code,
+						deviceName: item.name,
 						groupCode: '',
 						groupName: ''
 					})
@@ -426,8 +425,8 @@ export default {
 						stationNo: "",
 						deviceCode: "",
 						deviceName: "",
-						groupCode: item.groupCode,
-						groupName: item.groupName
+						groupCode: item.code,
+						groupName: item.name
 					})
 				}
 			});
