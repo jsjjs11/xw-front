@@ -326,26 +326,6 @@ export default {
 					this.isIndeterminate = false;
 				}
 				this.updateAuthList();
-				// // 筛选设备数据
-				// const filteredDevices = Array.from(this.allAuthCache.values())
-				// 	.filter(item => {
-				// 		if (item.authMode === 0) return true; // 保留所有群组
-				// 		if (item.authMode === 1) {
-				// 			return this.selectedStationsCache.has(item.stationNo); // 根据车站筛选设备
-				// 		}
-				// 		return false;
-				// 	});
-				
-				// // 合并已选权限
-				// const selectedAuths = Array.from(this.selectedAuthsCache)
-				// 	.map(key => this.allAuthCache.get(key))
-				// 	.filter(item => item !== undefined);
-				
-				// // 更新门禁列表
-				// this.authList = [...filteredDevices, ...selectedAuths]
-				// 	.filter((item, index, self) => 
-				// 		self.findIndex(i => i.key === item.key) === index
-				// 	);
 				this.transferKey += 1;
 				// 获取门禁列表
 				// const res = await AuthorizationApi.getStationDeviceList(this.form.selectedStation);
@@ -427,65 +407,34 @@ export default {
 			
 			// 按authMode分类门禁项
 			const authItems = [];
-			const groupMap = new Map();
-			const deviceMap = new Map();
 
 			// 先分类处理
 			this.values.forEach(key => {
 				const item = this.authList.find(a => a.key === key);
 				if (!item) return;
 				
-				if (item.authMode === 0) {
-					// 群组处理
-					if (!groupMap.has(item.lineNo)) {
-						groupMap.set(item.lineNo, []);
-					}
-					groupMap.get(item.lineNo).push({
+				if (item.authMode === 1) {
+					authItems.push({
+						authMode: 1,
+						lineNo: item.lineNo,
+						stationNo: item.stationNo,
+						deviceCode: item.deviceCode,
+						deviceName: item.deviceName,
+						groupCode: '',
+						groupName: ''
+					})
+				} else if(item.authMode === 2) {
+					authItems.push({
+						authMode: 2,
+						lineNo: item.lineNo,
+						stationNo: "",
+						deviceCode: "",
+						deviceName: "",
 						groupCode: item.groupCode,
 						groupName: item.groupName
-					});
-				} else {
-					// 设备处理
-					const deviceKey = `${item.lineNo}-${item.stationNo}`;
-					if (!deviceMap.has(deviceKey)) {
-						deviceMap.set(deviceKey, {
-							lineNo: item.lineNo,
-							stationNo: item.stationNo,
-							devices: []
-						});
-					}
-					deviceMap.get(deviceKey).devices.push({
-						deviceCode: item.deviceCode,
-						deviceName: item.deviceName
-					});
+					})
 				}
 			});
-
-			// 构建群组项
-			groupMap.forEach((groups, lineNo) => {
-				authItems.push({
-					authMode: 0,
-					groups: groups.map(group => ({
-						lineNo: lineNo,
-						groupCode: group.groupCode,
-						groupName: group.groupName
-					}))
-				});
-			});
-
-			// 构建设备项
-			deviceMap.forEach(deviceInfo => {
-				authItems.push({
-					authMode: 1,
-					devices: deviceInfo.devices.map(device => ({
-						lineNo: deviceInfo.lineNo,
-						stationNo: deviceInfo.stationNo,
-						deviceCode: device.deviceCode,
-						deviceName: device.deviceName
-					}))
-				});
-			});
-
 			const params = {
 				idCards: this.AuthorizeForm.idCard,
 				authItems,
