@@ -3,8 +3,8 @@
     <el-dialog :title="title" :visible.sync="visible" width="900px">
       <el-form ref="formRef" :model="formData" :rules="rules" :inline="true" label-position="left">
         <!-- 权限组名称 -->
-        <el-form-item label="权限组名称" prop="groupName">
-          <el-input v-model="formData.groupName" placeholder="请输入权限组名称" style="width: 200px" />
+        <el-form-item label="权限名称" prop="name">
+          <el-input v-model="formData.name" placeholder="请输入权限名称" style="width: 200px" />
         </el-form-item>
 
         <!-- 权限类型 -->
@@ -28,15 +28,15 @@
       <el-table :data="tableData" style="width: 100%; margin-top: 20px;">
         <el-table-column type="selection" width="55" />
         <el-table-column prop="lineName" label="线路名称" align="center" />
-        <el-table-column prop="groupName" label="权限组名称" align="center">
+        <el-table-column prop="name" label="权限名称" align="center">
           <template v-slot="scope">
             <span
               v-if="scope.row.authMode === '0'"
               class="clickable-group-name"
               @click="showGroupDetails(scope.row)">
-              {{ scope.row.groupName }}
+              {{ scope.row.name }}
             </span>
-            <span v-else>{{ scope.row.groupName }}</span>
+            <span v-else>{{ scope.row.name }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="authType" label="权限类型" align="center">
@@ -104,17 +104,17 @@ export default {
       title: '权限授权',
       // 表单数据
       formData: {
-        groupName: '',
+        name: '',
         authType: undefined
       },
       // 表单校验规则
       rules: {
-        groupName: [
-          { required: true, message: '权限组名称不能为空', trigger: 'blur' }
-        ],
-        authType: [
-          { required: true, message: '请选择权限类型', trigger: 'change' }
-        ]
+        // groupName: [
+        //   { required: true, message: '权限组名称不能为空', trigger: 'blur' }
+        // ],
+        // authType: [
+        //   { required: true, message: '请选择权限类型', trigger: 'change' }
+        // ]
       },
       // 权限类型选项
       authTypeOptions: getDictDatas(DICT_TYPE.NACS_AUTH_MODE),
@@ -183,7 +183,7 @@ export default {
     /** 表单重置 */
     reset() {
       this.formData = {
-        groupName: '',
+        name: '',
         authType: undefined
       }
       if (this.$refs.formRef) {
@@ -225,7 +225,7 @@ export default {
 
     /** 重置按钮操作 */
     handleReset() {
-      this.formData.groupName = '';
+      this.formData.name = '';
       this.formData.authType = undefined;
       if (this.$refs.formRef) {
         this.$refs.formRef.resetFields();
@@ -239,8 +239,15 @@ export default {
         this.loading = true;
         // TODO: 调用接口获取数据
         const response = await AuthorizationApi.getCardPermissionsListPage(this.queryParams);
-        this.tableData = response.data.list;
+        // 处理返回数据，设置name字段
+        this.tableData = response.data.list.map(item => ({
+            ...item,
+            name: item.groupName || item.deviceName, 
+            lineName: this.lineMap.find(line => line.lineNo === item.lineNo).name
+        }));
+        console.log(this.lineMap)
         this.total = response.data.total;
+        console.log('tableData', this.tableData);
       } catch (error) {
         console.error('获取权限列表失败', error);
         this.$modal.msgError('获取权限列表失败');
