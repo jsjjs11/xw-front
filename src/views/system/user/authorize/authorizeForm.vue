@@ -293,10 +293,10 @@ export default {
       try {
         const params = [this.queryParams.idCard];
         const response = await AuthorizationApi.checkApply(params);
-        if (response.data) {
+        if (response.data.length === 0) {
           this.$refs["authorizeDrawerRef"].showAuthDialog(this.queryParams.idCard, this.total);
         } else {
-          this.$modal.msgInfo('您已申请过权限，请等待管理员审核');
+          this.$modal.msgError('您已申请过权限，请等待管理员审核');
         }
       } catch (error) {
         console.error('检查是否有未审核的权限申请失败', error);
