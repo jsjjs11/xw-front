@@ -77,7 +77,7 @@
 									</div>
 									<div class="detail-item">
 										<label>授权时间段：</label>
-										<span>{{ row.timePeriodId }}</span>
+										<span>{{ row.timeZone }}</span>
 									</div>
 								</div>
 
@@ -128,37 +128,12 @@ export default {
 	components: {
 		CheckForm
 	},
-	created() {
-		this.getList();
-	},
+	// created() {
+	// 	this.getList();
+	// },
 	data() {
 		return {
-			list: [
-				// {
-				// 	authNo: 'CK20250001',
-				// 	reviewContent: '门禁权限申请',
-				// 	createTime: '2025-01-15 10:00:00',
-				// 	// checkUser: '张三',
-				// 	reviewState: '0', // 0:待审核
-				// 	leaderUserId: '李四'
-				// },
-				// {
-				// 	authNo: 'CK20250002',
-				// 	reviewContent: '门禁卡挂失申请',
-				// 	createTime: '2025-01-16 14:30:00',
-				// 	// checkUser: '王五',
-				// 	reviewState: '1', // 1:已通过
-				// 	leaderUserId: '赵六'
-				// },
-				// {
-				// 	authNo: 'CK20250003',
-				// 	reviewContent: '门禁权限变更',
-				// 	createTime: '2025-01-17 09:15:00',
-				// 	// checkUser: '钱七',
-				// 	reviewState: '2', // 2:已驳回
-				// 	leaderUserId: '孙八'
-				// }
-			],
+			list: [],
 			total: 3,
 			loading: false,
 			queryParams: {
@@ -172,6 +147,9 @@ export default {
 			checkStateDictDatas: getDictDatas(DICT_TYPE.NACS_CHECK_STATE),
 			activeRow: null  // 当前展开行的id
 		}
+	},
+	mounted() {
+		this.getList();
 	},
 	methods: {
 		/** 查询列表 */
@@ -226,21 +204,21 @@ export default {
 				this.loading = true;
 				// 调用API获取详情数据
 				const res = await CheckApi.getCheckDetail(row.authNo);
-				console.log(res.data)
+				// console.log(res.data)
 				// 处理返回的数据
         const detailData = {
-					authMode: res.data[0].authMode,
-					cardNo: res.data[0].cardNo,
+					// authMode: res.data[0].authMode,
+					cardNo: res.data.cardNoList ? res.data.cardNoList.join('、') : '',
 					createTime: row.createTime, // 保持原有分页数据
-					idCard: res.data[0].idCard,
-					employeeName: res.data.map(item =>item.employeeName).filter(Boolean).join('、'),
-					lineNo: res.data[0].lineNo,
-					timePeriodId: res.data[0].timePeriodId,
+					// idCard: res.data[0].idCard,
+					employeeName: res.data.employeeNameList ? res.data.employeeNameList.join('、') : '',
+					// lineNo: res.data[0].lineNo,
+					timeZone: res.data.timeZone,
 					// 合并group和device信息
-					groupName: res.data.map(item => item.groupName).filter(Boolean).join('、'),
-					groupCode: res.data.map(item => item.groupCode).filter(Boolean).join('、'),
-					deviceName: res.data.map(item => item.deviceName).filter(Boolean).join('、'),
-					deviceCode: res.data.map(item => item.deviceCode).filter(Boolean).join('、')
+					groupName: res.data.groupList ? res.data.groupList.join('、') : '',
+					// groupCode: res.data.map(item => item.groupCode).filter(Boolean).join('、'),
+					deviceName: res.data.deviceList ? res.data.deviceList.join('、') : '',
+					// deviceCode: res.data.map(item => item.deviceCode).filter(Boolean).join('、')
         };
 				// 合并详情数据到当前行
 				this.list = this.list.map(item => {
@@ -252,7 +230,7 @@ export default {
 					}
 					return item;
 				});
-				console.log(this.list)
+				// console.log(this.list)
 				this.activeRow = row.authNo;
 				this.$nextTick(() => {
 					this.$refs.tableRef.toggleRowExpansion(row, true);

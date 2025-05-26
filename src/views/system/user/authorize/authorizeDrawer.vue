@@ -98,24 +98,37 @@
 										@change="handleChange"
 										:data="authList"
 										class="custom-transfer">
+										<div slot-scope="{ option }" >
+											<el-link type="primary" v-if="option.authMode === 2" :underline="false" style="text-decoration: underline;"
+											  @click="handleViewAuth(option)">
+												{{ option.label }}
+												<i class="el-icon-view el-icon--right"></i>
+											</el-link>
+											<span v-else>{{ option.label }}</span>
+										</div>
 									</el-transfer>
 								</div>
 							</el-col>
 						</div></div>
-					</el-form-item>
+					</el-form-item> 
 				</el-form>
 				<div class="dialog-footer">
 					<el-button @click="drawerVisible = false">取 消</el-button>
 					<el-button type="primary" @click="handleAuthConfirm">确 定</el-button>
 				</div>
 		</el-drawer>
+		<group-detail-form ref="groupDetailForm" />
 	</div>
 </template>
 <script>
 import {getLineDatas} from "@/utils/dict";
 import * as AuthorizationApi from '@/api/nacs/authorize';
+import groupDetailForm from "./groupDetailForm.vue";
 export default {
 	name: 'AuthorizeDrawer',
+	components: {
+		groupDetailForm
+	},
 	data() {
 		return {
 			visible: false,
@@ -150,7 +163,6 @@ export default {
 			values: [],
 			selectedStationsCache: new Set(),
 			selectedAuthsCache: new Set(),
-			deviceCache: new Map(), // 各车站设备数据缓存
 			allAuthCache: new Map(), // 全局门禁数据缓存
 			transferKey: 0,
 			existAuth: 0,
@@ -162,6 +174,10 @@ export default {
     
   },
 	methods: {
+		/** 显示门禁组包含的具体门禁点 */
+		handleViewAuth(option) {
+			this.$refs.groupDetailForm.showGroupDetails(option);
+		},
 		/** 显示授权弹窗 */
     async showAuthDialog(data, total) {
       this.drawerVisible = true;
@@ -193,8 +209,8 @@ export default {
 						this.values.push(key);
 						this.selectedAuthsCache.add(key);
 					});
-					console.log('全局缓存:', this.allAuthCache);
-					console.log('已选权限:', this.values);
+					// console.log('全局缓存:', this.allAuthCache);
+					// console.log('已选权限:', this.values);
 					// 更新已选权限缓存
 					this.transferKey += 1;
 					this.updateAuthList();
@@ -239,7 +255,6 @@ export default {
 		/** 获取车站以及门禁数据 */
 		async onLineChange() {
       if(this.form.selectedLine){
-				this.deviceCache.clear(); // 清空设备缓存
 				// 清空当前线路的旧缓存（保留其他线路的缓存）
 				// this.allAuthCache.forEach((value, key) => {
 				// 	if (value.lineNo === this.form.selectedLine) {
@@ -468,7 +483,6 @@ export default {
 			};
 			this.selectedStationsCache.clear();
 			this.selectedAuthsCache.clear();
-			this.deviceCache.clear();
 			this.allAuthCache.clear(); // 关闭时清空全局缓存
 		}
 	}

@@ -109,12 +109,12 @@ export default {
       },
       // 表单校验规则
       rules: {
-        // groupName: [
-        //   { required: true, message: '权限组名称不能为空', trigger: 'blur' }
-        // ],
-        // authType: [
-        //   { required: true, message: '请选择权限类型', trigger: 'change' }
-        // ]
+        groupName: [
+          { required: true, message: '权限组名称不能为空', trigger: 'blur' }
+        ],
+        authType: [
+          { required: true, message: '请选择权限类型', trigger: 'change' }
+        ]
       },
       // 权限类型选项
       authTypeOptions: getDictDatas(DICT_TYPE.NACS_AUTH_MODE),
@@ -245,9 +245,9 @@ export default {
             name: item.groupName || item.deviceName, 
             lineName: this.lineMap.find(line => line.lineNo === item.lineNo).name
         }));
-        console.log(this.lineMap)
+        // console.log(this.lineMap)
         this.total = response.data.total;
-        console.log('tableData', this.tableData);
+        // console.log('tableData', this.tableData);
       } catch (error) {
         console.error('获取权限列表失败', error);
         this.$modal.msgError('获取权限列表失败');
