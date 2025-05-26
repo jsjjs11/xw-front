@@ -36,8 +36,10 @@
     <!-- 列表 -->
     <el-table v-loading="loading" :data="list">
       <el-table-column label="编号" align="center" prop="id" />
-      <el-table-column label="线路ID" align="center" prop="lineId" />
-      <el-table-column label="门禁权限组编号" align="center" prop="logicDeciveCode" />
+      <el-table-column label="线路ID" align="center" prop="lineNo" />
+      <el-table-column label="设备名称" align="center" prop="deviceName" />
+      <el-table-column label="群组名称" align="center" prop="groupName" />
+<!--      <el-table-column label="门禁权限组编号" align="center" prop="logicDeciveCode" />-->
       <el-table-column label="授权模式" align="center" prop="authMode">
         <template v-slot="scope">
           <dict-tag :type="DICT_TYPE.NACS_AUTH_MODE" :value="scope.row.authMode" />
