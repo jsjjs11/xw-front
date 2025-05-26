@@ -90,13 +90,14 @@ export default {
       this.auditDialogVisible = false
       this.rejectDialogVisible = true
     },
-		async handleApprove() {
+		handleApprove() {
       this.$confirm('确认通过该申请吗？', '提示', {
         type: 'warning'
-      }).then(() => {
+      }).then(async () => {
         this.params.remark = this.currentAudit.remark;
         try {
-          CheckApi.reviewCheck(this.params)
+          this.params.reviewState = 1;
+          await CheckApi.reviewCheck(this.params)
           this.$emit('success', {
             authNo: this.params.authNo,
             reviewState: 1 // 1表示已通过
@@ -109,12 +110,17 @@ export default {
         // this.updateStatus('1', '审核通过成功')
       })
     },
-		async handleReject() {
-      this.$refs.rejectForm.validate(valid => {
+		handleReject() {
+      this.$refs.rejectForm.validate(async valid => {
         if (valid) {
           this.params.remark = this.currentAudit.remark;
           try {
-            CheckApi.reviewCheck(this.params)
+            this.params.reviewState = 2;
+            await CheckApi.reviewCheck(this.params);
+            this.$emit('success', {
+              authNo: this.params.authNo,
+              reviewState: 2 // 1表示已通过
+            });
             this.auditDialogVisible = false;
             this.$modal.msgSuccess("审核已驳回");
           } catch (error) {
