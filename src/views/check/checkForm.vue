@@ -17,7 +17,7 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="auditDialogVisible = false">取 消</el-button>
-        <el-button type="danger" @click="showRejectDialog">驳 回</el-button>
+        <el-button type="danger" @click="handleReject">驳 回</el-button>
         <el-button type="success" @click="handleApprove">通 过</el-button>
       </span>
     </el-dialog>
