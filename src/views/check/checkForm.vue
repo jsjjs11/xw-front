@@ -111,23 +111,23 @@ export default {
       })
     },
 		handleReject() {
-      this.$refs.rejectForm.validate(async valid => {
-        if (valid) {
-          this.params.remark = this.currentAudit.remark;
-          try {
-            this.params.reviewState = 2;
-            await CheckApi.reviewCheck(this.params);
-            this.$emit('success', {
-              authNo: this.params.authNo,
-              reviewState: 2 // 1表示已通过
-            });
-            this.auditDialogVisible = false;
-            this.$modal.msgSuccess("审核已驳回");
-          } catch (error) {
-            this.$message.error('审核失败，请重试')
-          }
-          // this.updateStatus('2', '驳回成功')
+      this.$confirm('确认驳回该申请吗？', '提示', {
+        type: 'warning'
+      }).then(async () => {
+        this.params.remark = this.currentAudit.remark;
+        try {
+          this.params.reviewState = 2;
+          await CheckApi.reviewCheck(this.params);
+          this.$emit('success', {
+            authNo: this.params.authNo,
+            reviewState: 2 // 1表示已通过
+          });
+          this.auditDialogVisible = false;
+          this.$modal.msgSuccess("审核已驳回");
+        } catch (error) {
+          this.$message.error('审核失败，请重试')
         }
+        // this.updateStatus('2', '驳回成功')
       })
     },
 		// updateStatus(status, msg) {
