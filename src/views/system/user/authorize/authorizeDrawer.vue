@@ -196,7 +196,7 @@ export default {
 				if(res.data && res.data.length > 0) {
 					// 处理返回的权限数据
 					res.data.forEach(item => {
-						const key = `${item.lineNo}-${item.id}`;
+						const key = `${item.lineNo}-${item.authMode}-${item.code}`;
 						const name = item.groupName ? item.groupName : item.deviceName;
 						this.allAuthCache.set(key, {
 							...item,
@@ -421,27 +421,13 @@ export default {
 			this.values.forEach(key => {
 				const item = this.authList.find(a => a.key === key);
 				if (!item) return;
-				if (item.authMode === 1) {
-					authItems.push({
-						authMode: 1,
-						lineNo: item.lineNo,
-						stationNo: item.stationNo,
-						deviceCode: item.code,
-						deviceName: item.name,
-						groupCode: '',
-						groupName: ''
-					})
-				} else if(item.authMode === 2) {
-					authItems.push({
-						authMode: 2,
-						lineNo: item.lineNo,
-						stationNo: "",
-						deviceCode: "",
-						deviceName: "",
-						groupCode: item.code,
-						groupName: item.name
-					})
-				}
+				authItems.push({
+					authMode: item.authMode,
+					lineNo: item.lineNo,
+					stationNo: item.stationNo,
+					code: item.code,
+					name: item.name,
+				})
 			});
 			const params = {
 				idCards: this.AuthorizeForm.idCard,
