@@ -5,7 +5,7 @@
  * @Author: ym
  * @Date: 2025-04-10 19:09:02
  * @LastEditors: ym
- * @LastEditTime: 2025-05-26 21:37:40
+ * @LastEditTime: 2025-05-27 10:22:18
  */
 import request from '@/utils/request'
 
@@ -58,7 +58,7 @@ export function getPermissionSetPage(query) {
 // 创建权限集详情
 export function createPermissionSetDetail(data) {
   return request({
-    url: '/nacs/permission-set/create-permition-set-detail',
+    url: '/nacs/permission-set/save-permition-set-detail',
     method: 'post',
     data: data
   })
