@@ -29,7 +29,8 @@
               <div class="section-title">车站列表</div>
               <el-checkbox-group v-model="selectedStation" @change="onStationChange">
 
-                <el-checkbox v-for="station in stationList" :key="station.stationNo" :label="station.stationNo" :disabled="authMode === 2">
+                <el-checkbox v-for="station in stationList" :key="station.stationNo" :label="station.stationNo"
+                  :disabled="authMode === 2">
                   {{ station.name }}
                 </el-checkbox>
               </el-checkbox-group>
@@ -40,7 +41,7 @@
           <el-col :span="10">
             <div class="column line-list">
               <div class="section-title">可选门禁设备-{{tableData.length}}个授权项</div>
-              <el-table ref="deviceTable" :data="tableData" border style="width: 100%"  height="calc(100% - 50px)"
+              <el-table ref="deviceTable" :data="tableData" border style="width: 100%" height="calc(100% - 50px)"
                 @selection-change="handleSelectionChange">
                 <el-table-column type="selection" width="55" />
                 <el-table-column prop="lineNo" label="线路名称">
@@ -56,7 +57,12 @@
 
                 <el-table-column prop="name" label="设备名称">
                   <template v-slot="scope">
-                    <span>{{ scope.row.name }}</span>
+                    <el-link type="primary" v-if="scope.row.id.indexOf('GROUP') != -1" :underline="false"
+                      @click="showGroupDetails(scope.row)" style="text-decoration: underline;">
+                      {{ scope.row.name }}
+                      <i class="el-icon-view el-icon--right"></i>
+                    </el-link>
+                    <span v-else>{{ scope.row.name }}</span>
                   </template>
                 </el-table-column>
                 <!-- <el-table-column prop="stationNo" label="车站编号" v-if="authMode === 1">
@@ -77,7 +83,7 @@
           <el-col :span="9">
             <div class="column line-list">
               <div class="section-title">已选设备列表-{{selectedTableData.length}}个授权项</div>
-              <el-table :data="selectedTableData" border style="width: 100%"  height="calc(100% - 50px)">
+              <el-table :data="selectedTableData" border style="width: 100%" height="calc(100% - 50px)">
                 <el-table-column prop="lineNo" label="线路名称">
                   <template v-slot="scope">
                     <span>{{lineList.find(line => line.lineNo === scope.row.lineNo).name}}</span>
@@ -90,7 +96,12 @@
                 </el-table-column>
                 <el-table-column prop="name" label="设备名称">
                   <template v-slot="scope">
-                    <span>{{ scope.row.name }}</span>
+                    <el-link type="primary" v-if="scope.row.id.indexOf('GROUP') != -1" :underline="false"
+                      @click="showGroupDetails(scope.row)" style="text-decoration: underline;">
+                      {{ scope.row.name }}
+                      <i class="el-icon-view el-icon--right"></i>
+                    </el-link>
+                    <span v-else>{{ scope.row.name }}</span>
                   </template>
                 </el-table-column>
                 <!-- <el-table-column prop="stationNo" label="车站编号">
@@ -125,16 +136,19 @@
       <el-button @click="visible = false">取 消</el-button>
       <el-button type="primary" @click="handleConfirm">确 定</el-button>
     </div>
+    <group-detail-drawer ref="groupDetailDrawerRef" />
   </el-drawer>
+
 </template>
 
 <script>
-
+import groupDetailDrawer from './groupDetailDrawer.vue'
 import * as PermissionSetApi from '@/api/nacs/permission_set';
 import {getLineDatas} from "@/utils/dict";
 import * as LineApi from '@/api/nacs/line';
 export default {
   name: "PermissionSetDetailForm",
+  components: { groupDetailDrawer },
   props:[
     'setCode',"selectedList"
   ],// 集合编号（主表的关联字段）
@@ -155,6 +169,9 @@ export default {
     }
   },
   methods: {
+    showGroupDetails(row) {
+      this.$refs["groupDetailDrawerRef"].showGroupDetails(row)
+    },
     handleDelete(row){
       // 判断删除的是否是当前线路的项
       const isCurrentLine = row.lineNo === this.selectedLine;
