@@ -83,30 +83,50 @@
 							<el-col :span="16">
 								<div class="column auth-transfer">
 									<div class="section-title">门禁列表</div>
-									<el-transfer
-										:key="transferKey"
-										style="text-align: left; display: inline-block;"
-										v-model="values"
-										filterable
-										:left-default-checked="[]"
-										:right-default-checked="[]"
-										:titles="['可选权限', '已选权限']"
-										:format="{
-										noChecked: '${total}',
-										hasChecked: '${checked}/${total}'
-									}"
-										@change="handleChange"
-										:data="authList"
-										class="custom-transfer">
-										<div slot-scope="{ option }" >
-											<el-link type="primary" v-if="option.authMode === 2" :underline="false" style="text-decoration: underline;"
-											  @click="handleViewAuth(option)">
-												{{ option.label }}
-												<i class="el-icon-view el-icon--right"></i>
-											</el-link>
-											<span v-else>{{ option.label }}</span>
+									<div class="dual-table-container">
+										<div class="table-wrapper left-table">
+											<div class="table-header">
+												<span>可选权限（{{ leftNonLeafCount }}）</span>
+											</div>
+											<el-table
+												:data = "authList"
+												row-key = "key"
+												:tree-props = "{ children: 'children', hasChildren: 'hasChildren' }"
+												lazy
+												:load = "loadAuthList"
+												ref= "authTable"
+												@select="handleLeftSelect">
+												<el-table-column type="selection" width="60" :selectable="checkSelectable"></el-table-column>
+												<el-table-column type="index" width="60"></el-table-column>
+												<el-table-column label="权限名称" prop="label" width="calc(100% - 120px)" header-align="center">
+													<template #default="{row}">
+														<span :class="{ 'leaf-node': row.isLeaf }">{{ row.label }}</span>
+													</template>
+												</el-table-column>
+											</el-table>
 										</div>
-									</el-transfer>
+
+										<div class="table-wrapper right-table">
+											<div class="table-header">
+												<span>已选权限（{{ selectedList.length }}）</span>
+											</div>
+											<el-table
+												:data = "selectedList"
+												row-key = "key"
+												:tree-props = "{ children: 'children', hasChildren: 'hasChildren' }"
+												lazy
+												:load = "loadAuthList">
+												<el-table-column type="index" width="60"></el-table-column>
+												<el-table-column prop="label" label="权限名称" width="calc(100% - 160px)" header-align="center"></el-table-column>
+												<el-table-column label="操作" width="100" header-align="center">
+													<template #default="{row}">
+														<el-button type="text" v-if="!row.isLeaf" @click="moveToLeft(row)">移除</el-button>
+													</template>
+												</el-table-column>
+											</el-table>
+										</div>
+										
+									</div>
 								</div>
 							</el-col>
 						</div></div>
@@ -117,18 +137,14 @@
 					<el-button type="primary" @click="handleAuthConfirm">确 定</el-button>
 				</div>
 		</el-drawer>
-		<group-detail-form ref="groupDetailForm" />
 	</div>
 </template>
 <script>
 import {getLineDatas} from "@/utils/dict";
 import * as AuthorizationApi from '@/api/nacs/authorize';
-import groupDetailForm from "./groupDetailForm.vue";
+import * as groupsApi from "@/api/nacs/d_groups/index";
 export default {
 	name: 'AuthorizeDrawer',
-	components: {
-		groupDetailForm
-	},
 	data() {
 		return {
 			visible: false,
@@ -137,7 +153,7 @@ export default {
 				dateRange: [],
 				selectedLine: '',
 				selectedStation: [],
-				searchAuth: '',
+				// searchAuth: '',
 				authItems: [],
 			},
 			loading: true,
@@ -160,11 +176,9 @@ export default {
 			lineList: getLineDatas(),
 			stationList: [],
 			authList: [],
-			values: [],
-			selectedStationsCache: new Set(),
-			selectedAuthsCache: new Set(),
-			allAuthCache: new Map(), // 全局门禁数据缓存
-			transferKey: 0,
+			selectedList: [],
+			deviceList: [],
+			groupList:[],
 			existAuth: 0,
 			checkAll: false,
 			isIndeterminate: false,
@@ -173,10 +187,100 @@ export default {
 	mounted() {
     
   },
+	computed: {
+		// 计算左侧非叶子节点数量
+    leftNonLeafCount() {
+      return this.countNonLeafNodes(this.authList)
+    }
+	},
 	methods: {
-		/** 显示门禁组包含的具体门禁点 */
-		handleViewAuth(option) {
-			this.$refs.groupDetailForm.showGroupDetails(option);
+		// 递归统计非叶子节点
+    countNonLeafNodes(nodes) {
+      let count = 0
+      nodes.forEach(node => {
+        if (!node.isLeaf) {
+          count++
+          if (node.children && node.children.length > 0) {
+            count += this.countNonLeafNodes(node.children)
+          }
+        }
+      })
+      return count
+    },
+		/** 左侧表格勾选回调 */
+		handleLeftSelect(selection, row) {
+			if (row.isLeaf) return;
+			this.moveToRight(row);
+			this.$refs.authTable.toggleRowSelection(row, false);
+		},
+		/** 左侧表格移动到右侧 */
+		moveToRight(node) {
+			if (node.isLeaf) return;
+			const index = this.findIndex(this.authList, node.key)
+			if (index > -1) {
+				const [removed] = this.authList.splice(index, 1);
+				// 携带子节点一起移动
+				this.selectedList.push({
+					...removed,
+					children: removed.children || []  // 保持树结构
+				});
+			}
+		},
+		/** 右侧表格移动到左侧 */
+		moveToLeft(node) {
+			if (node.isLeaf) return;
+			const index = this.findIndex(this.selectedList, node.key);
+			if (index > -1) {
+				const [removed] = this.selectedList.splice(index, 1);
+				// 将节点移回左侧时移除子节点
+    		const cleanNode = {...removed, children: undefined};
+    		this.authList.push(cleanNode);
+			}
+		},
+		/** 加载子节点 */ 
+		async loadAuthList(node, treeNode, resolve) {
+			if (node.level === 0) {
+				try {
+					const response = await groupsApi.getGroupEquipList({
+						pageNo: 1,
+						pageSize: 10,
+						code: node.code,
+						lineNo: node.lineNo
+					});
+					const children = response.data.list.map(item => ({
+						...item,
+						key: `${item.lineNo}-1-${item.deviceCode}`,  // authMode设为1表示设备
+						label: item.deviceName,
+						isLeaf: true,  // 标记为叶子节点
+						parentKey: node.key,  // 记录父节点key
+						lineNo: item.lineNo,
+						hasChildren: false,
+					}));
+					// 保持父节点数据完整
+      		node.children = children;
+      		resolve(children);
+				} catch (error) {
+					console.error('加载子设备失败:', error);
+					resolve([]);
+      	}
+			} else {
+				resolve([]);  // 叶子节点不需要继续加载
+			}
+		},
+		/** 是否可勾选 */
+		checkSelectable(row) {
+			return !row.isLeaf ;
+		},
+		/** 查找节点索引 */
+		findIndex(array, key) {
+			for (let i = 0; i < array.length; i++) {
+				if (array[i].key === key)  return i;
+				if (array[i].children) {
+					const index = this.findIndex(array[i].children, key);
+					if (index > -1) return index;
+				}
+			}
+			return -1;
 		},
 		/** 显示授权弹窗 */
     async showAuthDialog(data, total) {
@@ -184,38 +288,44 @@ export default {
 			this.AuthorizeForm.idCard = Array.isArray(data) ? data : [data];
 			this.existAuth = total;
 			if(this.lineList.length>1){
-				this.form.selectedLine = this.lineList[0].lineNo
+				this.form.selectedLine = this.lineList[0].lineNo  // 默认选中第一条线路
 			}
 			this.onLineChange(); // 默认载入第一条线路的站点
+			this.selectedList = [];
 			try {
 				const res = await AuthorizationApi.getCardPermissionsList(this.AuthorizeForm.idCard)
-				console.log('读取到的已选权限',res.data)
-				// 清空当前已选权限
-        this.values = [];
-        this.selectedAuthsCache = new Set();
 				if(res.data && res.data.length > 0) {
 					// 处理返回的权限数据
 					res.data.forEach(item => {
 						const key = `${item.lineNo}-${item.authMode}-${item.code}`;
-						const name = item.groupName ? item.groupName : item.deviceName;
-						this.allAuthCache.set(key, {
-							...item,
-							authMode: item.authMode,
-							key: key,
-							label: name,
-							lineNo: item.lineNo, // 标记所属线路
-							stationNo: item.stationNo // 标记所属车站
-						});
-						this.values.push(key);
-						this.selectedAuthsCache.add(key);
+						// const name = item.groupName ? item.groupName : item.deviceName;
+						if (item.authMode === 1) {
+							this.selectedList.push({
+								...item,
+								authMode: item.authMode,
+								key: key,
+								label: item.name,
+								lineNo: item.lineNo, // 标记所属线路
+								stationNo: item.stationNo, // 标记所属车站
+								isleaf: false,
+							});
+						} else if (item.authMode === 2) {
+							this.selectedList.push({
+								...item,
+								authMode: item.authMode,
+								key: key,
+								label: item.name,
+								lineNo: item.lineNo, // 标记所属线路
+								stationNo: item.stationNo, // 标记所属车站
+								isleaf: false,
+								level: 0,
+								hasChildren: true,
+								children: []
+							});
+						}
+						console.log(this.selectedList)
 					});
-					// console.log('全局缓存:', this.allAuthCache);
-					// console.log('已选权限:', this.values);
-					// 更新已选权限缓存
-					this.transferKey += 1;
-					this.updateAuthList();
 				}
-				console.log(this.selectedAuthsCache)
 			} catch(error) {
 				console.log(error)
 				this.$message.error('获取用户授权信息失败');
@@ -255,16 +365,6 @@ export default {
 		/** 获取车站以及门禁数据 */
 		async onLineChange() {
       if(this.form.selectedLine){
-				// 清空当前线路的旧缓存（保留其他线路的缓存）
-				// this.allAuthCache.forEach((value, key) => {
-				// 	if (value.lineNo === this.form.selectedLine) {
-				// 		this.allAuthCache.delete(key);
-				// 	}
-				// });
-				// this.values = Array.from(this.selectedAuthsCache)
-				// console.log('已选权限:', this.values);
-        // const res = await LineApi.line2Station({lineNo:this.form.selectedLine});
-        // this.stationList = res.data;
 				const res = await AuthorizationApi.getGroupsOrDevicesList(this.form.selectedLine);
 				const {groups, stations, devices} = res.data;
 				// console.log(res.data)
@@ -273,137 +373,87 @@ export default {
 					stationNo: item.stationNo,
 					name: item.name,
 				})) : [];
-				// 默认全选所有车站
-    		this.form.selectedStation = this.stationList.map(station => station.stationNo);
-				this.selectedStationsCache = new Set(this.form.selectedStation);
-				this.checkAll = true;
-				this.isIndeterminate = false;
-				// 缓存群组数据
-				groups? groups.forEach(group => {
-					const key = `${res.data.lineNo}-${group.id}`;
-					this.allAuthCache.set(key, {
-						...group,
-						authMode: 2,
-						key: key,
-						label: group.name,
-						lineNo: this.form.selectedLine // 标记所属线路
-					});
-				}) : [];
-
-				// 缓存设备数据
-				devices ? devices.forEach(device => {
-					const key = `${res.data.lineNo}-${device.id}`;
-					this.allAuthCache.set(key, {
-						...device,
-						authMode: 1,
-						key: key,
-						label: device.name,
-						lineNo: this.form.selectedLine, // 标记所属线路
-						stationNo: device.stationNo     // 标记所属车站
-					});
-				}) : [];
-				this.updateAuthList();
-				this.transferKey += 1;
-				// this.form.selectedStation = this.stationList
-				// 	.filter(station => this.selectedStationsCache.has(station.stationNo))
-				// 	.map(station => station.stationNo) || [];
-				// console.log('恢复选中的车站:', this.form.selectedStation);
+				// // 默认全选所有车站
+    		// this.form.selectedStation = this.stationList.map(station => station.stationNo);
+				// this.checkAll = true;
+				// this.isIndeterminate = false;
+				// 门禁组数据
+				this.groupList = groups ? groups.map(item => ({
+					...item,
+					label: item.name || `门禁组-${item.code}`,
+					key: `${this.form.selectedLine}-${item.authMode}-${item.code}`,
+					code: item.code,
+					name: item.name,
+					authMode: 2,
+					lineNo: this.form.selectedLine,
+					stationNo: '',
+					level: 0,
+					isleaf: false,
+					hasChildren: true,
+					children: []
+				})) : [];
+				this.deviceList = devices ? devices.map(item => ({
+					...item,
+					label: item.name || `门禁设备-${item.code}`,
+					key: `${this.form.selectedLine}-${item.authMode}-${item.code}`,
+					code: item.code,
+					name: item.name,
+					authMode: 1,
+					lineNo: this.form.selectedLine,
+					stationNo: item.stationNo,
+					isleaf: false,
+				})) : [];
+				// console.log("门禁设备", this.deviceList)
+				// console.log("车站", this.stationList)
+				// console.log("门禁组", this.groupList)
+				this.onStationChange();
       }
     },
 		/** 全选 */
 		handleCheckAllChange(val) {
 			this.form.selectedStation = val ? this.stationList.map(station => station.stationNo) : [];
-			this.selectedStationsCache = new Set(this.form.selectedStation);
 			this.isIndeterminate = false;
 			this.onStationChange();
 		},
 		/** 根据车站更新门禁数据 */
 		onStationChange() {
-			// if(this.form.selectedStation && this.form.selectedStation.length > 0){
-				// 更新已选车站缓存
-				this.selectedStationsCache = new Set(this.form.selectedStation);
-				this.values = Array.from(this.selectedAuthsCache)
-				// console.log('已选权限:', this.values);
-				// 更新全选状态
-				if (this.form.selectedStation.length === this.stationList.length) {
-					this.checkAll = true;
-					this.isIndeterminate = false;
-				} else if (this.form.selectedStation.length > 0) {
-					this.isIndeterminate = true;
-				} else {
-					this.checkAll = false;
-					this.isIndeterminate = false;
-				}
-				this.updateAuthList();
-				this.transferKey += 1;
-				// 获取门禁列表
-				// const res = await AuthorizationApi.getStationDeviceList(this.form.selectedStation);
-				// const currentAuthList = res.data.map(item => ({
-				// 	authMode: 1,
-				// 	key: item.deviceCode,
-				// 	label: item.deviceName,
-				// 	...item
-				// }));
-				// this.transferKey += 1;
-				// console.log('门禁列表:', this.authList);
-			// } else {
-			// 	this.authList = [];
-			// }
-		},
-
-		updateAuthList() {
-			// 获取所有选中车站的设备
-			// const selectedDevices = Array.from(this.selectedStationsCache)
-			// 	.flatMap(stationNo => this.deviceCache.get(stationNo) || []);
-			// // 合并群组和设备
-			// this.authList = [
-			// 	...this.authList.filter(item => item.authMode === 0), // 保留群组
-			// 	...selectedDevices
-  		// ];
-			// 当前线路的群组
-			const currentGroups = Array.from(this.allAuthCache.values())
-				.filter(item => item.authMode === 2 && item.lineNo === this.form.selectedLine);
-
-			// 当前选中车站的设备
-			const currentDevices = Array.from(this.selectedStationsCache)
-				.flatMap(stationNo => 
-					Array.from(this.allAuthCache.values()).filter(item => 
-						item.authMode === 1 && 
-						item.stationNo === stationNo &&
-						item.lineNo === this.form.selectedLine
-					)
-				);
-			// // 获取当前线路的所有设备（无论车站是否选中）
-    	// const currentDevices = Array.from(this.allAuthCache.values())
-      //   .filter(item => item.authMode === 1 && item.lineNo === this.form.selectedLine);
-			// 所有已选权限的数据（包括其他线路的）
-			const selectedAuths = Array.from(this.selectedAuthsCache)
-				.map(key => this.allAuthCache.get(key))
-				.filter(item => item !== undefined);
-
-			// 合并数据：当前群组 + 当前设备 + 已选权限（去重）
-			this.authList = [...currentGroups, ...currentDevices, ...selectedAuths]
-				.filter((item, index, self) => 
-					self.findIndex(i => i.key === item.key) === index
-				);
-			// console.log(this.authList)
-		},
-		/** 穿梭框变化 */
-		handleChange(value, direction, movedKeys) {
-			console.log('传输变化:', value, direction, movedKeys);
-      if (!movedKeys || movedKeys.length === 0) return;
-			// 更新已选权限缓存
-    	this.selectedAuthsCache = new Set(value);
-			if (direction === 'right') {
-				this.values = value;
-				this.$message.success(`已添加 ${movedKeys.length} 个授权项`);
-			} else if (direction === 'left') {
-				this.values = value;
-				this.$message.warning(`已移除 ${movedKeys.length} 个授权项`);
+			// 更新全选状态
+			if (this.form.selectedStation.length === this.stationList.length) {
+				this.checkAll = true;
+				this.isIndeterminate = false;
+			} else if (this.form.selectedStation.length > 0) {
+				this.isIndeterminate = true;
+			} else {
+				this.checkAll = false;
+				this.isIndeterminate = false;
 			}
-			// console.log('已选权限:', this.values);
+			// // 根据选中的车站筛选门禁数据
+			// if (this.form.selectedStation.length === 0) {
+			// 		this.authList = [...this.groupList];
+			// } else {
+			// 	this.authList = [...this.groupList, 
+			// 									...this.deviceList.filter(device => this.form.selectedStation.includes(device.stationNo))];
+			// }
+			// 根据选中的车站筛选门禁数据
+			let filteredList = [];
+			if (this.form.selectedStation.length === 0) {
+					filteredList = [...this.groupList];
+			} else {
+					filteredList = [
+							...this.groupList, 
+							...this.deviceList.filter(device => 
+									this.form.selectedStation.includes(device.stationNo)
+							)
+					];
+			}
+			
+			// 排除已选权限
+			const selectedKeys = this.selectedList.map(item => item.key);
+			this.authList = filteredList.filter(item => 
+					!selectedKeys.includes(item.key)
+			);
+			// console.log('门禁列表:', this.authList)
 		},
-
 		/** 提交授权 */
 		async handleAuthConfirm() {
 			// 格式化日期范围
@@ -418,9 +468,7 @@ export default {
 			const authItems = [];
 
 			// 先分类处理
-			this.values.forEach(key => {
-				const item = this.authList.find(a => a.key === key);
-				if (!item) return;
+			this.selectedList.forEach(item => {
 				authItems.push({
 					authMode: item.authMode,
 					lineNo: item.lineNo,
@@ -435,7 +483,7 @@ export default {
 				timeZone: this.form.timeZone,
 				dateRange: dateRangeStr,
 			};
-			// console.log('提交授权参数:', params);
+			console.log('提交授权参数:', params);
 			// if (this.existAuth === 0) {
 				try {
 					await AuthorizationApi.createCardPermissionsList(params);
@@ -446,17 +494,6 @@ export default {
 					console.log('授权失败:', error);
 					this.$message.error('授权失败');
 				}
-			// } else {
-			// 	try {
-			// 		await AuthorizationApi.updateCardPermissionsList(params);
-			// 		this.$message.success('授权成功');
-			// 		this.reset();
-			// 		this.drawerVisible = false;
-			// 	} catch (error) {
-			// 		console.log('授权失败:', error);
-			// 		this.$message.error('授权失败');
-			// 	}
-			// }
 		},
 		reset() {
 			this.form = {
@@ -464,12 +501,9 @@ export default {
 				dateRange: [],
 				selectedLine: '',
 				selectedStation: [],
-				searchAuth: '',
+				// searchAuth: '',
 				authItems: [],
 			};
-			this.selectedStationsCache.clear();
-			this.selectedAuthsCache.clear();
-			this.allAuthCache.clear(); // 关闭时清空全局缓存
 		}
 	}
 }
@@ -581,21 +615,123 @@ export default {
   text-align: right;
   border-top: 1px solid #e8e8e8;
 }
-::v-deep .el-transfer {
-	margin-left: 30px;
-	// display: flex !important;
-	flex-wrap: nowrap !important;
+.dual-table-container {
+  display: flex;
+  gap: 20px;
+  height: 480px;
+  margin-top: 10px;
+	width: 800px;
+	margin-left: 25px;
+
+  .table-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ebeef5;
+    border-radius: 4px;
+    background: #fff;
+		position: relative;
+		overflow: hidden;
+
+    &.left-table {
+      margin-right: 8px;
+    }
+    &.right-table {
+      margin-left: 8px;
+    }
+
+		.table-header {
+    padding: 12px 16px;
+    background: #f5f7fa;
+    border-bottom: 1px solid #ebeef5;
+    font-weight: 600;
+    color: #303133;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+    span {
+      font-size: 14px;
+      letter-spacing: 0.5px;
+    }
+  }
+  }
+
+  .transfer-table {
+    flex: 1;
+    border: none;
+    ::v-deep .el-table__body-wrapper {
+      overflow-x: hidden;
+    }
+
+    ::v-deep .el-table__header-wrapper {
+      th {
+        background: #f5f7fa;
+      }
+    }
+  }
 }
-::v-deep .el-transfer-panel {
-	margin-top: 10px;
-	width: 300px;
-	height: 480px;
-	overflow: auto;
-	.el-transfer-panel__body {
-		height: 420px;
+
+// 保持原有其他样式
+.leaf-node {
+  color: #999;
+  cursor: not-allowed;
+}
+
+.el-icon-view {
+  margin-left: 8px;
+  color: #c0c4cc;
+}
+::v-deep .el-table {
+  th > .cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center !important;
+    font-weight: 600;
+    color: #303133;
+  }
+	td > .cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center !important;
+    font-weight: 400;
+    color: #606266;
+  }
+  /* 调整表头单元格padding */
+  .el-table__header-wrapper th {
+    padding: 16px 18px;
+
+  }
+
+  /* 适配树形表格展开图标 */
+  .el-table__expand-icon {
+    margin-right: 8px;
+  }
+	/* 固定表头样式 */
+	.el-table__header-wrapper {
+		position: sticky;
+		top: 0;
+		z-index: 2;
+		background: white;
 	}
-	.el-transfer-panel__list.is-filterable {
-		height:360px;
+
+	/* 内容区域滚动 */
+	.el-table__body-wrapper {
+		overflow-y: auto !important;
+		height: calc(100% - 40px); /* 减去表头高度 */
 	}
+
+	/* 调整滚动条样式 */
+	&::-webkit-scrollbar {
+		width: 8px;
+		height: 8px;
+	}
+	&::-webkit-scrollbar-thumb {
+		background: #c1c1c1;
+		border-radius: 4px;
+	}
+
 }
 </style>

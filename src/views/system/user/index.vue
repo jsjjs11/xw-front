@@ -836,14 +836,16 @@ export default {
       // 检查是否有未审核权限
       const idCards = this.selectedRows.map(item => item.idCard)
       const response = await AuthorizationApi.checkApply(idCards);
-        if (response.data.length === 0) {
-          this.$refs["authorizeDrawerRef"].showAuthDialog(idCards, this.total);
-        } else {
-          const resultString = response.data.join('、');
-          this.$modal.msgError(resultString + '已申请过权限，请等待管理员审核');
-        }
+      if (response.data.length > 0) {
+        const resultString = response.data.join('、');
+        this.$modal.msgError(resultString + '已申请过权限，请等待管理员审核');
+        return;
+      }
+      // const CardTotal = await CardsApi.getCards(idCards[0]);
+      // console.log(CardTotal);
+      this.$refs["authorizeDrawerRef"].showAuthDialog(idCards, this.total);
     },
-    handleAuthorize(row){
+    async handleAuthorize(row){
       // 统一获取选中行数据
       row = row || {}; // 处理row为空的情况
       const selectedRow = row.id ? row : this.selectedRows[0];
@@ -854,6 +856,17 @@ export default {
       // 检查选中数量
       if (this.selectedRows.length > 1) {
         this.$message.warning('只能选择一行数据进行操作')
+        return
+      }
+      const cardtotal = await CardsApi.getCardsPage({
+        pageNo: 1,
+        pageSize: 10,
+        idCard: selectedRow.idCard}).then(response => {
+          return response.data.total
+      });
+      console.log(cardtotal);
+      if (cardtotal === 0) {
+        this.$message.error('该用户还没有门禁卡，请先进行开卡操作')
         return
       }
       this.$refs["authorizeFormRef"].show(row);
