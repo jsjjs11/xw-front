@@ -242,7 +242,7 @@ export default {
         // 处理返回数据，设置name字段
         this.tableData = response.data.list.map(item => ({
             ...item,
-            name: item.groupName || item.deviceName, 
+            name: item.name, 
             lineName: this.lineMap.find(line => line.lineNo === item.lineNo).name
         }));
         // console.log(this.lineMap)
