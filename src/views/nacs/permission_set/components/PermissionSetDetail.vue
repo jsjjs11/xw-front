@@ -28,8 +28,6 @@
       <el-col :span="1.5">
         <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
           v-hasPermi="['nacs:permission-set-detail:create']">新增</el-button>
-        <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd222"
-                   v-hasPermi="['nacs:permission-set-detail:create']">新增222</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
@@ -37,9 +35,8 @@
     <el-table v-loading="loading" :data="list">
       <el-table-column label="编号" align="center" prop="id" />
       <el-table-column label="线路ID" align="center" prop="lineNo" />
-      <el-table-column label="设备名称" align="center" prop="deviceName" />
-      <el-table-column label="群组名称" align="center" prop="groupName" />
-<!--      <el-table-column label="门禁权限组编号" align="center" prop="logicDeciveCode" />-->
+      <el-table-column label="名称" align="center" prop="name" />
+      <el-table-column label="编号" align="center" prop="code" />
       <el-table-column label="授权模式" align="center" prop="authMode">
         <template v-slot="scope">
           <dict-tag :type="DICT_TYPE.NACS_AUTH_MODE" :value="scope.row.authMode" />
@@ -146,9 +143,6 @@ export default {
     handleAdd() {
       this.$refs["formRef"].open()
 
-    },
-    handleAdd222() {
-      this.$refs["TreeTransferRef"].open()
     },
     /** 删除按钮操作 */
     handleDelete(row) {

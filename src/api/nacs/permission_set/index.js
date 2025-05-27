@@ -5,7 +5,7 @@
  * @Author: ym
  * @Date: 2025-04-10 19:09:02
  * @LastEditors: ym
- * @LastEditTime: 2025-04-30 16:34:51
+ * @LastEditTime: 2025-05-26 21:37:40
  */
 import request from '@/utils/request'
 
@@ -58,7 +58,7 @@ export function getPermissionSetPage(query) {
 // 创建权限集详情
 export function createPermissionSetDetail(data) {
   return request({
-    url: '/nacs/permission-set-detail/create',
+    url: '/nacs/permission-set/create-permition-set-detail',
     method: 'post',
     data: data
   })
@@ -95,11 +95,19 @@ export function getPermissionSetDetail(id) {
 // 获取权限集详情分页
 export function getPermissionSetDetailPage(query) {
   return request({
-    url: '/nacs/permission-set/permission-set-detail',
+    url: '/nacs/permission-set/permission-set-detail-page',
     method: 'get',
     params: query
   })
 }
+// 获取权限集详情分页
+export function getPermissionSetDetailList(setCode) {
+  return request({
+    url: '/nacs/permission-set/permission-set-detail-list?setCode=' + setCode,
+    method: 'get'
+  })
+}
+
 
 export function getDevice(query) {
   return request({
