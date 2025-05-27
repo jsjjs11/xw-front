@@ -151,16 +151,33 @@ export default {
       visible: false,
       dialogTitle: '',
       searchStationlist: [],
+      isProgrammaticSelection: false,
     }
   },
   methods: {
     handleDelete(row){
-      this.selectedTableData = this.selectedTableData.filter(item => item.lineNo !== row.lineNo && item.authMode !== row.authMode && item.code !== row.code)
-      this.setSelectedTableData()
+      // 判断删除的是否是当前线路的项
+      const isCurrentLine = row.lineNo === this.selectedLine;
+      
+      // 更新selectedTableData，只删除完全匹配的行
+      this.selectedTableData = this.selectedTableData.filter(item => 
+        !(item.lineNo === row.lineNo && 
+          item.authMode === row.authMode && 
+          item.code === row.code)
+      );
+      
+      // 只有删除当前线路的项时才更新表格选中状态
+      if (isCurrentLine) {
+
+        this.isProgrammaticSelection = true; // 设置标志位
+        this.setSelectedTableData();
+        this.isProgrammaticSelection = false;
+      }
     },
     /** 获取车站数据 */
     async onLineChange() {
       if(this.selectedLine){
+        this.isProgrammaticSelection = true; // 设置标志位
         let res = await PermissionSetApi.getDevice({lineNo:this.selectedLine});
         //找出与res.data.lineNo相等时lineList中对应的authMode
         this.authMode = this.lineList.find(line => line.lineNo === res.data.lineNo).authMode;
@@ -175,24 +192,41 @@ export default {
           item.lineNo = res.data.lineNo
         })
         this.baseTableData = this.tableData
+        
+        // 等待下一个渲染周期，确保表格已经渲染完成
+        await this.$nextTick()
         this.setSelectedTableData()
+        // 使用setTimeout确保所有操作完成后再重置标志位
+        setTimeout(() => {
+          this.isProgrammaticSelection = false;
+        }, 0);
       }
     },
     setSelectedTableData(){
+      // 确保表格引用存在
+      if (!this.$refs.deviceTable) {
+        return;
+      }
+      this.$refs.deviceTable.$off('selection-change');
       // 在下一个tick中设置选中状态，确保表格已经渲染完成
       this.$nextTick(() => {
+        // 先清除所有选中状态
+        this.$refs.deviceTable.clearSelection();
+        
+        // 设置新的选中状态
         this.tableData.forEach(item => {
-          console.log(this.selectedTableData)
           if (this.selectedTableData.some(selectedItem =>
             selectedItem.lineNo === item.lineNo &&
             selectedItem.authMode === item.authMode &&
             selectedItem.code === item.code
           )) {
             this.$refs.deviceTable.toggleRowSelection(item, true);
-          }else{
-            this.$refs.deviceTable.toggleRowSelection(item, false);
           }
         });
+      });
+      // 重新添加事件监听
+      this.$nextTick(() => {
+        this.$refs.deviceTable.$on('selection-change', this.handleSelectionChange);
       });
     },
     /** 获取门禁数据 */
@@ -238,10 +272,51 @@ export default {
       this.selectedTableData = []
       this.resetForm("form")
     },
-    handleSelectionChange(selection,state) {
-      //将选中项增加到selectedTableData中且排除已选中的项
-      this.selectedTableData = [...this.selectedTableData, ...selection.filter(item => !this.selectedTableData.some(selectedItem => selectedItem.lineNo === item.lineNo && selectedItem.authMode === item.authMode && selectedItem.code === item.code))]
-      //selection为空时this.selectedTableData
+    handleSelectionChange(selection) {
+      // 如果是程序触发的选择变化，则不处理
+      if (this.isProgrammaticSelection) {
+        return;
+      }
+      
+      // 获取当前选中项的lineNo
+      const currentLineNo = this.selectedLine;
+      
+      // 将selectedTableData分为当前线路的项和其他线路的项
+      const currentLineItems = this.selectedTableData.filter(item => item.lineNo === currentLineNo);
+      const otherLineItems = this.selectedTableData.filter(item => item.lineNo !== currentLineNo);
+      
+      // 找出新增的项（在selection中但不在currentLineItems中）
+      const addedItems = selection.filter(item => 
+        !currentLineItems.some(existingItem => 
+          existingItem.lineNo === item.lineNo && 
+          existingItem.authMode === item.authMode && 
+          existingItem.code === item.code
+        )
+      );
+      
+      // 找出删除的项（在currentLineItems中但不在selection中）
+      const removedItems = currentLineItems.filter(item => 
+        !selection.some(selectedItem => 
+          selectedItem.lineNo === item.lineNo && 
+          selectedItem.authMode === item.authMode && 
+          selectedItem.code === item.code
+        )
+      );
+      
+      // 更新当前线路的选中项：移除删除的项，添加新增的项
+      const updatedCurrentLineItems = [
+        ...currentLineItems.filter(item => 
+          !removedItems.some(removedItem => 
+            removedItem.lineNo === item.lineNo && 
+            removedItem.authMode === item.authMode && 
+            removedItem.code === item.code
+          )
+        ),
+        ...addedItems
+      ];
+      
+      // 合并更新后的当前线路项和其他线路项
+      this.selectedTableData = [...otherLineItems, ...updatedCurrentLineItems];
     },
     /** 确认提交 */
     async handleConfirm() {
