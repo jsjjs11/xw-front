@@ -40,7 +40,7 @@
           <el-col :span="10">
             <div class="column line-list">
               <div class="section-title">可选门禁设备-{{tableData.length}}个授权项</div>
-              <el-table ref="deviceTable" :data="tableData" border style="width: 100%"
+              <el-table ref="deviceTable" :data="tableData" border style="width: 100%"  height="calc(100% - 50px)"
                 @selection-change="handleSelectionChange">
                 <el-table-column type="selection" width="55" />
                 <el-table-column prop="lineNo" label="线路名称">
@@ -77,7 +77,7 @@
           <el-col :span="9">
             <div class="column line-list">
               <div class="section-title">已选设备列表-{{selectedTableData.length}}个授权项</div>
-              <el-table :data="selectedTableData" border style="width: 100%">
+              <el-table :data="selectedTableData" border style="width: 100%"  height="calc(100% - 50px)">
                 <el-table-column prop="lineNo" label="线路名称">
                   <template v-slot="scope">
                     <span>{{lineList.find(line => line.lineNo === scope.row.lineNo).name}}</span>
@@ -158,14 +158,14 @@ export default {
     handleDelete(row){
       // 判断删除的是否是当前线路的项
       const isCurrentLine = row.lineNo === this.selectedLine;
-      
+
       // 更新selectedTableData，只删除完全匹配的行
-      this.selectedTableData = this.selectedTableData.filter(item => 
-        !(item.lineNo === row.lineNo && 
-          item.authMode === row.authMode && 
+      this.selectedTableData = this.selectedTableData.filter(item =>
+        !(item.lineNo === row.lineNo &&
+          item.authMode === row.authMode &&
           item.code === row.code)
       );
-      
+
       // 只有删除当前线路的项时才更新表格选中状态
       if (isCurrentLine) {
 
@@ -192,7 +192,7 @@ export default {
           item.lineNo = res.data.lineNo
         })
         this.baseTableData = this.tableData
-        
+
         // 等待下一个渲染周期，确保表格已经渲染完成
         await this.$nextTick()
         this.setSelectedTableData()
@@ -212,7 +212,7 @@ export default {
       this.$nextTick(() => {
         // 先清除所有选中状态
         this.$refs.deviceTable.clearSelection();
-        
+
         // 设置新的选中状态
         this.tableData.forEach(item => {
           if (this.selectedTableData.some(selectedItem =>
@@ -277,44 +277,44 @@ export default {
       if (this.isProgrammaticSelection) {
         return;
       }
-      
+
       // 获取当前选中项的lineNo
       const currentLineNo = this.selectedLine;
-      
+
       // 将selectedTableData分为当前线路的项和其他线路的项
       const currentLineItems = this.selectedTableData.filter(item => item.lineNo === currentLineNo);
       const otherLineItems = this.selectedTableData.filter(item => item.lineNo !== currentLineNo);
-      
+
       // 找出新增的项（在selection中但不在currentLineItems中）
-      const addedItems = selection.filter(item => 
-        !currentLineItems.some(existingItem => 
-          existingItem.lineNo === item.lineNo && 
-          existingItem.authMode === item.authMode && 
+      const addedItems = selection.filter(item =>
+        !currentLineItems.some(existingItem =>
+          existingItem.lineNo === item.lineNo &&
+          existingItem.authMode === item.authMode &&
           existingItem.code === item.code
         )
       );
-      
+
       // 找出删除的项（在currentLineItems中但不在selection中）
-      const removedItems = currentLineItems.filter(item => 
-        !selection.some(selectedItem => 
-          selectedItem.lineNo === item.lineNo && 
-          selectedItem.authMode === item.authMode && 
+      const removedItems = currentLineItems.filter(item =>
+        !selection.some(selectedItem =>
+          selectedItem.lineNo === item.lineNo &&
+          selectedItem.authMode === item.authMode &&
           selectedItem.code === item.code
         )
       );
-      
+
       // 更新当前线路的选中项：移除删除的项，添加新增的项
       const updatedCurrentLineItems = [
-        ...currentLineItems.filter(item => 
-          !removedItems.some(removedItem => 
-            removedItem.lineNo === item.lineNo && 
-            removedItem.authMode === item.authMode && 
+        ...currentLineItems.filter(item =>
+          !removedItems.some(removedItem =>
+            removedItem.lineNo === item.lineNo &&
+            removedItem.authMode === item.authMode &&
             removedItem.code === item.code
           )
         ),
         ...addedItems
       ];
-      
+
       // 合并更新后的当前线路项和其他线路项
       this.selectedTableData = [...otherLineItems, ...updatedCurrentLineItems];
     },
@@ -358,12 +358,8 @@ export default {
 }
 }
 
-/* 三列布局 */
-.auth-columns {
-  display: flex;
-  gap: 20px;
-  margin-top: 15px;
-
+.section-title {
+  height: 50px;
 }
 
 /* 列公共样式 */
@@ -377,7 +373,7 @@ export default {
 /* 滚动条设置 */
 .line-list,
 .station-list {
-  height: calc(100vh - 300px);
+  height: calc(100vh - 200px);
   overflow-y: auto;
 }
 
@@ -419,16 +415,6 @@ export default {
   background: #fff;
   text-align: right;
   border-top: 1px solid #e8e8e8;
-}
-::v-deep .el-transfer {
-  margin-left: 7px;
-}
-::v-deep .el-transfer-panel{
-  width: 370px; /* 左右两个穿梭框的高度和宽度 */
-  height: calc(100vh - 360px);
-}
-::v-deep .el-transfer-panel__list.is-filterable {
-  height: calc(100vh - 400px);
 }
 </style>
 

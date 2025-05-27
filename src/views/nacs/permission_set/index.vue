@@ -2,7 +2,7 @@
   <div class="app-container">
     <!-- 搜索工作栏 -->
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch">
-      <el-form-item label="权限集名称" prop="setName">
+      <el-form-item label="门禁集合名称" prop="setName">
         <el-input v-model="queryParams.setName" placeholder="请输入权限集名称" clearable @keyup.enter.native="handleQuery"/>
       </el-form-item>
       <el-form-item>
@@ -29,9 +29,9 @@
       :show-overflow-tooltip="true"
       @row-dblclick="handleCurrentChange"
     >
-      <el-table-column label="权限集编号" align="center" prop="id" />
-      <el-table-column label="权限集标识" align="center" prop="setCode" />
-      <el-table-column label="权限集名称" align="center" prop="setName" />
+      <el-table-column label="门禁集合编号" align="center" prop="id" />
+      <el-table-column label="门禁集合标识" align="center" prop="setCode" />
+      <el-table-column label="门禁集合名称" align="center" prop="setName" />
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
         <template v-slot="scope">
