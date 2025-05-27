@@ -44,6 +44,7 @@
           :load="loadNode"
           lazy
           :default-expanded-keys="['0']"
+
         >
           <template #default="{ node, data }">
             <div class="custom-node">
@@ -59,31 +60,31 @@
     </el-card>
 
     <!-- 右侧已选择的 -->
-    <el-card class="box-card">
-      <template #header>
-        <div class="card-header">
-          <div class="header-title">已选：{{ states.hasSelectionSonList.length }}</div>
-          <el-input v-model="states.hasSearchValue" placeholder="名称">
-            <template #suffix>
-              <i class="el-icon-search search-icon"  @click="searchUser('right')"></i>
-            </template>
-          </el-input>
-        </div>
-      </template>
-      <div>
-        <el-tree ref="treeRightRef" :data="states.hasSelectionList" default-expand-all :props="states.treeProps"
-                 node-key="id" :expand-on-click-node="false" :filter-node-method="filterNode">
-          <template #default="{ node, data }">
-            <div class="custom-node">
-              <span>{{ node.label }}</span>
-              <span>
-                <i class="el-icon-error  search-icon"  @click="removeUser(node, data)"></i>
-              </span>
-            </div>
-          </template>
-        </el-tree>
-      </div>
-    </el-card>
+<!--    <el-card class="box-card">-->
+<!--      <template #header>-->
+<!--        <div class="card-header">-->
+<!--          <div class="header-title">已选：{{ states.hasSelectionSonList.length }}</div>-->
+<!--          <el-input v-model="states.hasSearchValue" placeholder="名称">-->
+<!--            <template #suffix>-->
+<!--              <i class="el-icon-search search-icon"  @click="searchUser('right')"></i>-->
+<!--            </template>-->
+<!--          </el-input>-->
+<!--        </div>-->
+<!--      </template>-->
+<!--      <div>-->
+<!--&lt;!&ndash;        <el-tree ref="treeRightRef" :data="states.hasSelectionList" default-expand-all :props="states.treeProps"&ndash;&gt;-->
+<!--&lt;!&ndash;                 node-key="id" :expand-on-click-node="false" :filter-node-method="filterNode">&ndash;&gt;-->
+<!--&lt;!&ndash;          <template #default="{ node, data }">&ndash;&gt;-->
+<!--&lt;!&ndash;            <div class="custom-node">&ndash;&gt;-->
+<!--&lt;!&ndash;              <span>{{ node.label }}</span>&ndash;&gt;-->
+<!--&lt;!&ndash;              <span>&ndash;&gt;-->
+<!--&lt;!&ndash;                <i class="el-icon-error  search-icon"  @click="removeUser(node, data)"></i>&ndash;&gt;-->
+<!--&lt;!&ndash;              </span>&ndash;&gt;-->
+<!--&lt;!&ndash;            </div>&ndash;&gt;-->
+<!--&lt;!&ndash;          </template>&ndash;&gt;-->
+<!--&lt;!&ndash;        </el-tree>&ndash;&gt;-->
+<!--      </div>-->
+<!--    </el-card>-->
   </div>
     <!--      :title="currentGroup.name + ' - 门禁点列表'"-->
     <!-- 权限组详情抽屉 -->
@@ -119,12 +120,27 @@ export default {
   name: "TreeTransfer",
   data() {
     return {
+      checkedLeafIds: ['L00001-1-DEV0000001', 'L010Q2-2-1'], // 这些是后端返回的已勾选子节点
+      parentMap: {}, // 保存子对父的映射，用于设置半选
       queryParams:{
         pageNo:0,
         pageSize:10,
         code:null,
       },
       total:0,
+      selectedData: [{
+        authMode: 1,
+        code:"DEV0000001",
+        name:"设备1",
+        lineNo:"L00001",
+        stationNo:""
+      },{
+        authMode: 2,
+        code:"0",
+        name:"所有区域",
+        lineNo:"L010Q2",
+        stationNo:""
+      }],
       groupDetailDrawerVisible: false,
       accessPointList: [
         // {
@@ -166,11 +182,25 @@ export default {
         hasSelectionSonList: [],
         treeIds: [],
         treeData: [],
-        defaultChecked: [],
+        defaultChecked: ["1-DEVICE:1"],
       }
     }
   },
   mounted() {
+    const selectData = [{
+      authMode: 1,
+      code:"DEV0000001",
+      name:"设备1",
+      lineNo:"L00001",
+      stationNo:""
+    },{
+
+      authMode: 2,
+      code:"0",
+      name:"所有区域",
+      lineNo:"L010Q2",
+      stationNo:""
+    }]
     // const line = this.lineList.map(item=>{
     //   return {
     //     id: `${item.id}-${item.lineNo}`,
@@ -191,7 +221,34 @@ export default {
     // this.states.treeData = root
   },
   methods: {
+    async handleExpand(node, data) {
+      // 延迟确保节点加载完成
+      this.$nextTick(() => {
+        // 手动设置已加载节点的半选状态
+        this.setHalfCheckedNodes();
+      });
+    },
+    setHalfCheckedNodes() {
+      const tree = this.$refs.treeLeftRef;
+      const allChecked = this.checkedLeafIds;
 
+      // 反向递归找出需要半选的父节点
+      const halfCheckedSet = new Set();
+      allChecked.forEach((id) => {
+        let parent = this.parentMap[id];
+        while (parent) {
+          halfCheckedSet.add(parent);
+          parent = this.parentMap[parent];
+        }
+      });
+
+      halfCheckedSet.forEach((pid) => {
+        const node = tree.getNode(pid);
+        if (node && !node.checked) {
+          node.indeterminate = true;
+        }
+      });
+    },
     /** 查询列表 */
     async getList() {
       try {
@@ -244,6 +301,10 @@ export default {
             type:'line'
           }
         })
+        // 维护子对父映射
+        line.forEach(child => {
+          this.parentMap[child.id] = node.data.id;
+        });
         resolve(line)
       }
      if (node.level == 2) {
@@ -253,7 +314,7 @@ export default {
            const device = res.data.devices.map(item=>{
              if(stationItem.stationNo==item.stationNo){
                return{
-                 id:`${item.authMode}-${item.id}`,
+                 id:`${res.data.lineNo}-${item.authMode}-${item.code}`,
                  name: item.name,
                  stationNo:item.stationNo,
                  authMode:item.authMode,
@@ -272,11 +333,14 @@ export default {
              key:`${res.data.lineNo}-${stationItem.stationNo}`,
            }
          })
+         station.forEach(child => {
+           this.parentMap[child.id] = node.data.id;
+         });
          resolve(station)
        }else{//按组授权
            const groups = res.data.groups.map(item=>{
                return{
-                 id:`${item.authMode}-${item.id}`,
+                 id:`${res.data.lineNo}-${item.authMode}-${item.code}`,
                  name: item.name,
                  authMode:item.authMode,
                  leaf: true,
@@ -285,16 +349,24 @@ export default {
                }
 
            })
+         groups.forEach(child => {
+           this.parentMap[child.id] = node.data.id;
+         });
          resolve(groups)
        }
      }
      if (node.level == 3) {
       const device = this.station2DeviceMap.get(node.data.key)
-       if(device[0])
-          resolve(device)
+       if(device[0]){
+         device.forEach(child => {
+           this.parentMap[child.id] = node.data.id;
+         });
+         resolve(device)
+       }
        else
          resolve([])
      }
+     this.handleExpand()
     },
     //
     // convertToElTreeData(rawData) {
@@ -349,7 +421,7 @@ export default {
 
     open() {
       this.clearData();
-      this.hasSelectionLineList.push(this.lineList[0].lineNo)  ;
+      //this.hasSelectionLineList.push(this.lineList[0].lineNo)  ;
       this.visible = true
       //this.initTree(this.lineList[0].lineNo);
     },
@@ -375,17 +447,23 @@ export default {
     // },
     // 勾选处理
     handleCheckChange(selectData,state) {
+
+      const selectedWithCode = checkedNodes.filter(node => node.code);
+
+      console.log('选中的带 code 的节点：', selectedWithCode);
+
+
       console.log(selectData,state)
       console.log(this.$refs.treeLeftRef.getCheckedNodes())
-      this.states.hasSelectionSonList = this.$refs.treeLeftRef.getCheckedNodes(true)
-
-      const data = this.$refs.treeLeftRef.getCheckedNodes(false, true)
-      const data2 = data.map(e => ({
-        id: e.id,
-        label: e.label,
-        parentId: e.parentId
-      }))
-      this.states.hasSelectionList = this.handleTree(data2, "",'','','-1');
+      // this.states.hasSelectionSonList = this.$refs.treeLeftRef.getCheckedNodes(true)
+      //
+      // const data = this.$refs.treeLeftRef.getCheckedNodes(false, true)
+      // const data2 = data.map(e => ({
+      //   id: e.id,
+      //   label: e.label,
+      //   parentId: e.parentId
+      // }))
+      //this.states.hasSelectionList = this.handleTree(data2, "",'','','-1');
     },
 
     // 树过滤节点
