@@ -234,7 +234,12 @@ export default {
 				const [removed] = this.selectedList.splice(index, 1);
 				// 将节点移回左侧时移除子节点
     		const cleanNode = {...removed, children: undefined};
-    		this.authList.push(cleanNode);
+    		// 插入到左侧列表首位
+				this.authList.unshift({...removed, children: undefined})
+				// 强制刷新表格视图
+				this.$nextTick(() => {
+					this.$refs.authTable.doLayout()
+				})
 			}
 		},
 		/** 加载子节点 */ 
@@ -437,16 +442,16 @@ export default {
 			// 根据选中的车站筛选门禁数据
 			let filteredList = [];
 			if (this.form.selectedStation.length === 0) {
-					filteredList = [...this.groupList];
+				filteredList = [...this.groupList];
 			} else {
-					filteredList = [
-							...this.groupList, 
-							...this.deviceList.filter(device => 
-									this.form.selectedStation.includes(device.stationNo)
-							)
-					];
+				filteredList = [
+					...this.groupList, 
+					...this.deviceList.filter(device => 
+							this.form.selectedStation.includes(device.stationNo)
+					)
+				];
 			}
-			
+
 			// 排除已选权限
 			const selectedKeys = this.selectedList.map(item => item.key);
 			this.authList = filteredList.filter(item => 
@@ -701,7 +706,7 @@ export default {
   }
   /* 调整表头单元格padding */
   .el-table__header-wrapper th {
-    padding: 16px 18px;
+    padding: 14px 16px;
 
   }
 
@@ -732,6 +737,27 @@ export default {
 		background: #c1c1c1;
 		border-radius: 4px;
 	}
+}
+/* 在原有样式基础上添加 */
+::v-deep .right-table {
+  /* 统一表头单元格padding */
+  .el-table__header th {
+    padding: 14px 16px !important;
+  }
 
+  /* 统一数据行单元格padding */
+  .el-table__body td {
+    padding: 3px 0px !important;
+  }
+
+  /* 统一行高 */
+  .el-table__row {
+    height: 44px;
+  }
+
+  /* 统一字体大小 */
+  .cell {
+    font-size: 14px;
+  }
 }
 </style>
