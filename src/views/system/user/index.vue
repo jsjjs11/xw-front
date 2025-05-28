@@ -540,7 +540,8 @@ export default {
           // { validator: this.validatePassword, trigger: "blur" }
         ],
         idCard: [
-          { required: true, message: "身份证号不能为空", trigger: "blur" }
+          { required: true, message: "身份证号不能为空", trigger: "blur" },
+          {pattern:/(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/, message: '你的身份证格式不正确' }
         ],
         employeeCode: [{ required: true, message: '员工编号不能为空', trigger: 'blur' }],
         mobile: [
