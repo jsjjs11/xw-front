@@ -28,14 +28,15 @@
       <el-table :data="tableData" style="width: 100%; margin-top: 20px;">
         <el-table-column type="selection" width="55" />
         <el-table-column prop="lineName" label="线路名称" align="center" />
-        <el-table-column prop="name" label="权限名称" align="center">
+        <el-table-column prop="name" label="权限名称" align="center" width="230">
           <template v-slot="scope">
-            <span
-              v-if="scope.row.authMode === '0'"
+            <el-link
+              v-if="scope.row.authMode === 2"
               class="clickable-group-name"
-              @click="showGroupDetails(scope.row)">
+              @click="showGroupDetails(scope.row)" style="text-decoration: underline;">
               {{ scope.row.name }}
-            </span>
+              <i class="el-icon-view el-icon--right"></i>
+          </el-link>
             <span v-else>{{ scope.row.name }}</span>
           </template>
         </el-table-column>
@@ -61,7 +62,7 @@
         @pagination="getList" />
 
       <!-- 权限组详情抽屉 -->
-      <el-drawer
+      <!-- <el-drawer
         :title="currentGroup.groupName + ' - 门禁点列表'"
         :visible.sync="drawerVisible"
         direction="rtl"
@@ -76,13 +77,14 @@
           <el-table-column prop="lineNo" label="线路ID" align="center" />
           <el-table-column prop="groupCode" label="权限组编码" align="center" />
         </el-table>
-      </el-drawer>
+      </el-drawer> -->
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
     <authorize-drawer ref="authorizeDrawerRef"/>
+    <group-detail-form ref="groupDetailFormRef"/>
   </div>
 </template>
 
@@ -90,9 +92,10 @@
 import { DICT_TYPE, getLineDatas, getDictDatas } from '@/utils/dict'
 import * as AuthorizationApi from '@/api/nacs/authorize'
 import AuthorizeDrawer from '@/views/system/user/authorize/authorizeDrawer.vue'
+import groupDetailForm from '@/views/system/user/authorize/groupDetailForm.vue'
 export default {
   name: 'AuthorizeForm',
-  components: { AuthorizeDrawer},
+  components: { AuthorizeDrawer , groupDetailForm },
   data() {
     return {
       lineMap: getLineDatas(),
@@ -276,9 +279,10 @@ export default {
     },
     /** 显示权限组详情 */
     async showGroupDetails(row) {
-      this.currentGroup = row;
-      this.drawerVisible = true;
-      await this.getAccessPoints(row.groupCode); // 使用groupCode作为查询条件
+      // this.currentGroup = row;
+      // this.drawerVisible = true;
+      // await this.getAccessPoints(row.groupCode); // 使用groupCode作为查询条件
+      this.$refs.groupDetailFormRef.showGroupDetails(row);
     },
 
     /** 获取门禁点列表 */
