@@ -37,7 +37,11 @@
             <el-table-column label="门禁点编号" align="center" key="id" prop="id" />
             <el-table-column label="门禁点名称" align="center" key="deviceName" prop="deviceName"
               :show-overflow-tooltip="true" />
-            <el-table-column label="线路名称" align="center" key="lineNo" prop="lineNo" :show-overflow-tooltip="true" />
+            <el-table-column label="线路名称" align="center" key="lineNo" prop="lineNo" :show-overflow-tooltip="true">
+              <template v-slot="scope">
+                <span>{{lineList.find(line => line.lineNo === scope.row.lineNo).name}}</span>
+              </template>
+            </el-table-column>
             <el-table-column label="门禁组编号" align="center" key="groupCode" prop="groupCode"
               :show-overflow-tooltip="true" />
             <el-table-column label="访问类型" align="center" key="accessType" prop="accessType" width="120">
@@ -68,11 +72,13 @@
 import { getGroups,getGroupEquipList } from "@/api/nacs/d_groups/index";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
+import { getLineDatas } from "@/utils/dict";
 export default {
   name: "DGroup",
   components: { Treeselect },
   data() {
     return {
+      lineList: getLineDatas(),
       // 遮罩层
       loading: true,
 
@@ -172,11 +178,6 @@ export default {
 };
 </script>
 <style scoped>
-.app-container {
-  height: 100%;
-  padding: 20px;
-}
-
 .full-height {
   height: 100%;
 }
