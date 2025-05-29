@@ -2,7 +2,14 @@
   <div>
     <el-dialog :title="title" :visible.sync="visible" width="1000px" append-to-body>
       <div class="card-container">
-        <el-button type="primary" plain icon="el-icon-plus" @click="creatCard">开卡</el-button>
+        <template v-if="cardList.length > 0">
+          <el-tooltip content="该用户已有卡，不能再开卡" placement="top">
+            <el-button type="primary" plain icon="el-icon-plus" @click="creatCard" :disabled="createDisabled">开卡</el-button>
+          </el-tooltip>
+        </template>
+        <template v-else>
+          <el-button type="primary" plain icon="el-icon-plus" @click="creatCard" :disabled="createDisabled">开卡</el-button>
+        </template>
         <el-table v-loading="loading" :data="cardList" style="margin-top: 20px;">
           <el-table-column label="卡号" align="center" prop="cardNo" />
           <el-table-column label="卡类型" align="center" prop="cardType">
@@ -63,13 +70,13 @@
         </el-table>
 
         <!-- 分页组件 -->
-        <pagination
+        <!-- <pagination
           v-show="total > 0"
           :total="total"
           :page.sync="queryParams.pageNo"
           :limit.sync="queryParams.pageSize"
           @pagination="getList"
-        />
+        /> -->
       </div>
     </el-dialog>
     <cards-form ref="cardFormRef" @success="getList" />
@@ -105,7 +112,8 @@ export default {
       },
       userInfo:undefined,
       // 字典定义
-      DICT_TYPE
+      DICT_TYPE,
+      createDisabled: false
     }
   },
   methods: {
@@ -139,6 +147,11 @@ export default {
       this.userInfo = form;
       this.queryParams.idCard = form.idCard;
       await this.getList()
+      if (this.cardList.length > 0) {
+        this.createDisabled = true;
+      } else {
+        this.createDisabled = false;
+      }
     },
     /** 关闭弹框 */
     close() {
