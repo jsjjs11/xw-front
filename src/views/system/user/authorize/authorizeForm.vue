@@ -27,7 +27,7 @@
       <!-- 权限列表表格 -->
       <el-table :data="tableData" style="width: 100%; margin-top: 20px;">
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="lineName" label="线路名称" align="center" />
+        <el-table-column prop="lineName" label="线路名称" align="center" width="150"/>
         <el-table-column prop="name" label="权限名称" align="center" width="230">
           <template v-slot="scope">
             <el-link
@@ -50,9 +50,9 @@
             <dict-tag :type="DICT_TYPE.NACS_AUTH_MODE" :value="scope.row.authMode" />
           </template>
         </el-table-column>
-        <el-table-column prop="isPublic" label="预设公共权限" align="center">
+        <el-table-column prop="authSource" label="权限来源" align="center">
           <template v-slot="scope">
-            {{ scope.row.isPublic ? '是' : '否' }}
+            <dict-tag :type="DICT_TYPE.NACS_AUTH_SOURCE" :value="scope.row.authSource" />
           </template>
         </el-table-column>
       </el-table>
@@ -60,28 +60,10 @@
       <!-- 分页组件 -->
       <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNo" :limit.sync="queryParams.pageSize"
         @pagination="getList" />
-
-      <!-- 权限组详情抽屉 -->
-      <!-- <el-drawer
-        :title="currentGroup.groupName + ' - 门禁点列表'"
-        :visible.sync="drawerVisible"
-        direction="rtl"
-        size="50%"
-        :modal="true"
-        :append-to-body="true"
-        :modal-append-to-body="false"
-        :destroy-on-close="true">
-        <el-table :data="accessPointList" style="width: 100%">
-          <el-table-column prop="deviceName" label="门禁点名称" align="center" />
-          <el-table-column prop="deviceId" label="设备编号" align="center" />
-          <el-table-column prop="lineNo" label="线路ID" align="center" />
-          <el-table-column prop="groupCode" label="权限组编码" align="center" />
-        </el-table>
-      </el-drawer> -->
-      <div slot="footer" class="dialog-footer">
+      <!-- <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
-      </div>
+      </div> -->
     </el-dialog>
     <authorize-drawer ref="authorizeDrawerRef"/>
     <group-detail-form ref="groupDetailFormRef"/>
@@ -245,7 +227,6 @@ export default {
         // 处理返回数据，设置name字段
         this.tableData = response.data.list.map(item => ({
             ...item,
-            name: item.name, 
             lineName: this.lineMap.find(line => line.lineNo === item.lineNo).name
         }));
         // console.log(this.lineMap)
@@ -307,7 +288,7 @@ export default {
         if (response.data.length === 0) {
           this.$refs["authorizeDrawerRef"].showAuthDialog(this.queryParams.idCard, this.total);
         } else {
-          this.$modal.msgError('您已申请过权限，请等待管理员审核');
+          this.$modal.msgError('该用户存在未审核的权限申请，请等待管理员审核');
         }
       } catch (error) {
         console.error('检查是否有未审核的权限申请失败', error);
@@ -413,5 +394,6 @@ export default {
 ::v-deep .el-table {
   flex: 1;
   overflow: auto;
+  height: 400px;
 }
 </style>

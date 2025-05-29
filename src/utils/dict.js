@@ -85,7 +85,7 @@ export const DICT_TYPE = {
   //=========== NACS 模块 ==========
   // add by chj ......
   NACS_ACCESS_EVENT_TYPE: 'nacs_access_event_type',       // 门禁访问事件类型
-  NACS_AUTH_source_TYPE: 'nacs_auth_source_type',         // 授权来源类型
+  NACS_AUTH_SOURCE: 'nacs_auth_source',         // 授权来源类型
   NACS_AUTH_OP_TYPE: 'nacs_auth_op_type',                 // 线网权限授权操作类型
   NACS_AUTH_OP_STATE: 'nacs_auth_op_state',               // 线网授权同步状态
   NACS_AUTH_MODE: 'nacs_auth_mode',                       // 线网门禁授权模式
