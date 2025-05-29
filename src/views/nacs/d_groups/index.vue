@@ -1,27 +1,30 @@
 <template>
   <div class="app-container">
-    <el-row :gutter="20">
+    <el-row :gutter="20" class="full-height">
       <!--门禁组数据-->
-      <el-col :span="4" :xs="24">
+      <el-col :span="4" :xs="24" class="tree-container">
         <div class="head-container">
-          <el-input v-model="groupName" placeholder="请输入门禁组名称" clearable size="small" prefix-icon="el-icon-search" style="margin-bottom: 20px"/>
+          <el-input v-model="groupName" placeholder="请输入门禁组名称" clearable size="small" prefix-icon="el-icon-search"
+            style="margin-bottom: 20px" />
         </div>
-        <div class="head-container">
-          <el-tree :data="groupsOptions" :props="defaultProps" :expand-on-click-node="false" :filter-node-method="filterNode"
-                   ref="tree" default-expand-all highlight-current @node-click="handleNodeClick"/>
+        <div class="tree-wrapper">
+          <el-tree :data="groupsOptions" :props="defaultProps" :expand-on-click-node="false"
+            :filter-node-method="filterNode" ref="tree" default-expand-all highlight-current
+            @node-click="handleNodeClick" />
         </div>
       </el-col>
       <!--门禁点数据-->
-      <el-col :span="20" :xs="24">
-        <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="100px">
+      <el-col :span="20" :xs="24" class="content-container">
+        <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch"
+          label-width="100px">
           <el-form-item label="门禁点名称" prop="deviceName">
             <el-input v-model="queryParams.deviceName" placeholder="请输入门禁点名称" clearable style="width: 240px"
-                      @keyup.enter.native="handleQuery"/>
+              @keyup.enter.native="handleQuery" />
           </el-form-item>
           <el-form-item label="门禁访问类型" prop="accessType">
             <el-select v-model="queryParams.accessType" placeholder="请选择用户类型" clearable>
-              <el-option v-for="dict in this.getDictDatas(DICT_TYPE.NACS_ACCESS_TYPE)"
-                         :key="dict.value" :label="dict.label" :value="dict.value"/>
+              <el-option v-for="dict in this.getDictDatas(DICT_TYPE.NACS_ACCESS_TYPE)" :key="dict.value"
+                :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -29,31 +32,32 @@
             <el-button icon="el-icon-refresh" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
+        <div class="table-container">
+          <el-table v-loading="loading" :data="deviceList">
+            <el-table-column label="门禁点编号" align="center" key="id" prop="id" />
+            <el-table-column label="门禁点名称" align="center" key="deviceName" prop="deviceName"
+              :show-overflow-tooltip="true" />
+            <el-table-column label="线路名称" align="center" key="lineNo" prop="lineNo" :show-overflow-tooltip="true" />
+            <el-table-column label="门禁组编号" align="center" key="groupCode" prop="groupCode"
+              :show-overflow-tooltip="true" />
+            <el-table-column label="访问类型" align="center" key="accessType" prop="accessType" width="120">
 
-        <el-row :gutter="10" class="mb8">
-        </el-row>
 
-        <el-table v-loading="loading" :data="deviceList">
-          <el-table-column label="门禁点编号" align="center" key="id" prop="id" />
-          <el-table-column label="门禁点名称" align="center" key="deviceName" prop="deviceName" :show-overflow-tooltip="true" />
-          <el-table-column label="线路名称" align="center" key="lineNo" prop="lineNo"  :show-overflow-tooltip="true" />
-          <el-table-column label="门禁组编号" align="center" key="groupCode" prop="groupCode":show-overflow-tooltip="true" />
-          <el-table-column label="访问类型" align="center" key="accessType" prop="accessType"  width="120">
-
-
-          <template v-slot="scope">
-            <el-tag >{{getDictDataLabel(DICT_TYPE.NACS_ACCESS_TYPE,scope.row.accessType)}}</el-tag>
-          </template>
-          </el-table-column>
-          <el-table-column label="创建时间" align="center" prop="createTime" width="160">
-            <template v-slot="scope">
-              <span>{{ parseTime(scope.row.createTime) }}</span>
-            </template>
-          </el-table-column>
-        </el-table>
-
-        <pagination v-show="total>0" :total="total" :page.sync="queryParams.pageNo" :limit.sync="queryParams.pageSize"
-                    @pagination="getList"/>
+              <template v-slot="scope">
+                <el-tag>{{getDictDataLabel(DICT_TYPE.NACS_ACCESS_TYPE,scope.row.accessType)}}</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="创建时间" align="center" prop="createTime" width="160">
+              <template v-slot="scope">
+                <span>{{ parseTime(scope.row.createTime) }}</span>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div class="pagination-container">
+            <pagination v-show="total>0" :total="total" :page.sync="queryParams.pageNo"
+              :limit.sync="queryParams.pageSize" @pagination="getList" />
+          </div>
+        </div>
       </el-col>
     </el-row>
   </div>
@@ -167,3 +171,50 @@ export default {
   }
 };
 </script>
+<style scoped>
+.app-container {
+  height: 100%;
+  padding: 20px;
+}
+
+.full-height {
+  height: 100%;
+}
+
+.tree-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.el-tree {
+  min-height: 100%;
+}
+
+.content-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+::v-deep(.el-table) {
+  flex: 1;
+  overflow-y: auto;
+}
+.pagination-container {
+  height: 50px;
+}
+</style>

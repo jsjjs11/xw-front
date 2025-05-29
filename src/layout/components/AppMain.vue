@@ -1,3 +1,12 @@
+<!--
+ * @copyright: 2021 NANJING SAC Rail Traffic Engineering CO., LTD
+ * @Descripttion: 
+ * @version: V1.0
+ * @Author: ym
+ * @Date: 2025-05-12 09:45:13
+ * @LastEditors: ym
+ * @LastEditTime: 2025-05-29 15:15:45
+-->
 <template>
   <section class="app-main">
     <transition name="fade-transform" mode="out-in">
@@ -29,7 +38,7 @@ export default {
 <style lang="scss" scoped>
 .app-main {
   /* 50= navbar  50  */
-  min-height: calc(100vh - 50px);
+  height: calc(100vh - 50px);
   width: 100%;
   position: relative;
   overflow: hidden;
@@ -42,7 +51,8 @@ export default {
 .hasTagsView {
   .app-main {
     /* 84 = navbar + tags-view = 50 + 34 */
-    min-height: calc(100vh - 84px);
+    //min-height: calc(100vh - 84px);
+    height: calc(100vh - 86px);
   }
 
   .fixed-header + .app-main {
