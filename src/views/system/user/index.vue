@@ -96,7 +96,7 @@
           </el-table-column>
           <el-table-column label="手机号码" align="center" key="mobile" prop="mobile" v-if="columns[4].visible"
             width="120" />
-          <el-table-column label="身份证号" align="center" key="idCard" prop="idCard" v-if="columns[7].visible" />
+          <el-table-column label="身份证号" align="center" key="idCard" prop="idCard" v-if="columns[7].visible" width="160"/>
           <el-table-column label="状态" key="status" v-if="columns[5].visible" align="center">
             <template v-slot="scope">
               <el-switch v-model="scope.row.status" :active-value="0" :inactive-value="1"
@@ -839,7 +839,7 @@ export default {
       const response = await AuthorizationApi.checkApply(idCards);
       if (response.data.length > 0) {
         const resultString = response.data.join('、');
-        this.$modal.msgError(resultString + '已申请过权限，请等待管理员审核');
+        this.$modal.msgError(resultString + '存在未审核的权限申请，请等待管理员审核');
         return;
       }
       // const CardTotal = await CardsApi.getCards(idCards[0]);
@@ -867,7 +867,9 @@ export default {
       });
       console.log(cardtotal);
       if (cardtotal === 0) {
-        this.$message.error('该用户还没有门禁卡，请先进行开卡操作')
+        this.$confirm('该用户还没有门禁卡，是否进行开卡操作？').then(() => {
+          this.handleCard(row);
+        }).catch(() => {});
         return
       }
       this.$refs["authorizeFormRef"].show(row);

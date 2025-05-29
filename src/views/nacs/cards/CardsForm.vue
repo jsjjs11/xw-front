@@ -31,17 +31,17 @@
           </el-col> -->
           <el-col :span="24">
             <el-form-item label="持卡人编号ID" prop="employeeCode">
-              <el-input v-model="formData.employeeCode" placeholder="请输入持卡人编号ID" class="input-width" />
+              <el-input v-model="formData.employeeCode" placeholder="请输入持卡人编号ID" class="input-width" :disabled="true" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
             <el-form-item label="持卡人姓名" prop="employeeName">
-              <el-input v-model="formData.employeeName" placeholder="请输入持卡人姓名" class="input-width" />
+              <el-input v-model="formData.employeeName" placeholder="请输入持卡人姓名" class="input-width" :disabled="true"/>
             </el-form-item>
           </el-col>
           <el-col :span="24">
             <el-form-item label="持卡人身份证号" prop="idCard">
-              <el-input v-model="formData.idCard" placeholder="请输入持卡人身份证号" class="input-width" />
+              <el-input v-model="formData.idCard" placeholder="请输入持卡人身份证号" class="input-width" :disabled="true"/>
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -117,33 +117,33 @@ import { parseTime} from "@/utils/ruoyi";
         formLoading: false,
         // 表单参数
         formData: {
-                            id: undefined,
-                            lineId: undefined,
-                            // cardId: undefined,
-                            // cardMapBcd: undefined,
-                            cardNo: undefined,
-                            // employeeId: undefined,
-                            employeeCode: undefined,
-                            employeeName: undefined,
-                            idCard: undefined,
-                            cardType: undefined,
-                            cardState: undefined,
-                            startDate: undefined,
-                            endDate: undefined,
+          id: undefined,
+          lineId: undefined,
+          // cardId: undefined,
+          // cardMapBcd: undefined,
+          cardNo: undefined,
+          // employeeId: undefined,
+          employeeCode: undefined,
+          employeeName: undefined,
+          idCard: undefined,
+          cardType: undefined,
+          cardState: undefined,
+          startDate: undefined,
+          endDate: undefined,
         },
         // 表单校验
         formRules: {
-                        lineId: [{ required: true, message: '线路ID不能为空', trigger: 'blur' }],
-                        cardNo: [{ required: true, message: '卡号不能为空', trigger: 'blur' }],
-                        // employeeId: [{ required: true, message: '持卡人ID不能为空', trigger: 'blur' }],
-                        employeeCode: [{ required: true, message: '持卡人编号ID不能为空', trigger: 'blur' }],
-                        employeeName: [{ required: true, message: '持卡人姓名不能为空', trigger: 'blur' }],
-                        idCard: [{ required: true, message: '持卡人身份证号不能为空', trigger: 'blur' }],
-                        cardType: [{ required: true, message: '卡类型不能为空', trigger: 'change' }],
-                        startDate: [{ required: true, message: '有效时间不能为空', trigger: 'blur' }],
-                        endDate: [{ required: true, message: '失效时间不能为空', trigger: 'blur' }],
+          lineId: [{ required: true, message: '线路ID不能为空', trigger: 'blur' }],
+          cardNo: [{ required: true, message: '卡号不能为空', trigger: 'blur' }],
+          // employeeId: [{ required: true, message: '持卡人ID不能为空', trigger: 'blur' }],
+          employeeCode: [{ required: true, message: '持卡人编号ID不能为空', trigger: 'blur' }],
+          employeeName: [{ required: true, message: '持卡人姓名不能为空', trigger: 'blur' }],
+          idCard: [{ required: true, message: '持卡人身份证号不能为空', trigger: 'blur' }],
+          cardType: [{ required: true, message: '卡类型不能为空', trigger: 'change' }],
+          startDate: [{ required: true, message: '有效时间不能为空', trigger: 'blur' }],
+          endDate: [{ required: true, message: '失效时间不能为空', trigger: 'blur' }],
         },
-                        };
+      };
     },
     methods: {
       /** 打开弹窗 */
@@ -210,19 +210,19 @@ import { parseTime} from "@/utils/ruoyi";
                       /** 表单重置 */
       reset() {
         this.formData = {
-                            id: undefined,
-                            lineId: undefined,
-                            // cardId: undefined,
-                            // cardMapBcd: undefined,
-                            cardNo: undefined,
-                            // employeeId: undefined,
-                            employeeCode: undefined,
-                            employeeName: undefined,
-                            idCard: undefined,
-                            cardType: undefined,
-                            cardState: undefined,
-                            startDate: undefined,
-                            endDate: undefined,
+          id: undefined,
+          lineId: undefined,
+          // cardId: undefined,
+          // cardMapBcd: undefined,
+          cardNo: undefined,
+          // employeeId: undefined,
+          employeeCode: undefined,
+          employeeName: undefined,
+          idCard: undefined,
+          cardType: undefined,
+          cardState: undefined,
+          startDate: undefined,
+          endDate: undefined,
         };
         this.resetForm("formRef");
       },
