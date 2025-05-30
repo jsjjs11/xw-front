@@ -86,7 +86,7 @@
 
         <el-table v-loading="loading" :data="userList" highlight-current-row @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="45" align="center" />
-          <el-table-column label="用户编号" align="center" key="id" prop="id" v-if="columns[0].visible" />
+          <el-table-column label="用户编号" align="center" key="id" prop="id" width="100" v-if="columns[0].visible" />
           <el-table-column label="用户名称" align="center" key="username" prop="username" v-if="columns[1].visible"
             :show-overflow-tooltip="true" />
           <el-table-column label="员工姓名" align="center" key="nickname" prop="nickname" v-if="columns[2].visible"
@@ -95,9 +95,9 @@
             :show-overflow-tooltip="true" >
           </el-table-column>
           <el-table-column label="手机号码" align="center" key="mobile" prop="mobile" v-if="columns[4].visible"
-            width="120" />
-          <el-table-column label="身份证号" align="center" key="idCard" prop="idCard" v-if="columns[7].visible" width="160"/>
-          <el-table-column label="状态" key="status" v-if="columns[5].visible" align="center">
+            width="160" />
+          <el-table-column label="身份证号" align="center" key="idCard" prop="idCard" v-if="columns[7].visible" width="240"/>
+          <el-table-column label="状态" key="status" width="80" v-if="columns[5].visible" align="center">
             <template v-slot="scope">
               <el-switch v-model="scope.row.status" :active-value="0" :inactive-value="1"
                 @change="handleStatusChange(scope.row)" />
@@ -110,7 +110,7 @@
           </el-table-column>
           <!-- <el-table-column label="审核状态" align="center" key="auditStatus" prop="auditStatus" v-if="columns[7].visible"
             width="120"></el-table-column> -->
-          <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
+          <el-table-column label="操作" align="center" width="240" class-name="small-padding fixed-width">
             <template v-slot="scope">
               <el-button size="mini" type="text" icon="el-icon-bank-card" @click.stop="handleCard(scope.row)"
                 v-hasPermi="['system:user:card']">卡片</el-button>
@@ -1062,5 +1062,22 @@ export default {
 .search-icon {
   color: red;
 
+}
+::v-deep .el-table {
+  height: calc(100vh - 320px);
+  margin-top: 20px;
+  // overflow-y: auto;
+  .el-table__header-wrapper {
+		position: sticky;
+		top: 0;
+		z-index: 2;
+	}
+  .el-table__body-wrapper {
+		overflow-y: auto !important;
+		height: calc(100% - 60px); /* 减去表头高度 */
+	}
+  tr {
+    height: 60px;
+  }
 }
 </style>
