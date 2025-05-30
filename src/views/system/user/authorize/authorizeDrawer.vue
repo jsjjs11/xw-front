@@ -3,7 +3,7 @@
 		<el-drawer
 			title="用户授权"
 			direction="rtl"
-      size="70%"
+      size="90%"
 			:modal="true"
       :append-to-body="true"
       :modal-append-to-body="false"
@@ -11,42 +11,9 @@
 			:visible.sync="drawerVisible"
 			:before-close="handleClose">
 				<el-form ref="form" :model="form" label-width="100px">
-					<el-form-item label="授权时区" prop="timeZone">
-						<el-select v-model="form.timeZone"></el-select>
-					</el-form-item>
-					<el-form-item label="授权周期" prop="period">
-						<el-date-picker
-							v-model="form.dateRange"
-							type="daterange"
-							range-separator="至"
-							start-placeholder="开始日期"
-							end-placeholder="结束日期">
-						</el-date-picker>
-						<!-- 快捷按钮行 -->
-						<div class="quick-date-buttons">
-							<el-button 
-								v-for="btn in quickButtons"
-								:key="btn.type"
-								@click="handleQuickDate(btn.type)"
-								size="small"
-								plain>
-								{{ btn.label }}
-							</el-button>
-						</div>
-					</el-form-item>
-					<el-form-item label="授权区域" prop="authItems" class="auth-items">
+					<div class="auth-form-item">
 						<div class="auth-container">
-						<!-- 搜索框 -->
-						<!-- <el-input
-							v-model="form.searchAuth"
-							placeholder="输入门禁名称搜索"
-							clearable
-							class="auth-search"
-							suffix-icon="el-icon-search"
-							@input="filterAuthItems"
-						/> -->
-						<div class="auth-column">
-							<el-col :span="4">
+							<el-col :span="3">
 								<!-- 线路列 -->
 								<div class="column line-list">
 									<div class="section-title">线路列表</div>
@@ -67,7 +34,7 @@
 								</div>
 							</el-col>
 							<!-- 车站列 -->
-							<el-col :span="4">
+							<el-col :span="3">
 								<div class="column station-list">
 									<div class="section-title">车站列表</div>
 									<el-checkbox :indeterminate="isIndeterminate" v-model="checkAll" @change="handleCheckAllChange">全选</el-checkbox>
@@ -80,13 +47,14 @@
 							</el-col>
 							
 							<!-- 门禁列 -->
-							<el-col :span="16">
+							<el-col :span="18">
 								<div class="column auth-transfer">
 									<div class="section-title">门禁列表</div>
 									<div class="dual-table-container">
 										<div class="table-wrapper left-table">
 											<div class="table-header">
 												<span>可选权限（{{ leftNonLeafCount }}）</span>
+												<!-- <el-button type="text" @click="handleAddAuthSet">快捷选择</el-button> -->
 											</div>
 											<el-table
 												:data = "authList"
@@ -95,7 +63,8 @@
 												lazy
 												:load = "loadAuthList"
 												ref= "authTable"
-												@select="handleLeftSelect">
+												@select="handleLeftSelect"
+												@select-all="handleLeftSelectAll">
 												<el-table-column type="selection" width="60" :selectable="checkSelectable"></el-table-column>
 												<el-table-column type="index" width="60"></el-table-column>
 												<el-table-column label="权限名称" prop="label" width="calc(100% - 120px)" header-align="center">
@@ -109,6 +78,10 @@
 										<div class="table-wrapper right-table">
 											<div class="table-header">
 												<span>已选权限（{{ selectedList.length }}）</span>
+												<div class="header-buttons">
+													<!-- <el-button type="text" @click="handleRemoveAuthSet">快捷移除</el-button> -->
+													<el-button type="text" @click="handleEditTime">时区/周期批量修改</el-button>
+												</div>
 											</div>
 											<el-table
 												:data = "selectedList"
@@ -116,41 +89,53 @@
 												:tree-props = "{ children: 'children', hasChildren: 'hasChildren' }"
 												lazy
 												:load = "loadAuthList">
-												<el-table-column type="index" width="60"></el-table-column>
-												<el-table-column prop="label" label="权限名称" width="calc(100% - 160px)" header-align="center"></el-table-column>
-												<el-table-column label="操作" width="100" header-align="center">
+												<el-table-column type="index" width="50"></el-table-column>
+												<el-table-column prop="label" label="权限名称" width="calc(100% - 510px)" header-align="center"></el-table-column>
+												<el-table-column label="授权时区" prop="timePeriodId" width="120" header-align="center">
+													<template #default="{row}">
+															{{ getTimeZoneLabel(row.timePeriodId) }}
+													</template>
+												</el-table-column>
+												<el-table-column label="授权周期" prop="dateRange" width="200" header-align="center"></el-table-column>
+												<el-table-column label="操作" width="140" header-align="center">
 													<template #default="{row}">
 														<el-button type="text" v-if="!row.isLeaf" @click="moveToLeft(row)">移除</el-button>
+														<el-button type="text" v-if="!row.isLeaf" @click="handleEdit(row)">编辑</el-button>
 													</template>
 												</el-table-column>
 											</el-table>
 										</div>
-										
 									</div>
 								</div>
 							</el-col>
-						</div></div>
-					</el-form-item> 
+						</div>
+					</div>
 				</el-form>
 				<div class="dialog-footer">
 					<el-button @click="drawerVisible = false">取 消</el-button>
 					<el-button type="primary" @click="handleAuthConfirm">确 定</el-button>
 				</div>
 		</el-drawer>
+		<auth-time-edit-form ref="authTimeEditForm" @confirm="handleTimeConfirm"></auth-time-edit-form>
+		<auth-time-to-line ref="authTimeToLine" @confirm="handleTimeToLineConfirm"></auth-time-to-line>
 	</div>
 </template>
 <script>
 import {getLineDatas} from "@/utils/dict";
 import * as AuthorizationApi from '@/api/nacs/authorize';
 import * as groupsApi from "@/api/nacs/d_groups/index";
+import authTimeEditForm from "@/views/system/user/authorize/authTimeEditForm";
+import authTimeToLine from "@/views/system/user/authorize/authTimeToLine"
 export default {
 	name: 'AuthorizeDrawer',
+	components: {
+		authTimeEditForm,
+		authTimeToLine,
+	},
 	data() {
 		return {
 			visible: false,
 			form: {
-				timeZone: '',
-				dateRange: [],
 				selectedLine: '',
 				selectedStation: [],
 				// searchAuth: '',
@@ -162,13 +147,6 @@ export default {
         authItems: undefined,
       },
 			drawerVisible: false,
-			quickButtons: [
-        { type: 'day', label: '一天' },
-        { type: 'week', label: '一周' },
-        { type: 'month', label: '一月' },
-        { type: 'year', label: '一年' },
-        { type: 'decade', label: '十年' }
-      ],
 			authProps: {
 				label: 'label',
 				children: 'children',
@@ -207,22 +185,92 @@ export default {
       })
       return count
     },
-		/** 左侧表格勾选回调 */
+		/** 左侧表格勾选 */
 		handleLeftSelect(selection, row) {
 			if (row.isLeaf) return;
-			this.moveToRight(row);
-			this.$refs.authTable.toggleRowSelection(row, false);
-		},
-		/** 左侧表格移动到右侧 */
-		moveToRight(node) {
-			if (node.isLeaf) return;
-			const index = this.findIndex(this.authList, node.key)
-			if (index > -1) {
-				const [removed] = this.authList.splice(index, 1);
-				// 携带子节点一起移动
+			// 判断是选中还是取消选中
+			const isSelected = selection.some(item => item.key === row.key);
+			if (isSelected) {
+				// 获取当前日期和十年后日期
+        const today = new Date();
+        const tenYearsLater = new Date();
+        tenYearsLater.setFullYear(today.getFullYear() + 10);
+        
+        // 格式化日期为YYYY-MM-DD
+        const formatDate = (date) => {
+					const year = date.getFullYear();
+					const month = String(date.getMonth() + 1).padStart(2, '0');
+					const day = String(date.getDate()).padStart(2, '0');
+					return `${year}-${month}-${day}`;
+        };
+        
+        const startTime = formatDate(today);
+        const endTime = formatDate(tenYearsLater);
+				// 添加到右侧表格
 				this.selectedList.push({
-					...removed,
-					children: removed.children || []  // 保持树结构
+					...row,
+					children: row.children || [],
+					timePeriodId: 0,
+					startTime: startTime,
+					endTime: endTime,
+					dateRange: `${startTime}至${endTime}`,
+					authSource: 0,
+				});
+			} else {
+				// 从右侧表格移除
+				const index = this.selectedList.findIndex(item => item.key === row.key);
+				if (index > -1) {
+					this.selectedList.splice(index, 1);
+				}
+			}
+			
+			// 更新左侧表格的选中状态
+			this.$nextTick(() => {
+				this.$refs.authTable.toggleRowSelection(row, isSelected);
+			});
+		},
+		/** 左侧表格全选 */
+		handleLeftSelectAll(selection) {
+			// 获取当前页所有可选的非叶子节点
+			const selectableRows = this.authList.filter(row => !row.isLeaf);
+			
+			// 判断是全选还是取消全选
+			if (selection.length > 0) {
+				// 全选操作 - 添加所有可选项到selectedList
+				// 获取当前日期和十年后日期
+        const today = new Date();
+        const tenYearsLater = new Date();
+        tenYearsLater.setFullYear(today.getFullYear() + 10);
+        
+        // 格式化日期为YYYY-MM-DD
+        const formatDate = (date) => {
+					const year = date.getFullYear();
+					const month = String(date.getMonth() + 1).padStart(2, '0');
+					const day = String(date.getDate()).padStart(2, '0');
+					return `${year}-${month}-${day}`;
+        };
+				const startTime = formatDate(today);
+        const endTime = formatDate(tenYearsLater);
+				selectableRows.forEach(row => {
+					if (!this.selectedList.some(item => item.key === row.key)) {
+						this.selectedList.push({
+							...row,
+							children: row.children || [],
+							timePeriodId: 0,
+							startTime: startTime,
+							endTime: endTime,
+							dateRange: `${startTime}至${endTime}`,
+							authSource: 0,
+						});
+					}
+				});
+			} else {
+				// 取消全选 - 从selectedList中移除当前页所有项
+				selectableRows.forEach(row => {
+					const index = this.selectedList.findIndex(item => item.key === row.key);
+					if (index > -1) {
+						this.selectedList.splice(index, 1);
+					}
 				});
 			}
 		},
@@ -231,16 +279,81 @@ export default {
 			if (node.isLeaf) return;
 			const index = this.findIndex(this.selectedList, node.key);
 			if (index > -1) {
-				const [removed] = this.selectedList.splice(index, 1);
-				// 将节点移回左侧时移除子节点
-    		const cleanNode = {...removed, children: undefined};
-    		// 插入到左侧列表首位
-				this.authList.unshift({...removed, children: undefined})
-				// 强制刷新表格视图
-				this.$nextTick(() => {
-					this.$refs.authTable.doLayout()
-				})
+				this.selectedList.splice(index, 1);
+				// 更新左侧表格的选中状态
+				const leftIndex = this.authList.findIndex(item => item.key === node.key);
+				if (leftIndex > -1) {
+						this.$nextTick(() => {
+								this.$refs.authTable.toggleRowSelection(this.authList[leftIndex], false);
+						});
+				}
 			}
+		},
+		/** 同步左侧表格勾选状态 */
+    syncLeftSelection() {
+			if (!this.$refs.authTable || !this.authList.length) return;
+			// 设置选中状态
+			this.selectedList.forEach(item => {
+				const row = this.authList.find(auth => auth.key === item.key);
+				if (row) {
+					this.$refs.authTable.toggleRowSelection(row, true);
+				}
+			});
+    },
+		/** 处理时区/周期修改 */
+		handleEdit(row) {
+			this.$refs.authTimeEditForm.show(row);
+		},
+		/** 时区/周期修改确认 */
+		handleTimeConfirm(data) {
+			const index = this.selectedList.findIndex(item => item.key === data.key);
+    	if (index !== -1) {
+        this.$set(this.selectedList, index, {
+					...this.selectedList[index],
+					timePeriodId: data.timePeriodId,
+					startTime: data.startTime,
+					endTime: data.endTime,
+					dateRange: `${data.startTime}至${data.endTime}`
+        });
+    	}
+		},
+		// 临时处理时区名称，需要增加接口返回时区名称
+		getTimeZoneLabel(timePeriodId) {
+			const timeZone = this.$refs.authTimeEditForm?.timeZones?.find(
+				item => item.value === timePeriodId
+			);
+			return timeZone?.label || timePeriodId;
+    },
+		/** 时区/周期批量修改 */
+		handleEditTime() {
+			const lineNolist = this.selectedList.map(item => item.lineNo).filter((item, index, arr) => arr.indexOf(item) === index);
+			console.log(lineNolist)
+			this.$refs.authTimeToLine.show(lineNolist);
+		},
+		/** 时区/周期批量修改确认 */
+		handleTimeToLineConfirm(data) {
+			data ? data.forEach(item => {
+				const index = this.selectedList.findIndex(
+					selectedItem => selectedItem.lineNo === item.lineNo
+				);
+				if (index !== -1) {
+					this.$set(this.selectedList, index, {
+						...this.selectedList[index],
+						timePeriodId: item.timePeriodId,
+						startTime: item.startTime,
+						endTime: item.endTime,
+						dateRange: `${item.startTime}至${item.endTime}`
+					});
+				}
+			}): null;
+		},
+		/** 快捷选择门禁集合 */
+		handleAddAuthSet() {
+
+		},
+		/** 快捷移除门禁集合 */
+		handleRemoveAuthSet() {
+
 		},
 		/** 加载子节点 */ 
 		async loadAuthList(node, treeNode, resolve) {
@@ -313,6 +426,7 @@ export default {
 								lineNo: item.lineNo, // 标记所属线路
 								stationNo: item.stationNo, // 标记所属车站
 								isleaf: false,
+								// dateRange:`${item.startTime}至${item.endTime}`
 							});
 						} else if (item.authMode === 2) {
 							this.selectedList.push({
@@ -325,10 +439,14 @@ export default {
 								isleaf: false,
 								level: 0,
 								hasChildren: true,
-								children: []
+								children: [],
+								// dateRange:`${item.startTime}至${item.endTime}`
 							});
 						}
-						console.log(this.selectedList)
+					});
+					// 同步左侧勾选状态
+					this.$nextTick(() => {
+						this.syncLeftSelection();
 					});
 				}
 			} catch(error) {
@@ -339,34 +457,12 @@ export default {
 		/** 关闭授权弹窗 */
     handleClose() {
       this.drawerVisible = false;
+			this.form.selectedStation = [];
+			this.checkAll = false;
+			this.isIndeterminate = false;
       this.reset();
 			// this.allAuthCache.clear(); // 关闭时清空全局缓存
 		},
-		handleQuickDate(type) {
-      const start = new Date()
-      const end = new Date()
-
-      switch(type) {
-        case 'day':
-          // 开始和结束都为当天
-          break
-        case 'week':
-          end.setDate(end.getDate() + 6)
-          break
-        case 'month':
-          end.setMonth(end.getMonth() + 1)
-          end.setDate(end.getDate() - 1)
-          break
-        case 'year':
-          end.setFullYear(end.getFullYear() + 1)
-          end.setDate(end.getDate() - 1)
-          break
-        case 'decade':
-          end.setFullYear(end.getFullYear() + 10)
-          break
-      }
-      this.form.dateRange = [start, end]
-    },
 		/** 获取车站以及门禁数据 */
 		async onLineChange() {
       if(this.form.selectedLine){
@@ -411,6 +507,13 @@ export default {
 				// console.log("门禁设备", this.deviceList)
 				// console.log("车站", this.stationList)
 				// console.log("门禁组", this.groupList)
+				// 同步左侧勾选状态
+				// 重置车站选择状态
+				this.form.selectedStation = [];
+				this.checkAll = false;
+				this.isIndeterminate = false;
+				this.syncLeftSelection();
+				
 				this.onStationChange();
       }
     },
@@ -432,13 +535,6 @@ export default {
 				this.checkAll = false;
 				this.isIndeterminate = false;
 			}
-			// // 根据选中的车站筛选门禁数据
-			// if (this.form.selectedStation.length === 0) {
-			// 		this.authList = [...this.groupList];
-			// } else {
-			// 	this.authList = [...this.groupList, 
-			// 									...this.deviceList.filter(device => this.form.selectedStation.includes(device.stationNo))];
-			// }
 			// 根据选中的车站筛选门禁数据
 			let filteredList = [];
 			if (this.form.selectedStation.length === 0) {
@@ -451,28 +547,26 @@ export default {
 					)
 				];
 			}
-
-			// 排除已选权限
-			const selectedKeys = this.selectedList.map(item => item.key);
-			this.authList = filteredList.filter(item => 
-					!selectedKeys.includes(item.key)
-			);
+			// const selectedKeys = this.selectedList.map(item => item.key);
+			this.authList = [...filteredList];
+			this.$nextTick(() => {
+				this.syncLeftSelection();
+			});
 			// console.log('门禁列表:', this.authList)
 		},
 		/** 提交授权 */
 		async handleAuthConfirm() {
 			// 格式化日期范围
-			const dateRangeStr = this.form.dateRange
-				.map(date => {
-					const d = new Date(date);
-					return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
-				})
-				.join(',');
+			// const dateRangeStr = this.form.dateRange
+			// 	.map(date => {
+			// 		const d = new Date(date);
+			// 		return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+			// 	})
+			// 	.join(',');
 			
 			// 按authMode分类门禁项
 			const authItems = [];
 
-			// 先分类处理
 			this.selectedList.forEach(item => {
 				authItems.push({
 					authMode: item.authMode,
@@ -480,13 +574,15 @@ export default {
 					stationNo: item.stationNo,
 					code: item.code,
 					name: item.name,
+					timePeriodId: item.timePeriodId,
+					startTime: item.startTime,
+					endTime: item.endTime,
+					authSource: item.authSource,
 				})
 			});
 			const params = {
 				idCards: this.AuthorizeForm.idCard,
 				authItems,
-				timeZone: this.form.timeZone,
-				dateRange: dateRangeStr,
 			};
 			console.log('提交授权参数:', params);
 			// if (this.existAuth === 0) {
@@ -502,8 +598,8 @@ export default {
 		},
 		reset() {
 			this.form = {
-				timeZone: '',
-				dateRange: [],
+				timePeriodId: 0,
+				dateRange: '',
 				selectedLine: '',
 				selectedStation: [],
 				// searchAuth: '',
@@ -514,42 +610,38 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-.quick-date-buttons {
-	margin-top: 20px;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
+// .quick-date-buttons {
+// 	margin-top: 20px;
+//   display: flex;
+//   gap: 8px;
+//   flex-wrap: wrap;
+// }
 // .auth-column {
 // 	margin-top:20px;
 // }
-:deep(.auth-items) {
-  /* 改为块级布局 */
-  display: block !important;
+:deep(.el-form) {
+  height: auto !important;
+  min-height: calc(100% - 80px);
+  display: flex;
+  flex-direction: column;
+}
+.auth-form-item {
+	position: relative;
+	padding: 0px;
+	height: 100%;
   
   /* 移除默认间隔 */
   // margin-bottom: 0;
-  
-  /* 标签容器样式 */
-  .el-form-item__label {
-    display: block;
-    // width: 100% !important;
-    text-align: left !important;
-    padding-bottom: 16px;  /* 增加标签与内容间距 */
-    line-height: 1.5;
-		margin-left: 30px !important;
-  }
 
   /* 内容区域样式 */
-  .el-form-item__content {
-    display: block;
-    // width: 100%;
-    margin-left: 30px !important;
-    
-    /* 内容子元素容器 */
-    .auth-container {
-      margin-top: 40px;
-    }
+  .auth-container {
+    position: relative;
+    margin-left: 40px;
+    // min-height: 40px;
+		height:100%;
+    line-height: 40px;
+		margin-top: 0;
+		padding-left: 0;
   }
 }
 
@@ -572,12 +664,12 @@ export default {
 /* 滚动条设置 */
 .line-list,
 .station-list {
-  height: 550px;
+  height: calc(100vh - 180px);
   overflow-y: auto;
 }
 
 .auth-transfer {
-  height: 550px;
+  height: calc(100vh - 180px);
   overflow: auto; /* 同时具备横向和纵向滚动 */
 }
 
@@ -622,11 +714,11 @@ export default {
 }
 .dual-table-container {
   display: flex;
-  gap: 20px;
-  height: 480px;
+  gap: 15px;
+  height: calc(100vh - 260px);
   margin-top: 10px;
-	width: 800px;
-	margin-left: 25px;
+	width: 1180px;
+	margin-left: 15px;
 
   .table-wrapper {
     flex: 1;
@@ -640,41 +732,50 @@ export default {
 
     &.left-table {
       margin-right: 8px;
+			flex: 0 0 40%;
     }
     &.right-table {
       margin-left: 8px;
+			flex: 0 0 60%;
     }
 
 		.table-header {
-    padding: 12px 16px;
-    background: #f5f7fa;
-    border-bottom: 1px solid #ebeef5;
-    font-weight: 600;
-    color: #303133;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    
-    span {
-      font-size: 14px;
-      letter-spacing: 0.5px;
-    }
-  }
-  }
+			padding: 12px 16px;
+			background: #f5f7fa;
+			border-bottom: 1px solid #ebeef5;
+			font-weight: 600;
+			color: #303133;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			
+			span {
+				font-size: 14px;
+				letter-spacing: 0.5px;
+			}
+			.header-buttons {
+        display: flex;
+        gap: 8px;
+   	 	}
+		}
+		.el-table {
+			flex: 1;
+			border: none;
+			display: flex;
+			flex-direction: column;
+			::v-deep .el-table__body-wrapper {
+				overflow-x: hidden;
+			}
 
-  .transfer-table {
-    flex: 1;
-    border: none;
-    ::v-deep .el-table__body-wrapper {
-      overflow-x: hidden;
-    }
+			::v-deep .el-table__header-wrapper {
+				th {
+					background: #f5f7fa;
+				}
+			}
+		}
+	}
 
-    ::v-deep .el-table__header-wrapper {
-      th {
-        background: #f5f7fa;
-      }
-    }
-  }
+  
 }
 
 // 保持原有其他样式
