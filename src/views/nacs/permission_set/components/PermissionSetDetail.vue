@@ -1,33 +1,29 @@
 <template>
-  <div class="app-container">
-    <!-- 搜索工作栏 -->
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch">
-      <el-form-item label="线路名称" prop="lineNo">
-        <el-select v-model="queryParams.lineNo" multiple placeholder="请选择线路">
-          <el-option v-for="line in lineList" :key="parseInt(line.id)" :label="line.name" :value="line.lineNo" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="门禁设备名称" prop="name">
-        <el-input v-model="queryParams.name" placeholder="请输入门禁设备名称" clearable @keyup.enter.native="handleQuery" />
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" icon="el-icon-search" @click="handleQuery">搜索</el-button>
-        <el-button icon="el-icon-refresh" @click="resetQuery">重置</el-button>
-      </el-form-item>
-    </el-form>
-
-    <!-- 操作工具栏 -->
-    <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button v-if="list.length==0" type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-          v-hasPermi="['nacs:permission-set-detail:create']">新增</el-button>
-        <el-button v-else type="primary" plain icon="el-icon-edit" size="mini" @click="handleAdd"
-          v-hasPermi="['nacs:permission-set-detail:edit']">修改</el-button>
-      </el-col>
-      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
-    </el-row>
+  <div>
+    <div style="height: 80px;">
+      <!-- 搜索工作栏 -->
+      <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch"
+        style="height: 40px;" >
+        <el-form-item label="线路名称" prop="lineNo">
+          <el-select v-model="queryParams.lineNo" multiple placeholder="请选择线路">
+            <el-option v-for="line in lineList" :key="parseInt(line.id)" :label="line.name" :value="line.lineNo" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="门禁设备名称" prop="name">
+          <el-input v-model="queryParams.name" placeholder="请输入门禁设备名称" clearable @keyup.enter.native="handleQuery" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" icon="el-icon-search" @click="handleQuery">搜索</el-button>
+          <el-button icon="el-icon-refresh" @click="resetQuery">重置</el-button>
+        </el-form-item>
+      </el-form>
+      <el-button v-if="list.length == 0" type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
+        v-hasPermi="['nacs:permission-set-detail:create']">新增</el-button>
+      <el-button v-else type="primary" plain icon="el-icon-edit" size="mini" @click="handleAdd"
+        v-hasPermi="['nacs:permission-set-detail:edit']">修改</el-button>
+    </div>
     <!-- 列表 -->
-    <el-table v-loading="loading" :data="list">
+    <el-table v-loading="loading" :data="list" height="270px">
       <!--      <el-table-column label="编号" align="center" prop="id" />-->
 
       <el-table-column prop="lineNo" align="center" label="线路名称">
@@ -60,7 +56,7 @@
     </el-table>
     <!-- 分页组件 -->
     <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNo" :limit.sync="queryParams.pageSize"
-      @pagination="getList" />
+      @pagination="getList" style="height: 50px;" />
 
     <!-- 对话框(添加 / 修改) -->
     <PermissionSetDetailForm ref="formRef" :set-code="setCode" :selected-list="list" @success="getList" />

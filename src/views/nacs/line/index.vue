@@ -8,17 +8,11 @@
       <el-form-item label="线路名称" prop="name">
         <el-input v-model="queryParams.name" placeholder="请输入线路名称" clearable @keyup.enter.native="handleQuery"/>
       </el-form-item>
-      <el-form-item label="线路颜色" prop="color">
-        <el-color-picker v-model="queryParams.color" show-alpha :predefine="predefineColors" class="custom-color-picker"
-              clearable @keyup.enter.native="handleQuery"></el-color-picker>
-        <!-- <el-input v-model="queryParams.color" placeholder="请输入线路颜色" clearable @keyup.enter.native="handleQuery"/> -->
-      </el-form-item>
+    
       <el-form-item label="负责人用户ID" prop="leaderUserId">
         <el-input v-model="queryParams.leaderUserId" placeholder="请输入负责人用户ID" clearable @keyup.enter.native="handleQuery"/>
       </el-form-item>
-      <el-form-item label="备注" prop="remark">
-        <el-input v-model="queryParams.remark" placeholder="请输入备注" clearable @keyup.enter.native="handleQuery"/>
-      </el-form-item>
+
       <el-form-item label="创建时间" prop="createTime">
         <el-date-picker v-model="queryParams.createTime" style="width: 240px" value-format="yyyy-MM-dd HH:mm:ss" type="daterange"
                         range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期" :default-time="['00:00:00', '23:59:59']" />
@@ -42,8 +36,8 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="list" :stripe="true" :show-overflow-tooltip="true">
-      <el-table-column label="主键ID" align="center" prop="id" />
+    <el-table v-loading="loading" :data="list" :stripe="true" :show-overflow-tooltip="true" height="calc(100vh - 260px)">
+      <el-table-column label="主键ID" align="center" prop="id" hidden/>
       <el-table-column label="线路编号" align="center" prop="lineNo" />
       <el-table-column label="线路名称" align="center" prop="name" />
       <el-table-column label="线路颜色" align="center" prop="color" >
@@ -193,5 +187,9 @@ export default {
 <style lang="scss" scoped>
   ::v-deep .custom-color-picker .el-color-picker__trigger {
   width: 200px !important;
+}
+::v-deep .el-table {
+  height: calc(100vh - 320px);
+  overflow-y: auto;
 }
 </style>

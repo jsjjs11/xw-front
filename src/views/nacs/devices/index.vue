@@ -135,6 +135,8 @@ export default {
 
     },
     onStationChange() {
+      this.queryParams.pageNo = 1;
+      this.queryParams.pageSize = 10;
       this.queryParams.lineNo = this.selectedLine
       this.queryParams.stationNo = this.selectedStation
       this.getList();

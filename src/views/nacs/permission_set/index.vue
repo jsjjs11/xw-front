@@ -1,64 +1,60 @@
 <template>
   <div class="app-container">
-    <!-- 搜索工作栏 -->
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch">
-      <el-form-item label="门禁集合名称" prop="setName">
-        <el-input v-model="queryParams.setName" placeholder="请输入权限集名称" clearable @keyup.enter.native="handleQuery"/>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" icon="el-icon-search" @click="handleQuery">搜索</el-button>
-        <el-button icon="el-icon-refresh" @click="resetQuery">重置</el-button>
-      </el-form-item>
-    </el-form>
-
-    <!-- 操作工具栏 -->
-    <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
+    <div class="set-height">
+      <div style="height: 80px;">
+        <!-- 搜索工作栏 -->
+        <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch"
+          style="height: 40px;">
+          <el-form-item label="门禁集合名称" prop="setName">
+            <el-input v-model="queryParams.setName" placeholder="请输入权限集名称" clearable
+              @keyup.enter.native="handleQuery" />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" icon="el-icon-search" @click="handleQuery">搜索</el-button>
+            <el-button icon="el-icon-refresh" @click="resetQuery">重置</el-button>
+          </el-form-item>
+        </el-form>
         <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-                   v-hasPermi="['nacs:permission-set:create']">新增</el-button>
-      </el-col>
-      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
-    </el-row>
+          v-hasPermi="['nacs:permission-set:create']">新增</el-button>
+      </div>
+      <!-- 列表 -->
+      <el-table v-loading="loading" :data="list" :stripe="true" :highlight-current-row="true"
+        :show-overflow-tooltip="true" @row-dblclick="handleCurrentChange" height="calc(100% - 150px)">
+        <el-table-column label="门禁集合编号" align="center" prop="id" />
+        <el-table-column label="门禁集合标识" align="center" prop="setCode" />
+        <el-table-column label="门禁集合名称" align="center" prop="setName" />
+        <el-table-column label="备注" align="center" prop="remark" />
+        <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+          <template v-slot="scope">
+            <span>{{ parseTime(scope.row.createTime) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+          <template v-slot="scope">
+            <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)"
+              v-hasPermi="['nacs:permission-set:update']">修改</el-button>
+            <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)"
+              v-hasPermi="['nacs:permission-set:delete']">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <!-- 分页组件 -->
+      <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNo" :limit.sync="queryParams.pageSize"
+        @pagination="getList" style="height: 50px;" />
 
-    <!-- 列表 -->
-    <el-table
-      v-loading="loading"
-      :data="list"
-      :stripe="true"
-      :highlight-current-row="true"
-      :show-overflow-tooltip="true"
-      @row-dblclick="handleCurrentChange"
-    >
-      <el-table-column label="门禁集合编号" align="center" prop="id" />
-      <el-table-column label="门禁集合标识" align="center" prop="setCode" />
-      <el-table-column label="门禁集合名称" align="center" prop="setName" />
-      <el-table-column label="备注" align="center" prop="remark" />
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
-        <template v-slot="scope">
-          <span>{{ parseTime(scope.row.createTime) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-        <template v-slot="scope">
-          <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)"
-                     v-hasPermi="['nacs:permission-set:update']">修改</el-button>
-          <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)"
-                     v-hasPermi="['nacs:permission-set:delete']">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <!-- 分页组件 -->
-    <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNo" :limit.sync="queryParams.pageSize"
-                @pagination="getList"/>
+    </div>
 
+    <div class="set-detail-height">
+      <!-- 子表的列表 -->
+      <el-tabs v-model="subTabsName" style="height: 100%;">
+        <el-tab-pane :label="currentRow.setName?currentRow.setName+'--详细':'门禁集合详细'" name="PermissionSetDetail"
+          style="height: 100%;">
+          <PermissionSetDetail :set-code="currentRow.setCode" />
+        </el-tab-pane>
+      </el-tabs>
+    </div>
     <!-- 对话框(添加 / 修改) -->
-    <PermissionSetForm ref="formRef" @success="getList"/>
-    <!-- 子表的列表 -->
-    <el-tabs  v-model="subTabsName">
-      <el-tab-pane :label="currentRow.setName?currentRow.setName+'--详细':'门禁集合详细'" name="PermissionSetDetail">
-        <PermissionSetDetail  :set-code="currentRow.setCode" />
-      </el-tab-pane>
-    </el-tabs>
+    <PermissionSetForm ref="formRef" @success="getList" />
   </div>
 </template>
 
@@ -151,3 +147,25 @@ export default {
   }
 }
 </script>
+<style scoped lang="scss">
+.app-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.set-height {
+  height: 50%;
+  overflow: auto;
+  border-bottom: 1px solid #ccc;
+}
+
+.set-detail-height {
+  height: 50%;
+  overflow: auto;
+}
+
+.pagination-container {
+  height: 50px;
+}
+
+</style>

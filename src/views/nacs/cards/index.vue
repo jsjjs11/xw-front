@@ -58,7 +58,7 @@
               <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="list" :stripe="true" :show-overflow-tooltip="true">
+    <el-table v-loading="loading" :data="list" :stripe="true" :show-overflow-tooltip="true" height="calc(100vh - 300px)">
       <el-table-column label="ID" align="center" prop="id" />
       <!-- <el-table-column label="线路名称" align="center" prop="lineNo" >
         <template v-slot="scope">
@@ -92,18 +92,18 @@
           <span>{{ parseTime(scope.row.endDate) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <!-- <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template v-slot="scope">
           <el-button size="mini" type="text" icon="el-icon-edit" @click="openForm(scope.row.id)"
                      v-hasPermi="['nacs:cards:update']">修改</el-button>
           <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)"
                      v-hasPermi="['nacs:cards:delete']">注销</el-button>
         </template>
-      </el-table-column>
+      </el-table-column> -->
     </el-table>
     <!-- 分页组件 -->
      <div class="pagination-container">
-    <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNo" :limit.sync="queryParams.pageSize"
+    <pagination v-show="total > 0" :total="total" :page.sync="queryParams.current" :limit.sync="queryParams.size"
                 @pagination="getList"/>
     </div>
 
@@ -143,8 +143,8 @@ export default {
       currentRow: {},
       // 查询参数
       queryParams: {
-        pageNo: 1,
-        pageSize: 10,
+        current: 1,
+        size: 10,
         lineId: null,
         cardId: null,
         // cardMapBcd: null,
