@@ -199,11 +199,7 @@ export default {
         //找出与res.data.lineNo相等时lineList中对应的authMode
         this.authMode = this.lineList.find(line => line.lineNo === res.data.lineNo).authMode;
         this.stationList = res.data.stations
-        if(this.authMode === 1){//按设备授权
-          this.tableData = res.data.devices
-        }else{//按组授权
-          this.tableData = res.data.groups
-        }
+        this.tableData = [...res.data.devices,...res.data.groups]
         //遍历tableData给里面的每个对象增加lineNo字段
         this.tableData.forEach(item => {
           item.lineNo = res.data.lineNo

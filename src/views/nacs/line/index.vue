@@ -104,7 +104,7 @@ export default {
       // 查询参数
       queryParams: {
         pageNo: 1,
-        pageSize: 10,
+        pageSize: 30,
         lineNo: null,
         name: null,
         color: null,
