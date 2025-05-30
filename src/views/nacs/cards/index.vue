@@ -1,10 +1,11 @@
 <template>
   <div class="app-container">
+    <div class="full-size">
     <!-- 搜索工作栏 -->
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="110px">
-      <el-form-item label="线路ID" prop="lineId" >
+      <!-- <el-form-item label="线路ID" prop="lineId" >
         <el-input v-model="queryParams.lineId" placeholder="请输入线路ID" clearable @keyup.enter.native="handleQuery"/>
-      </el-form-item>
+      </el-form-item> -->
       <!-- <el-form-item label="物理卡号" prop="cardId">
         <el-input v-model="queryParams.cardId" placeholder="请输入物理卡号" clearable @keyup.enter.native="handleQuery"/>
       </el-form-item> -->
@@ -59,7 +60,11 @@
 
     <el-table v-loading="loading" :data="list" :stripe="true" :show-overflow-tooltip="true">
       <el-table-column label="ID" align="center" prop="id" />
-      <el-table-column label="线路ID" align="center" prop="lineId" />
+      <!-- <el-table-column label="线路名称" align="center" prop="lineNo" >
+        <template v-slot="scope">
+          <span>{{lineList.find(line => line.lineNo === scope.row.lineNo).name}}</span>
+        </template>
+      </el-table-column> -->
       <!-- <el-table-column label="物理卡号" align="center" prop="cardId" /> -->
       <!-- <el-table-column label="虚拟卡号" align="center" prop="cardMapBcd" /> -->
       <el-table-column label="卡号" align="center" prop="cardNo" />
@@ -97,8 +102,12 @@
       </el-table-column>
     </el-table>
     <!-- 分页组件 -->
+     <div class="pagination-container">
     <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNo" :limit.sync="queryParams.pageSize"
                 @pagination="getList"/>
+    </div>
+
+    </div>
     <!-- 对话框(添加 / 修改) -->
     <CardsForm ref="formRef" @success="getList" />
     </div>
@@ -107,6 +116,7 @@
 <script>
 import * as CardsApi from '@/api/nacs/cards';
 import CardsForm from './CardsForm.vue';
+// import { getLineDatas } from "@/utils/dict";
 export default {
   name: "Cards",
   components: {
@@ -114,6 +124,7 @@ export default {
   },
   data() {
     return {
+      // lineList: getLineDatas(),
       // 遮罩层
       loading: true,
       // 导出遮罩层
@@ -201,3 +212,18 @@ export default {
               }
 };
 </script>
+<style scoped lang="scss">
+.full-size {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+::v-deep(.el-table) {
+  flex: 1;
+  overflow-y: auto;
+}
+.pagination-container {
+  height: 50px;
+}
+
+</style>

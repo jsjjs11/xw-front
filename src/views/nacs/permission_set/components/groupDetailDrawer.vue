@@ -5,12 +5,12 @@
  * @Author: ym
  * @Date: 2025-05-27 15:58:22
  * @LastEditors: ym
- * @LastEditTime: 2025-05-27 16:49:00
+ * @LastEditTime: 2025-05-30 09:45:00
 -->
 <template>
     <el-drawer :visible.sync="groupDetailDrawerVisible" direction="rtl" size="50%" :modal="true" :append-to-body="true"
         :modal-append-to-body="false" :destroy-on-close="true">
-        <el-table :data="accessPointList" style="width: 100%;padding: 20px;" height="calc(100vh - 150px)" >
+        <el-table :data="accessPointList" style="width: 100%;padding: 5px;" height="calc(100vh - 140px)" >
             <el-table-column prop="deviceName" label="门禁点名称" align="center" />
             <el-table-column prop="deviceCode" label="设备编号" align="center" />
             <el-table-column prop="lineNo" label="线路ID" align="center" />

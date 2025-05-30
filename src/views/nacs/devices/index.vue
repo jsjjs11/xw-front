@@ -1,39 +1,29 @@
 <template>
   <div class="page-container">
-    <el-row :gutter="20">
+    <el-row :gutter="20" style="height: 100%;">
       <!-- 左侧区域：两列并排 -->
-      <el-col :span="8">
+      <el-col :span="6">
         <el-row :gutter="10">
           <!-- 左侧：线路列表 -->
-          <el-col :span="12">
+          <el-col :span="9">
             <div class="section-title">线路列表</div>
-            <el-radio-group v-model="selectedLine" @change="onLineChange">
+            <el-radio-group v-model="selectedLine" @change="onLineChange" style="width: 100%;">
               <el-timeline class="custom-timeline">
-                <el-timeline-item
-                  v-for="line in lineList"
-                  :key="line.lineNo"
-                  size="large"
-                >
+                <el-timeline-item v-for="line in lineList" :key="line.lineNo" size="large">
                   <template #dot>
-                  <el-radio :label="line.lineNo" :class="`color-radio-${line.lineNo}`">   {{ line.name }}</el-radio>
-
+                    <el-radio :label="line.lineNo" :class="`color-radio-${line.lineNo}`"> {{ line.name }}</el-radio>
                   </template>
-
                 </el-timeline-item>
               </el-timeline>
             </el-radio-group>
           </el-col>
 
           <!-- 右侧：车站列表 -->
-          <el-col :span="12">
+          <el-col :span="15">
             <div class="section-title">车站列表</div>
-            <el-radio-group v-model="selectedStation" @change="onStationChange">
+            <el-radio-group v-model="selectedStation" @change="onStationChange" style="width: 100%;">
               <el-timeline class="custom-timeline custom-timeline-station">
-                <el-timeline-item
-                  v-for="station in stationList"
-                  :key="station.stationNo"
-                  size="large"
-                >
+                <el-timeline-item v-for="station in stationList" :key="station.stationNo" size="large">
                   <template #dot>
                     <el-radio :label="station.stationNo">{{ station.name }}</el-radio>
                   </template>
@@ -46,16 +36,12 @@
       </el-col>
 
       <!-- 右侧表格区域 -->
-      <el-col :span="16">
-        <el-table
-          :data="tableData"
-          border
-          style="width: 100%"
-          @selection-change="handleSelectionChange"
-        >
+      <el-col :span="18">
+        <el-table :data="tableData" style="width: 100%" @selection-change="handleSelectionChange"
+          height="calc(100vh - 160px)">
           <el-table-column type="selection" width="55" />
           <el-table-column prop="deviceName" label="门禁名称" />
-          <el-table-column prop="deviceType" label="线网设备类型" >
+          <el-table-column prop="deviceType" label="线网设备类型" width="120">
             <template v-slot="scope">
               <dict-tag :type="DICT_TYPE.NACS_DEVICE_TYPE" :value="scope.row.deviceType" />
             </template>
@@ -63,15 +49,15 @@
           <el-table-column prop="stationName" label="站点" />
           <el-table-column prop="deviceBrand" label="门禁供应商" />
           <el-table-column prop="deviceManu" label="门禁品牌" />
-          <el-table-column prop="deviceTime" label="启用时间" >
-          <template v-slot="scope">
-            <span>{{ parseTime(scope.row.deviceTime) }}</span>
-          </template>
+          <el-table-column prop="deviceTime" label="启用时间">
+            <template v-slot="scope">
+              <span>{{ parseTime(scope.row.deviceTime) }}</span>
+            </template>
           </el-table-column>
         </el-table>
 
         <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNo" :limit.sync="queryParams.pageSize"
-                    @pagination="getList"/>
+          @pagination="getList" />
       </el-col>
     </el-row>
 
@@ -172,9 +158,11 @@ export default {
   min-height: 100%;
 }
 
-
 .custom-timeline{
+  width: 100%;
   margin-top: 30px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
 }
 
 ::v-deep .el-timeline-item__tail {
@@ -188,7 +176,20 @@ export default {
   padding-bottom: 30px;
 }
 ::v-deep .el-timeline-item {
-  padding-bottom: 55px;
+  padding-bottom: 40px;
 }
 
+/* 自定义滚动条样式 */
+.custom-timeline::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-timeline::-webkit-scrollbar-thumb {
+  background-color: #909399;
+  border-radius: 3px;
+}
+
+.custom-timeline::-webkit-scrollbar-track {
+  background-color: #f5f7fa;
+}
 </style>
