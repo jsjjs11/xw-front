@@ -142,7 +142,7 @@
 </template>
 
 <script>
-import groupDetailDrawer from './groupDetailDrawer.vue'
+import groupDetailDrawer from '../../../../components/nacs/groupDetailDrawer.vue'
 import * as PermissionSetApi from '@/api/nacs/permission_set';
 import {getLineDatas} from "@/utils/dict";
 import * as LineApi from '@/api/nacs/line';

@@ -5,7 +5,7 @@
  * @Author: ym
  * @Date: 2025-05-27 15:58:22
  * @LastEditors: ym
- * @LastEditTime: 2025-05-30 09:45:00
+ * @LastEditTime: 2025-06-03 15:12:32
 -->
 <template>
     <el-drawer :visible.sync="groupDetailDrawerVisible" direction="rtl" size="50%" :modal="true" :append-to-body="true"

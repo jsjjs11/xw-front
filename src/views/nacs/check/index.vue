@@ -61,31 +61,29 @@
 				<el-table-column type="expand" width="1">
 					<template #default="{ row }">
 						<div v-show="activeRow === row.authNo" class="expand-content">
-							<el-table :data="row.detailData" border>
-								<el-table-column label="ID" prop="id" align="center" width="80"></el-table-column>
+							<el-table :data="row.detailData" border height="380px">
+								<el-table-column label="员工姓名" prop="employeeName" align="center"
+									width="180"></el-table-column>
+								<el-table-column label="身份证号" prop="idCard" align="center"
+									width="180"></el-table-column>
+								<el-table-column label="卡号" prop="cardNo" align="center" width="180"></el-table-column>
 								<el-table-column label="线路名称" prop="lineNo" align="center" width="100">
 									<template v-slot="scope">
 										<span>{{lineList.find(line => line.lineNo === scope.row.lineNo).name}}</span>
 									</template>
 								</el-table-column>
-								<el-table-column label="站点编号" prop="stationNo" align="center"
+								<el-table-column label="车站" prop="stationName" align="center"
 									width="100"></el-table-column>
-								<el-table-column label="身份证号" prop="idCard" align="center"
-									width="180"></el-table-column>
-								<el-table-column label="员工姓名" prop="employeeName" align="center"
-									width="100"></el-table-column>
-								<el-table-column label="卡号" prop="cardNo" align="center" width="120"></el-table-column>
-								<el-table-column label="区域代码" prop="code" align="center" width="100"></el-table-column>
-								<el-table-column label="区域名称" prop="name" align="center"></el-table-column>
-								<el-table-column label="授权方式" prop="authMode" align="center" width="100">
-									<template slot-scope="scope">
-										<el-tag :type="scope.row.authMode === 2 ? 'success' : 'info'">
-											{{ scope.row.authMode === 2 ? '刷卡' : '其他' }}
-										</el-tag>
+								<el-table-column label="授权区域名称" prop="name" align="center">
+									<template v-slot="scope">
+										<span>{{scope.row.name}}</span>
 									</template>
 								</el-table-column>
-								<el-table-column label="授权单号" prop="authNo" align="center"
-									width="180"></el-table-column>
+								<el-table-column label="授权方式" prop="authMode" align="center" width="100">
+									<template slot-scope="scope">
+										<dict-tag :type="DICT_TYPE.NACS_AUTH_MODE" :value="scope.row.authMode" />
+									</template>
+								</el-table-column>
 								<el-table-column label="创建时间" prop="createTime" align="center" width="180">
 									<template slot-scope="scope">
 										{{ formatTimestamp(scope.row.createTime) }}
@@ -101,7 +99,7 @@
 				:limit.sync="queryParams.pageSize" @pagination="getList" style="height: 50px;" />
 		</div>
 		<CheckForm ref="formRef" @success="getList" />
-		<CheckForm ref="formRef" @success="handleCheckSuccess" />
+		<!-- <CheckForm ref="formRef" @success="handleCheckSuccess" /> -->
 	</div>
 </template>
 <script>
@@ -113,14 +111,15 @@ export default {
 	components: {
 		CheckForm
 	},
-	// created() {
-	// 	this.getList();
-	// },
+	activated() {
+		this.handleReset();
+	},
+
 	data() {
 		return {
 			lineList: getLineDatas(),
 			list: [],
-			total: 3,
+			total: 0,
 			loading: false,
 			queryParams: {
 				pageNo: 1,
@@ -142,27 +141,28 @@ export default {
     async getList() {
       try {
       	this.loading = true;
-				const res = await CheckApi.getCheckPage(this.queryParams);
-				if (res.data.list) {
-					res.data.list.map(item => item.createTime = this.formatTimestamp(item.createTime))
-				}
-				this.list = res.data.list;
-				this.total = res.data.total;
+		const res = await CheckApi.getCheckPage(this.queryParams);
+		if (res.data.list) {
+			res.data.list.map(item => item.createTime = this.formatTimestamp(item.createTime))
+		}
+		this.list = res.data.list;
+		this.total = res.data.total;
+		this.activeRow = null;
       } finally {
         this.loading = false;
       }
     },
-		formatTimestamp(timestamp) {
-			const date = new Date(timestamp);
-			const year = date.getFullYear();
-			const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始需+1
-			const day = String(date.getDate()).padStart(2, '0');
-			const hours = String(date.getHours()).padStart(2, '0');
-			const minutes = String(date.getMinutes()).padStart(2, '0');
-			const seconds = String(date.getSeconds()).padStart(2, '0');
-			return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-		},
-		/** 搜索按钮操作 */
+	formatTimestamp(timestamp) {
+		const date = new Date(timestamp);
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始需+1
+		const day = String(date.getDate()).padStart(2, '0');
+		const hours = String(date.getHours()).padStart(2, '0');
+		const minutes = String(date.getMinutes()).padStart(2, '0');
+		const seconds = String(date.getSeconds()).padStart(2, '0');
+		return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+	},
+	/** 搜索按钮操作 */
     handleSearch() {
       this.queryParams.pageNo = 1;
       this.getList();
@@ -170,7 +170,7 @@ export default {
     /** 重置按钮操作 */
     handleReset() {
       this.resetForm("queryForm");
-			this.queryParams = {
+		this.queryParams = {
         pageNo: 1,
         pageSize: 10,
         authNo: null,
@@ -181,53 +181,40 @@ export default {
       this.handleSearch();
     },
 		/** 详情按钮操作 */
-		async handleView(row) {
-			try {
-				if (this.activeRow === row.authNo) {
-					this.activeRow = null;
-					return;
-				}
-				this.loading = true;
-				// 调用API获取详情数据
-				const res = await CheckApi.getCheckDetail(row.authNo);
-				// 合并详情数据到当前行
-				this.list = this.list.map(item => {
-					if (item.authNo === row.authNo) {
-						return {
-							...item,
-							detailData: [...res.data]
-						};
-					}
-					return item;
-				});
-				this.activeRow = row.authNo;
-				this.$nextTick(() => {
-					this.$refs.tableRef.toggleRowExpansion(row, true);
-				})
-			} catch (error) {
-				console.error("获取详情失败", error);
-				this.$modal.msgError("获取详情失败");
-			} finally {
-				this.loading = false;
+	async handleView(row) {
+		try {
+			if (this.activeRow === row.authNo) {
+				this.activeRow = null;
+				return;
 			}
-		},
-		/** 审核按钮操作 */
-		handleCheck(row) {
-			this.$refs["formRef"].open(row);
-			this.getList();
-		},
-		/** 审核成功回调 */
-		handleCheckSuccess({authNo, reviewState}) {
+			this.loading = true;
+			// 调用API获取详情数据
+			const res = await CheckApi.getCheckDetail(row.authNo);
+			// 合并详情数据到当前行
 			this.list = this.list.map(item => {
-				if (item.authNo === authNo) {
+				if (item.authNo === row.authNo) {
 					return {
 						...item,
-						reviewState
+						detailData: [...res.data]
 					};
 				}
 				return item;
 			});
+			this.activeRow = row.authNo;
+			this.$nextTick(() => {
+				this.$refs.tableRef.toggleRowExpansion(row, true);
+			})
+		} catch (error) {
+			console.error("获取详情失败", error);
+			this.$modal.msgError("获取详情失败");
+		} finally {
+				this.loading = false;
 		}
+	},
+	/** 审核按钮操作 */
+	handleCheck(row) {
+		this.$refs["formRef"].open(row);
+	},
 	}
 }
 </script>
@@ -246,10 +233,10 @@ export default {
 
 	// 展开内容区域
 	.expand-content {
-		padding: 40px 40px;
+		padding: 20px 20px;
 		background: #f8fafc;
 		border-top: 1px solid #ebeef5;
-		max-height: 400px;
+		height: 430px;
   		overflow-y: auto;
 		margin: 0;
 	}

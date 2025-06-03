@@ -69,7 +69,7 @@ import { getPermissionSetDetailPage, deletePermissionSetDetail } from '@/api/nac
 import PermissionSetDetailForm from './PermissionSetDetailForm.vue'
 // import TreeTransfer from './TreeTransfer.vue'
 import {getLineDatas} from "@/utils/dict";
-import groupDetailDrawer from './groupDetailDrawer.vue'
+import groupDetailDrawer from '../../../../components/nacs/groupDetailDrawer.vue'
 export default {
   name: "PermissionSetDetail",
   components: { PermissionSetDetailForm,groupDetailDrawer },
