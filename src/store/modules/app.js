@@ -8,6 +8,7 @@ const state = {
   },
   device: "desktop",
   size: localStorage.getItem("size") || "medium",
+  isFullscreen: false,
 };
 
 const mutations = {
@@ -38,6 +39,9 @@ const mutations = {
   SET_SIDEBAR_HIDE: (state, status) => {
     state.sidebar.hide = status;
   },
+  SET_FULLSCREEN: (state, status) => {
+    state.isFullscreen = status;
+  },
 };
 
 const actions = {
@@ -55,6 +59,9 @@ const actions = {
   },
   toggleSideBarHide({ commit }, status) {
     commit("SET_SIDEBAR_HIDE", status);
+  },
+  toggleFullscreen({ commit }, status) {
+    commit("SET_FULLSCREEN", status);
   },
 };
 
