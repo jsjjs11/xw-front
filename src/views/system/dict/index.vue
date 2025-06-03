@@ -2,19 +2,23 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="字典名称" prop="name">
-        <el-input v-model="queryParams.name" placeholder="请输入字典名称" clearable style="width: 240px" @keyup.enter.native="handleQuery"/>
+        <el-input v-model="queryParams.name" placeholder="请输入字典名称" clearable style="width: 240px"
+          @keyup.enter.native="handleQuery" />
       </el-form-item>
       <el-form-item label="字典类型" prop="type">
-        <el-input v-model="queryParams.type" placeholder="请输入字典类型" clearable style="width: 240px" @keyup.enter.native="handleQuery"/>
+        <el-input v-model="queryParams.type" placeholder="请输入字典类型" clearable style="width: 240px"
+          @keyup.enter.native="handleQuery" />
       </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="字典状态" clearable style="width: 240px">
-          <el-option v-for="dict in statusDictDatas" :key="parseInt(dict.value)" :label="dict.label" :value="parseInt(dict.value)"/>
+          <el-option v-for="dict in statusDictDatas" :key="parseInt(dict.value)" :label="dict.label"
+            :value="parseInt(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="创建时间" prop="createTime">
-        <el-date-picker v-model="queryParams.createTime" style="width: 240px" value-format="yyyy-MM-dd HH:mm:ss" type="daterange"
-                        range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期" :default-time="['00:00:00', '23:59:59']" />
+        <el-date-picker v-model="queryParams.createTime" style="width: 240px" value-format="yyyy-MM-dd HH:mm:ss"
+          type="daterange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期"
+          :default-time="['00:00:00', '23:59:59']" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" @click="handleQuery">搜索</el-button>
@@ -25,16 +29,16 @@
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-                   v-hasPermi="['system:dict:create']">新增</el-button>
+          v-hasPermi="['system:dict:create']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button type="warning" icon="el-icon-download" size="mini" @click="handleExport" :loading="exportLoading"
-                   v-hasPermi="['system:dict:export']">导出</el-button>
+          v-hasPermi="['system:dict:export']">导出</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="typeList">
+    <el-table v-loading="loading" :data="typeList" height="calc(100vh - 250px)">
       <el-table-column label="字典编号" align="center" prop="id" />
       <el-table-column label="字典名称" align="center" prop="name" :show-overflow-tooltip="true" />
       <el-table-column label="字典类型" align="center" :show-overflow-tooltip="true">
@@ -46,7 +50,7 @@
       </el-table-column>
       <el-table-column label="状态" align="center" prop="status">
         <template v-slot="scope">
-          <dict-tag :type="DICT_TYPE.COMMON_STATUS" :value="scope.row.status"/>
+          <dict-tag :type="DICT_TYPE.COMMON_STATUS" :value="scope.row.status" />
         </template>
       </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" :show-overflow-tooltip="true" />
@@ -58,15 +62,15 @@
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template v-slot="scope">
           <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)"
-                     v-hasPermi="['system:dict:update']">修改</el-button>
+            v-hasPermi="['system:dict:update']">修改</el-button>
           <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)"
-                     v-hasPermi="['system:dict:delete']">删除</el-button>
+            v-hasPermi="['system:dict:delete']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
 
     <pagination v-show="total>0" :total="total" :page.sync="queryParams.pageNo" :limit.sync="queryParams.pageSize"
-                @pagination="getList"/>
+      @pagination="getList"  style="height: 50px;"/>
 
     <!-- 添加或修改参数配置对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
@@ -79,7 +83,8 @@
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
-            <el-radio v-for="dict in statusDictDatas" :key="parseInt(dict.value)" :label="parseInt(dict.value)">{{dict.label}}</el-radio>
+            <el-radio v-for="dict in statusDictDatas" :key="parseInt(dict.value)"
+              :label="parseInt(dict.value)">{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
@@ -121,7 +126,7 @@ export default {
       // 查询参数
       queryParams: {
         pageNo: 1,
-        pageSize: 10,
+        pageSize: 20,
         name: undefined,
         type: undefined,
         status: undefined,

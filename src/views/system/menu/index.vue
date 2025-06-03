@@ -1,15 +1,16 @@
 <template>
   <div class="app-container">
-<!--    <doc-alert title="功能权限" url="https://doc.iocoder.cn/resource-permission" />
+    <!--    <doc-alert title="功能权限" url="https://doc.iocoder.cn/resource-permission" />
     <doc-alert title="菜单路由" url="https://doc.iocoder.cn/vue2/route/" />-->
     <!-- 搜索工作栏 -->
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch">
       <el-form-item label="菜单名称" prop="name">
-        <el-input v-model="queryParams.name" placeholder="请输入菜单名称" clearable @keyup.enter.native="handleQuery"/>
+        <el-input v-model="queryParams.name" placeholder="请输入菜单名称" clearable @keyup.enter.native="handleQuery" />
       </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="菜单状态" clearable>
-          <el-option v-for="dict in statusDictDatas" :key="parseInt(dict.value)" :label="dict.label" :value="parseInt(dict.value)"/>
+          <el-option v-for="dict in statusDictDatas" :key="parseInt(dict.value)" :label="dict.label"
+            :value="parseInt(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -21,7 +22,7 @@
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-                   v-hasPermi="['system:menu:create']">新增</el-button>
+          v-hasPermi="['system:menu:create']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button type="info" plain icon="el-icon-sort" size="mini" @click="toggleExpandAll">展开/折叠</el-button>
@@ -30,7 +31,7 @@
     </el-row>
 
     <el-table v-if="refreshTable" v-loading="loading" :data="menuList" row-key="id" :default-expand-all="isExpandAll"
-              :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
+      :tree-props="{children: 'children', hasChildren: 'hasChildren'}" height="calc(100vh - 190px)">
       <el-table-column prop="name" label="菜单名称" :show-overflow-tooltip="true" width="250"></el-table-column>
       <el-table-column prop="icon" label="图标" align="center" width="100">
         <template v-slot="scope">
@@ -43,17 +44,17 @@
       <el-table-column prop="componentName" label="组件名称" :show-overflow-tooltip="true" />
       <el-table-column prop="status" label="状态" width="80">
         <template v-slot="scope">
-          <dict-tag :type="DICT_TYPE.COMMON_STATUS" :value="scope.row.status"/>
+          <dict-tag :type="DICT_TYPE.COMMON_STATUS" :value="scope.row.status" />
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template v-slot="scope">
           <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)"
-                     v-hasPermi="['system:menu:update']">修改</el-button>
+            v-hasPermi="['system:menu:update']">修改</el-button>
           <el-button size="mini" type="text" icon="el-icon-plus" @click="handleAdd(scope.row)"
-                     v-hasPermi="['system:menu:create']">新增</el-button>
+            v-hasPermi="['system:menu:create']">新增</el-button>
           <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)"
-                     v-hasPermi="['system:menu:delete']">删除</el-button>
+            v-hasPermi="['system:menu:delete']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -65,7 +66,7 @@
           <el-col :span="24">
             <el-form-item label="上级菜单">
               <treeselect v-model="form.parentId" :options="menuOptions" :normalizer="normalizer" :show-count="true"
-                          placeholder="选择上级菜单"/>
+                placeholder="选择上级菜单" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -82,7 +83,7 @@
                 <IconSelect ref="iconSelect" @selected="selected" />
                 <el-input slot="reference" v-model="form.icon" placeholder="点击选择图标" readonly>
                   <svg-icon v-if="form.icon" slot="prefix" :icon-class="form.icon" class="el-input__icon"
-                            style="height: 32px;width: 16px;"/>
+                    style="height: 32px;width: 16px;" />
                   <i v-else slot="prefix" class="el-icon-search el-input__icon" />
                 </el-input>
               </el-popover>
@@ -102,34 +103,35 @@
             <el-form-item v-if="form.type !== 3" label="路由地址" prop="path">
               <span slot="label">
                 <el-tooltip content="访问的路由地址，如：`user`。如需外网地址时，则以 `http(s)://` 开头" placement="top">
-                <i class="el-icon-question" />
+                  <i class="el-icon-question" />
                 </el-tooltip>
                 路由地址
               </span>
               <el-input v-model="form.path" placeholder="请输入路由地址" />
             </el-form-item>
           </el-col>
-					<el-col :span="12">
-						<el-form-item v-if="form.type !== 1" label="权限标识">
+          <el-col :span="12">
+            <el-form-item v-if="form.type !== 1" label="权限标识">
               <span slot="label">
-                <el-tooltip content="Controller 方法上的权限字符，如：@PreAuthorize(`@ss.hasPermission('system:user:list')`)" placement="top">
+                <el-tooltip content="Controller 方法上的权限字符，如：@PreAuthorize(`@ss.hasPermission('system:user:list')`)"
+                  placement="top">
                   <i class="el-icon-question" />
                 </el-tooltip>
                 权限字符
               </span>
-							<el-input v-model="form.permission" placeholder="请权限标识" maxlength="50" />
-						</el-form-item>
-					</el-col>
+              <el-input v-model="form.permission" placeholder="请权限标识" maxlength="50" />
+            </el-form-item>
+          </el-col>
           <el-col :span="12" v-if="form.type === 2">
             <el-form-item label="组件路径" prop="component">
               <el-input v-model="form.component" placeholder="例如说：system/user/index" />
             </el-form-item>
           </el-col>
-					<el-col :span="12" v-if="form.type === 2">
-						<el-form-item label="组件名称" prop="componentName">
-							<el-input v-model="form.componentName" placeholder="例如说：SystemUser" />
-						</el-form-item>
-					</el-col>
+          <el-col :span="12" v-if="form.type === 2">
+            <el-form-item label="组件名称" prop="componentName">
+              <el-input v-model="form.componentName" placeholder="例如说：SystemUser" />
+            </el-form-item>
+          </el-col>
           <el-col :span="12">
             <el-form-item label="菜单状态" prop="status">
               <span slot="label">
@@ -139,8 +141,8 @@
                 菜单状态
               </span>
               <el-radio-group v-model="form.status">
-                <el-radio v-for="dict in this.getDictDatas(DICT_TYPE.COMMON_STATUS)"
-                          :key="dict.value" :label="parseInt(dict.value)">{{dict.label}}</el-radio>
+                <el-radio v-for="dict in this.getDictDatas(DICT_TYPE.COMMON_STATUS)" :key="dict.value"
+                  :label="parseInt(dict.value)">{{dict.label}}</el-radio>
               </el-radio-group>
             </el-form-item>
           </el-col>
@@ -164,7 +166,7 @@
                 <el-tooltip content="选择不是时，当该菜单只有一个子菜单时，不展示自己，直接展示子菜单" placement="top">
                   <i class="el-icon-question" />
                 </el-tooltip>
-                 总是显示
+                总是显示
               </span>
               <el-radio-group v-model="form.alwaysShow">
                 <el-radio :key="true" :label="true">总是</el-radio>
@@ -172,20 +174,20 @@
               </el-radio-group>
             </el-form-item>
           </el-col>
-					<el-col :span="12">
-						<el-form-item v-if="form.type === 2" label="是否缓存">
+          <el-col :span="12">
+            <el-form-item v-if="form.type === 2" label="是否缓存">
               <span slot="label">
                 <el-tooltip content="选择缓存时，则会被 `keep-alive` 缓存，必须填写「组件名称」字段" placement="top">
                   <i class="el-icon-question" />
                 </el-tooltip>
-                 是否缓存
+                是否缓存
               </span>
-							<el-radio-group v-model="form.keepAlive">
-								<el-radio :key="true" :label="true">缓存</el-radio>
-								<el-radio :key="false" :label="false">不缓存</el-radio>
-							</el-radio-group>
-						</el-form-item>
-					</el-col>
+              <el-radio-group v-model="form.keepAlive">
+                <el-radio :key="true" :label="true">缓存</el-radio>
+                <el-radio :key="false" :label="false">不缓存</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
         </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
