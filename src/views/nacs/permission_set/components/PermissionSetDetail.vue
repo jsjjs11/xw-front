@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="height: 100%">
     <div style="height: 80px;">
       <!-- 搜索工作栏 -->
       <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch"
@@ -23,9 +23,8 @@
         v-hasPermi="['nacs:permission-set-detail:edit']">修改</el-button>
     </div>
     <!-- 列表 -->
-    <el-table v-loading="loading" :data="list" height="270px">
-      <!--      <el-table-column label="编号" align="center" prop="id" />-->
-
+     
+    <el-table v-loading="loading" :data="list" :height="$store.state.app.isFullscreen ? '280px' : '225px'">
       <el-table-column prop="lineNo" align="center" label="线路名称">
         <template v-slot="scope">
           <span>{{lineList.find(line => line.lineNo === scope.row.lineNo).name}}</span>
@@ -156,3 +155,8 @@ export default {
   }
 }
 </script>
+<style scoped>
+::deep(.el-tabs__content) {
+  height: 500px;
+}
+</style>

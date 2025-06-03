@@ -3,28 +3,26 @@
 		<!-- 查询表单 -->
 		<el-form :inline="true" :model="queryParams" size="small" ref="queryForm" class="search-form">
 			<el-form-item label="审核单号">
-				<el-input v-model="queryParams.authNo" placeholder="请输入审核单号" clearable @keyup.enter.native="handleSearch"></el-input>
+				<el-input v-model="queryParams.authNo" placeholder="请输入审核单号" clearable
+					@keyup.enter.native="handleSearch"></el-input>
 			</el-form-item>
 			<!-- <el-form-item label="发起人">
 				<el-input v-model="queryParams.checkUser" placeholder="请输入发起人"></el-input>
 			</el-form-item> -->
 			<el-form-item label="负责人">
-				<el-input v-model="queryParams.leaderUserId" placeholder="请输入负责人" clearable  @keyup.enter.native="handleSearch"></el-input>
+				<el-input v-model="queryParams.leaderUserId" placeholder="请输入负责人" clearable
+					@keyup.enter.native="handleSearch"></el-input>
 			</el-form-item>
 			<el-form-item label="审核状态">
-				<el-select v-model="queryParams.reviewState" placeholder="请选择审核状态" clearable @keyup.enter.native="handleSearch">
-					<el-option v-for="dict in checkStateDictDatas" :key = "parseInt(dict.value)" :label="dict.label"
-					:value="parseInt(dict.value)"></el-option>
+				<el-select v-model="queryParams.reviewState" placeholder="请选择审核状态" clearable
+					@keyup.enter.native="handleSearch">
+					<el-option v-for="dict in checkStateDictDatas" :key="parseInt(dict.value)" :label="dict.label"
+						:value="parseInt(dict.value)"></el-option>
 				</el-select>
 			</el-form-item>
 			<el-form-item label="发起时间">
-				<el-date-picker
-					v-model="queryParams.createTime"
-					type="daterange"
-					range-separator="至"
-					start-placeholder="开始日期"
-					end-placeholder="结束日期"
-					value-format="yyyy-MM-dd HH:mm:ss"
+				<el-date-picker v-model="queryParams.createTime" type="daterange" range-separator="至"
+					start-placeholder="开始日期" end-placeholder="结束日期" value-format="yyyy-MM-dd HH:mm:ss"
 					:default-time="['00:00:00', '23:59:59']">
 				</el-date-picker>
 			</el-form-item>
@@ -34,8 +32,8 @@
 			</el-form-item>
 		</el-form>
 		<div class="table-container">
-			<el-table ref="tableRef" :data="list" style="width: 100%; height: 655px;" v-loading="loading" :stripe="true" 
-				:show-overflow-tooltip="true" row-key="authNo" >
+			<el-table ref="tableRef" :data="list" style="width: 100%; height: 655px;" v-loading="loading" :stripe="true"
+				:show-overflow-tooltip="true" row-key="authNo" height="calc(100vh - 220px)">
 				<el-table-column type="selection" width="45" align="center" :reserve-selection="true"></el-table-column>
 				<el-table-column type="index" width="40" align="center" />
 				<el-table-column label="审核单号" align="center" prop="authNo"></el-table-column>
@@ -44,18 +42,18 @@
 				<!-- <el-table-column label="发起人" align="center" prop="checkUser"></el-table-column> -->
 				<el-table-column label="审核状态" align="center" prop="reviewState">
 					<template slot-scope="scope">
-						<dict-tag :type="DICT_TYPE.NACS_CHECK_STATE" :value="scope.row.reviewState"/>
+						<dict-tag :type="DICT_TYPE.NACS_CHECK_STATE" :value="scope.row.reviewState" />
 					</template>
 				</el-table-column>
 				<el-table-column label="负责人" align="center" prop="leaderUserName"></el-table-column>
 				<el-table-column label="操作" align="center" width="250">
 					<template slot-scope="scope">
-						<el-button type="text" @click.stop="handleView(scope.row)" :icon="activeRow === scope.row.authNo ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"
-								>{{ activeRow === scope.row.authNo ? '收起' : '详情' }}</el-button>
-						<el-button type="text" 
-						:disabled="scope.row.reviewState !== 0"
-						@click="handleCheck(scope.row)"
-						v-hasPermi="['nacs:authorize:check']">{{scope.row.reviewState === 0 ? '审核' : '已处理'}}</el-button>
+						<el-button type="text" @click.stop="handleView(scope.row)"
+							:icon="activeRow === scope.row.authNo ? 'el-icon-arrow-up' : 'el-icon-arrow-down'">{{
+							activeRow === scope.row.authNo ? '收起' : '详情' }}</el-button>
+						<el-button type="text" :disabled="scope.row.reviewState !== 0" @click="handleCheck(scope.row)"
+							v-hasPermi="['nacs:authorize:check']">{{scope.row.reviewState === 0 ? '审核' :
+							'已处理'}}</el-button>
 					</template>
 				</el-table-column>
 
@@ -63,57 +61,44 @@
 				<el-table-column type="expand" width="1">
 					<template #default="{ row }">
 						<div v-show="activeRow === row.authNo" class="expand-content">
-							<div class="detail-grid">
-								<!-- 左栏 -->
-								<div class="detail-column">
-									<div class="detail-item">
-										<label>申请卡号：</label>
-										<span class="highlight">{{ row.cardNo }}</span>
-									</div>
-									<div class="detail-item">
-										<label>权限授予人：</label>
-										<span>{{ row.employeeName }}</span> 
-										<!-- employeeName -->
-									</div>
-									<div class="detail-item">
-										<label>授权时间段：</label>
-										<span>{{ row.timeZone }}</span>
-									</div>
-								</div>
-
-								<!-- 右栏 -->
-								<div class="detail-column">
-									<!-- <div class="detail-item">
-										<label>授权方式：</label>
-										<el-tag :type="row.authMode">
-											{{ row.authMode }}
+							<el-table :data="row.detailData" border>
+								<el-table-column label="ID" prop="id" align="center" width="80"></el-table-column>
+								<el-table-column label="线路名称" prop="lineNo" align="center" width="100">
+									<template v-slot="scope">
+										<span>{{lineList.find(line => line.lineNo === scope.row.lineNo).name}}</span>
+									</template>
+								</el-table-column>
+								<el-table-column label="站点编号" prop="stationNo" align="center"
+									width="100"></el-table-column>
+								<el-table-column label="身份证号" prop="idCard" align="center"
+									width="180"></el-table-column>
+								<el-table-column label="员工姓名" prop="employeeName" align="center"
+									width="100"></el-table-column>
+								<el-table-column label="卡号" prop="cardNo" align="center" width="120"></el-table-column>
+								<el-table-column label="区域代码" prop="code" align="center" width="100"></el-table-column>
+								<el-table-column label="区域名称" prop="name" align="center"></el-table-column>
+								<el-table-column label="授权方式" prop="authMode" align="center" width="100">
+									<template slot-scope="scope">
+										<el-tag :type="scope.row.authMode === 2 ? 'success' : 'info'">
+											{{ scope.row.authMode === 2 ? '刷卡' : '其他' }}
 										</el-tag>
-									</div> -->
-									<div class="detail-item">
-										<label>授权门禁点：</label>
-										<span>{{ row.deviceName }}</span>
-									</div>
-									<div class="detail-item">
-										<label>授权门禁权限组：</label>
-										<span>{{ row.groupName }}</span>
-									</div>
-								</div>
-
-								<!-- 底部全宽内容 -->
-								<div class="full-width" v-if="row.remark">
-									<div class="detail-section">
-										<h4><i class="el-icon-document"></i> 备注 </h4>
-										<p class="remark-text">{{ row.remark }}</p>
-									</div>
-								</div>
-							</div>
+									</template>
+								</el-table-column>
+								<el-table-column label="授权单号" prop="authNo" align="center"
+									width="180"></el-table-column>
+								<el-table-column label="创建时间" prop="createTime" align="center" width="180">
+									<template slot-scope="scope">
+										{{ formatTimestamp(scope.row.createTime) }}
+									</template>
+								</el-table-column>
+							</el-table>
 						</div>
 					</template>
 				</el-table-column>
 
 			</el-table>
-			<pagination v-show="total>0" :total="total" :page.sync="queryParams.pageNo" :limit.sync="queryParams.pageSize"
-				@pagination="getList"/>
+			<pagination v-show="total>0" :total="total" :page.sync="queryParams.pageNo"
+				:limit.sync="queryParams.pageSize" @pagination="getList" style="height: 50px;" />
 		</div>
 		<CheckForm ref="formRef" @success="getList" />
 		<CheckForm ref="formRef" @success="handleCheckSuccess" />
@@ -122,7 +107,7 @@
 <script>
 import CheckForm from './checkForm.vue'
 import * as CheckApi from '@/api/nacs/check'
-import {DICT_TYPE, getDictDatas} from "@/utils/dict";
+import { DICT_TYPE, getDictDatas, getLineDatas } from "@/utils/dict";
 export default {
 	name: 'CheckIndex',
 	components: {
@@ -133,6 +118,7 @@ export default {
 	// },
 	data() {
 		return {
+			lineList: getLineDatas(),
 			list: [],
 			total: 3,
 			loading: false,
@@ -141,8 +127,8 @@ export default {
 				pageSize: 10,
 				authNo: null,
 				leaderUserName: null,
-        reviewState: null,
-        createTime: []
+        	reviewState: null,
+        	createTime: []
 			},
 			checkStateDictDatas: getDictDatas(DICT_TYPE.NACS_CHECK_STATE),
 			activeRow: null  // 当前展开行的id
@@ -204,33 +190,16 @@ export default {
 				this.loading = true;
 				// 调用API获取详情数据
 				const res = await CheckApi.getCheckDetail(row.authNo);
-				// console.log(res.data)
-				// 处理返回的数据
-        const detailData = {
-					// authMode: res.data[0].authMode,
-					cardNo: res.data.cardNoList ? res.data.cardNoList.join('、') : '',
-					createTime: row.createTime, // 保持原有分页数据
-					// idCard: res.data[0].idCard,
-					employeeName: res.data.employeeNameList ? res.data.employeeNameList.join('、') : '',
-					// lineNo: res.data[0].lineNo,
-					timeZone: res.data.timeZone,
-					// 合并group和device信息
-					groupName: res.data.groupList ? res.data.groupList.join('、') : '',
-					// groupCode: res.data.map(item => item.groupCode).filter(Boolean).join('、'),
-					deviceName: res.data.deviceList ? res.data.deviceList.join('、') : '',
-					// deviceCode: res.data.map(item => item.deviceCode).filter(Boolean).join('、')
-        };
 				// 合并详情数据到当前行
 				this.list = this.list.map(item => {
 					if (item.authNo === row.authNo) {
-						return { 
+						return {
 							...item,
-							...detailData
+							detailData: [...res.data]
 						};
 					}
 					return item;
 				});
-				// console.log(this.list)
 				this.activeRow = row.authNo;
 				this.$nextTick(() => {
 					this.$refs.tableRef.toggleRowExpansion(row, true);
@@ -242,13 +211,6 @@ export default {
 				this.loading = false;
 			}
 		},
-		// handleRowClick(row) {
-		// 	if (this.activeRow === row.authNo) {
-		// 		this.activeRow = null;
-		// 	} else {
-		// 		this.activeRow = row.authNo;
-		// 	}
-		// },
 		/** 审核按钮操作 */
 		handleCheck(row) {
 			this.$refs["formRef"].open(row);
@@ -288,73 +250,8 @@ export default {
 		background: #f8fafc;
 		border-top: 1px solid #ebeef5;
 		max-height: 400px;
-  	overflow-y: auto;
+  		overflow-y: auto;
 		margin: 0;
-
-		.detail-grid {
-			display: grid;
-			grid-template-columns: 1fr 1fr;
-			gap: 30px;
-			padding-bottom: 15px;
-			min-height: 120px;
-			margin-left: 100px;
-
-			.detail-column {
-				display: flex;
-				flex-direction: column;
-				gap: 15px;
-			}
-
-			.full-width {
-				grid-column: 1 / -1;
-				border-top: 1px dashed #e4e7ed;
-				padding-top: 15px;
-			}
-		}
-
-		.detail-item {
-			display: flex;
-			align-items: center;
-			font-size: 14px;
-
-			label {
-				color: #909399;
-				min-width: 80px;
-				margin-right: 10px;
-			}
-
-			span {
-				color: #606266;
-				&.highlight {
-					color: #409EFF;
-					font-weight: 500;
-				}
-			}
-		}
-
-		.detail-section {
-			h4 {
-				color: #303133;
-				margin: 0 0 10px 0;
-				font-size: 14px;
-				display: flex;
-				align-items: center;
-
-				i {
-					margin-right: 8px;
-					color: #909399;
-				}
-			}
-
-			.remark-text {
-				color: #666;
-				line-height: 1.6;
-				margin: 0;
-				padding: 10px;
-				background: #fff;
-				border-radius: 4px;
-			}
-		}
 	}
 }
 ::v-deep .el-table__expanded-cell {

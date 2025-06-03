@@ -19,7 +19,7 @@
       </div>
       <!-- 列表 -->
       <el-table v-loading="loading" :data="list" :stripe="true" :highlight-current-row="true"
-        :show-overflow-tooltip="true" @row-dblclick="handleCurrentChange" height="calc(100% - 150px)">
+        :show-overflow-tooltip="true" @row-dblclick="handleCurrentChange" height="calc(100% - 140px)">
         <el-table-column label="门禁集合编号" align="center" prop="id" />
         <el-table-column label="门禁集合标识" align="center" prop="setCode" />
         <el-table-column label="门禁集合名称" align="center" prop="setName" />

@@ -283,6 +283,7 @@ export default {
       //初始化tableData
       this.tableData = []
       this.selectedTableData = []
+      this.selectedStation = [];
       this.resetForm("form")
     },
     handleSelectionChange(selection) {

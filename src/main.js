@@ -91,6 +91,11 @@ Vue.use(Element, {
 
 Vue.config.productionTip = false
 
+// 添加全屏事件监听
+document.addEventListener('fullscreenchange', () => {
+  store.dispatch('app/toggleFullscreen', !!document.fullscreenElement)
+})
+
 new Vue({
   el: '#app',
   router,
