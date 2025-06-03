@@ -166,9 +166,10 @@ export default {
 	position: relative;
 	height: 600px !important;
 
-	.el-table__body-wrapper {
-		height: calc(100% - 60px)
-	}
+	
+}
+::v-deep .el-table .el-table__body-wrapper {
+	height: calc(100% - 60px) !important;
 }
 .drawer-footer {
 	position: absolute;

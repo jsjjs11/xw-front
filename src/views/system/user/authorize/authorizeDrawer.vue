@@ -54,7 +54,7 @@
 										<div class="table-wrapper left-table">
 											<div class="table-header">
 												<span>可选权限（{{ leftNonLeafCount }}）</span>
-												<!-- <el-button type="text" @click="handleAddAuthSet">快捷选择</el-button> -->
+												<el-button type="text" @click="handleAddAuthSet">快捷选择</el-button>
 											</div>
 											<el-table
 												:data = "authList"
@@ -66,8 +66,8 @@
 												@select="handleLeftSelect"
 												@select-all="handleLeftSelectAll">
 												<el-table-column type="selection" width="60" :selectable="checkSelectable"></el-table-column>
-												<el-table-column type="index" width="60"></el-table-column>
-												<el-table-column label="权限名称" prop="label" width="calc(100% - 120px)" header-align="center">
+												<!-- <el-table-column type="index" width="60"></el-table-column> -->
+												<el-table-column label="权限名称" prop="label" width="calc(100% - 60px)" header-align="center">
 													<template #default="{row}">
 														<span :class="{ 'leaf-node': row.isLeaf }">{{ row.label }}</span>
 													</template>
@@ -89,8 +89,8 @@
 												:tree-props = "{ children: 'children', hasChildren: 'hasChildren' }"
 												lazy
 												:load = "loadAuthList">
-												<el-table-column type="index" width="50"></el-table-column>
-												<el-table-column prop="label" label="权限名称" width="calc(100% - 510px)" header-align="center"></el-table-column>
+												<!-- <el-table-column type="index" width="50"></el-table-column> -->
+												<el-table-column prop="label" label="权限名称" width="calc(100% - 460px)" header-align="center"></el-table-column>
 												<el-table-column label="授权时区" prop="timePeriodId" width="120" header-align="center">
 													<template #default="{row}">
 															{{ getTimeZoneLabel(row.timePeriodId) }}
@@ -118,6 +118,7 @@
 		</el-drawer>
 		<auth-time-edit-form ref="authTimeEditForm" @confirm="handleTimeConfirm"></auth-time-edit-form>
 		<auth-time-to-line ref="authTimeToLine" @confirm="handleTimeToLineConfirm"></auth-time-to-line>
+		<choose-permission-set-form ref="choosePermissionSetForm" @confirm="handleChoosePermissionSetConfirm"></choose-permission-set-form>
 	</div>
 </template>
 <script>
@@ -126,11 +127,13 @@ import * as AuthorizationApi from '@/api/nacs/authorize';
 import * as groupsApi from "@/api/nacs/d_groups/index";
 import authTimeEditForm from "@/views/system/user/authorize/authTimeEditForm";
 import authTimeToLine from "@/views/system/user/authorize/authTimeToLine"
+import ChoosePermissionSetForm from "@/views/system/user/authorize/ChoosePermissionSetForm";
 export default {
 	name: 'AuthorizeDrawer',
 	components: {
 		authTimeEditForm,
 		authTimeToLine,
+		ChoosePermissionSetForm,
 	},
 	data() {
 		return {
@@ -228,6 +231,7 @@ export default {
 			this.$nextTick(() => {
 				this.$refs.authTable.toggleRowSelection(row, isSelected);
 			});
+			// console.log(this.selectedList)
 		},
 		/** 左侧表格全选 */
 		handleLeftSelectAll(selection) {
@@ -283,19 +287,20 @@ export default {
 				// 更新左侧表格的选中状态
 				const leftIndex = this.authList.findIndex(item => item.key === node.key);
 				if (leftIndex > -1) {
-						this.$nextTick(() => {
-								this.$refs.authTable.toggleRowSelection(this.authList[leftIndex], false);
-						});
+					this.$nextTick(() => {
+						this.$refs.authTable.toggleRowSelection(this.authList[leftIndex], false);
+					});
 				}
 			}
 		},
 		/** 同步左侧表格勾选状态 */
     syncLeftSelection() {
 			if (!this.$refs.authTable || !this.authList.length) return;
+			const currentSelections = this.$refs.authTable.selection || [];
 			// 设置选中状态
 			this.selectedList.forEach(item => {
 				const row = this.authList.find(auth => auth.key === item.key);
-				if (row) {
+				if (row && !currentSelections.some(current => current.key === row.key)) {
 					this.$refs.authTable.toggleRowSelection(row, true);
 				}
 			});
@@ -327,7 +332,6 @@ export default {
 		/** 时区/周期批量修改 */
 		handleEditTime() {
 			const lineNolist = this.selectedList.map(item => item.lineNo).filter((item, index, arr) => arr.indexOf(item) === index);
-			console.log(lineNolist)
 			this.$refs.authTimeToLine.show(lineNolist);
 		},
 		/** 时区/周期批量修改确认 */
@@ -349,26 +353,99 @@ export default {
 		},
 		/** 快捷选择门禁集合 */
 		handleAddAuthSet() {
-
+			// 转换已选数据为集合格式
+			const setCodes = [...new Set(this.selectedList.map(item => item.setCode))];
+			this.$refs.choosePermissionSetForm.show(this.selectedList.filter(item => setCodes.includes(item.setCode)));
 		},
-		/** 快捷移除门禁集合 */
-		handleRemoveAuthSet() {
+		/** 快捷选择门禁集合确认 */
+		handleChoosePermissionSetConfirm(data) {
+			if (data) {
+				// 获取当前日期和十年后日期
+        const today = new Date();
+        const tenYearsLater = new Date();
+        tenYearsLater.setFullYear(today.getFullYear() + 10);
+        
+        // 格式化日期为YYYY-MM-DD
+        const formatDate = (date) => {
+					const year = date.getFullYear();
+					const month = String(date.getMonth() + 1).padStart(2, '0');
+					const day = String(date.getDate()).padStart(2, '0');
+					return `${year}-${month}-${day}`;
+        };
+				const startTime = formatDate(today);
+        const endTime = formatDate(tenYearsLater);
 
+				// 获取当前已存在的setCode集合
+				const existingSetCodes = [...new Set(this.selectedList.map(item => item.setCode))];
+				
+				// 移除被取消选中的集合的所有子项
+				this.selectedList = this.selectedList.filter(
+					item => !existingSetCodes.includes(item.setCode) || data.some(d => d.code === item.code)
+				);
+				
+				// 添加新选中的集合的所有子项
+				// const newSetCodes = data.map(item => item.setCode);
+				const toAdd = data.filter(item => !this.selectedList.some(s => s.code === item.code));
+
+				toAdd.forEach(item => {
+					const key = `${item.lineNo}-${item.authMode}-${item.code}`;
+					// 检查是否已存在相同key的项
+					const isExist = this.selectedList.some(selectedItem => selectedItem.key === key);
+					if (!isExist) {
+						if(item.authMode === 1){
+							this.selectedList.push({ 
+								...item,
+								key: key,
+								label: item.name,
+								timePeriodId: 0,
+								startTime: startTime,
+								endTime: endTime,
+								dateRange: `${startTime}至${endTime}`,
+								authSource: 0,
+								isleaf: false,
+							})
+						} else if (item.authMode === 2) {
+							this.selectedList.push({
+								...item,
+								key: key,
+								label: item.name,
+								children: item.children || [],
+								timePeriodId: 0,
+								startTime: startTime,
+								endTime: endTime,
+								dateRange: `${startTime}至${endTime}`,
+								authSource: 0,
+								isleaf: false,
+								level: 0,
+								hasChildren: true,
+							})
+						}
+					}
+				});
+				// 同步左侧勾选状态
+				this.$nextTick(() => {
+					this.syncLeftSelection();
+				});
+			}
 		},
+		// /** 快捷移除门禁集合 */
+		// handleRemoveAuthSet() {
+
+		// },
 		/** 加载子节点 */ 
 		async loadAuthList(node, treeNode, resolve) {
 			if (node.level === 0) {
 				try {
 					const response = await groupsApi.getGroupEquipList({
 						pageNo: 1,
-						pageSize: 10,
+						pageSize: 50,
 						code: node.code,
 						lineNo: node.lineNo
 					});
 					const children = response.data.list.map(item => ({
 						...item,
-						key: `${item.lineNo}-1-${item.deviceCode}`,  // authMode设为1表示设备
-						label: item.deviceName,
+						key: item.id, //`${item.lineNo}-device-${item.deviceCode}`,  // authMode设为1表示设备
+						label: item.deviceName || item.deviceCode,
 						isLeaf: true,  // 标记为叶子节点
 						parentKey: node.key,  // 记录父节点key
 						lineNo: item.lineNo,
