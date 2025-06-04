@@ -67,3 +67,12 @@ export function getDGroupDevices(groupId) {
     method: 'get'
   })
 }
+
+// 获取门禁组列表
+export function getGroupEquip(query) {
+  return request({
+    url: '/nacs/group/getGroupEquip',
+    method: 'get',
+    params: query
+  })
+}

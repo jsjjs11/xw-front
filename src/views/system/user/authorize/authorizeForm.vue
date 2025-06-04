@@ -75,6 +75,7 @@ import { DICT_TYPE, getLineDatas, getDictDatas } from '@/utils/dict'
 import * as AuthorizationApi from '@/api/nacs/authorize'
 import AuthorizeDrawer from '@/views/system/user/authorize/authorizeDrawer.vue'
 import groupDetailForm from '@/views/system/user/authorize/groupDetailForm.vue'
+import * as CardApi from '@/api/nacs/cards'
 export default {
   name: 'AuthorizeForm',
   components: { AuthorizeDrawer , groupDetailForm },
@@ -284,9 +285,17 @@ export default {
     async showAuthDrawer() {
       try {
         const params = [this.queryParams.idCard];
+        const responseCard = await CardApi.isCardActive(params);
+        if (responseCard.data === false) {
+          this.$modal.msgError('该用户的门禁卡未激活，请先激活卡');
+          return;
+        }
         const response = await AuthorizationApi.checkApply(params);
         if (response.data.length === 0) {
-          this.$refs["authorizeDrawerRef"].showAuthDialog(this.queryParams.idCard, this.total);
+          const response2 = await CardApi.getLineInfo(params);
+          const lineInfo = response2.data ? response2.data.lineInfo ? response2.data.lineInfo : [] : [];
+          console.log(response2.data);
+          this.$refs["authorizeDrawerRef"].showAuthDialog(this.queryParams.idCard, this.total, lineInfo);
         } else {
           this.$modal.msgError('该用户存在未审核的权限申请，请等待管理员审核');
         }

@@ -2,7 +2,7 @@
   <div>
     <el-dialog :title="title" :visible.sync="visible" width="1000px" append-to-body>
       <div class="card-container">
-        <template v-if="cardList.length > 0">
+        <template v-if="createDisabled">
           <el-tooltip content="该用户已有卡，不能再开卡" placement="top">
             <el-button type="primary" plain icon="el-icon-plus" @click="creatCard" :disabled="createDisabled">开卡</el-button>
           </el-tooltip>
@@ -84,7 +84,7 @@
 </template>
 
 <script>
-import { getCardsPage, updateCards, freezeCards, activateCards, addBlacklist, reportLost } from '@/api/nacs/cards'
+import { getCardsPage, updateCards, freezeCards, activateCards, addBlacklist, reportLost, checkEligibility } from '@/api/nacs/cards'
 import CardsForm from '@/views/nacs/cards/CardsForm.vue'
 import { DICT_TYPE } from '@/utils/dict'
 import { parseTime } from '@/utils/ruoyi'
@@ -113,7 +113,7 @@ export default {
       userInfo:undefined,
       // 字典定义
       DICT_TYPE,
-      createDisabled: false
+      createDisabled: false,
     }
   },
   methods: {
@@ -147,11 +147,13 @@ export default {
       this.userInfo = form;
       this.queryParams.idCard = form.idCard;
       await this.getList()
-      if (this.cardList.length > 0) {
-        this.createDisabled = true;
-      } else {
-        this.createDisabled = false;
-      }
+      const response = await checkEligibility(this.queryParams.idCard)
+      this.createDisabled = !response.data;
+      // if (this.cardList.length > 0) {
+      //   this.createDisabled = true;
+      // } else {
+      //   this.createDisabled = false;
+      // }
     },
     /** 关闭弹框 */
     close() {

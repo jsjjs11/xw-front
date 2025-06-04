@@ -135,3 +135,12 @@ export function importTemplate() {
     responseType: 'blob'
   })
 }
+
+// 判断用户是否与线路同步
+export function isSyncUser(data) {
+  return request({
+    url: '/system/user/user-line-info',
+    method: 'post',
+    data: data
+  })
+}

@@ -410,7 +410,8 @@ import {
   importTemplate,
   listUser,
   resetUserPwd,
-  updateUser
+  updateUser,
+  isSyncUser
 } from "@/api/system/user";
 import * as CardsApi from '@/api/nacs/cards';
 import Treeselect from "@riophae/vue-treeselect";
@@ -834,8 +835,15 @@ export default {
         this.$message.error('请先选择两个以上用户')
         return
       }
-      // 检查是否有未审核权限
+      
       const idCards = this.selectedRows.map(item => item.idCard)
+      // 检查用户卡片是否激活
+      const isCardActive = await CardApi.isCardActive(idCards);
+      if( !isCardActive.data) {
+        this.$modal.msgError('存在未激活的门禁卡，请激活后再进行权限管理');
+        return;
+      }
+      // 检查是否有未审核权限
       const response = await AuthorizationApi.checkApply(idCards);
       if (response.data.length > 0) {
         const resultString = response.data.join('、');
@@ -859,13 +867,19 @@ export default {
         this.$message.warning('只能选择一行数据进行操作')
         return
       }
+      // const isSyncLineUser = await isSyncUser([selectedRow.idCard]).then(response => {
+      //   return response.data
+      // })
+      // if (!isSyncLineUser) {
+      //   this.$modal.msgError('该用户还没有同步到线路，无法进行权限管理');
+      //   return
+      // }
       const cardtotal = await CardsApi.getCardsPage({
         pageNo: 1,
         pageSize: 10,
         idCard: selectedRow.idCard}).then(response => {
           return response.data.total
       });
-      console.log(cardtotal);
       if (cardtotal === 0) {
         this.$confirm('该用户还没有门禁卡，是否进行开卡操作？').then(() => {
           this.handleCard(row);
@@ -1064,7 +1078,7 @@ export default {
 
 }
 ::v-deep .el-table {
-  height: calc(100vh - 320px);
+  height: calc(100vh - 300px);
   margin-top: 20px;
   // overflow-y: auto;
   .el-table__header-wrapper {

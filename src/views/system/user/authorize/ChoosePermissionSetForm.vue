@@ -69,7 +69,7 @@ export default {
 			selectedPermissionSets: [],
 			queryParams: {
 				pageNo: 1,
-				pageSize: 10
+				pageSize: 10000
 			},
 			total: 0,
 			selectedAuth: [],

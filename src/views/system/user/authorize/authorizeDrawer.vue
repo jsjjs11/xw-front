@@ -24,7 +24,10 @@
 												:key="line.lineNo"
 												size="large">
 												<template #dot>
-													<el-radio :label="line.lineNo" :class="`color-radio-${line.lineNo}`">
+													<el-radio 
+														:label="line.lineNo" 
+														:class="`color-radio-${line.lineNo}`" 
+														:disabled="!isLineEnable(line.lineNo)">
 														{{ line.name }}
 													</el-radio>
 												</template>
@@ -67,9 +70,14 @@
 												@select-all="handleLeftSelectAll">
 												<el-table-column type="selection" width="60" :selectable="checkSelectable"></el-table-column>
 												<!-- <el-table-column type="index" width="60"></el-table-column> -->
-												<el-table-column label="权限名称" prop="label" width="calc(100% - 60px)" header-align="center">
+												<el-table-column label="权限名称" prop="label" width="calc(100% - 180px)" header-align="center">
 													<template #default="{row}">
 														<span :class="{ 'leaf-node': row.isLeaf }">{{ row.label }}</span>
+													</template>
+												</el-table-column>
+												<el-table-column label="权限模式" prop="authMode" width="120" header-align="center">
+													<template v-slot="scope">
+														<dict-tag :type="DICT_TYPE.NACS_AUTH_MODE" :value="scope.row.authMode" />
 													</template>
 												</el-table-column>
 											</el-table>
@@ -122,7 +130,7 @@
 	</div>
 </template>
 <script>
-import {getLineDatas} from "@/utils/dict";
+import {getLineDatas, DICT_TYPE} from "@/utils/dict";
 import * as AuthorizationApi from '@/api/nacs/authorize';
 import * as groupsApi from "@/api/nacs/d_groups/index";
 import authTimeEditForm from "@/views/system/user/authorize/authTimeEditForm";
@@ -163,6 +171,7 @@ export default {
 			existAuth: 0,
 			checkAll: false,
 			isIndeterminate: false,
+			lineInfo: [],
 		}
 	},
 	mounted() {
@@ -296,14 +305,19 @@ export default {
 		/** 同步左侧表格勾选状态 */
     syncLeftSelection() {
 			if (!this.$refs.authTable || !this.authList.length) return;
-			const currentSelections = this.$refs.authTable.selection || [];
+			// 首先清空所有选中项
+			this.authList.forEach(row => {
+				this.$refs.authTable.toggleRowSelection(row, false);
+			});
+			// const currentSelections = this.$refs.authTable.selection || [];
 			// 设置选中状态
 			this.selectedList.forEach(item => {
 				const row = this.authList.find(auth => auth.key === item.key);
-				if (row && !currentSelections.some(current => current.key === row.key)) {
+				if (row) {
 					this.$refs.authTable.toggleRowSelection(row, true);
 				}
 			});
+			// console.log('左右表格勾选同步完成',currentSelections, this.selectedList)
     },
 		/** 处理时区/周期修改 */
 		handleEdit(row) {
@@ -377,7 +391,7 @@ export default {
 
 				// 获取当前已存在的setCode集合
 				const existingSetCodes = [...new Set(this.selectedList.map(item => item.setCode))];
-				
+
 				// 移除被取消选中的集合的所有子项
 				this.selectedList = this.selectedList.filter(
 					item => !existingSetCodes.includes(item.setCode) || data.some(d => d.code === item.code)
@@ -436,13 +450,11 @@ export default {
 		async loadAuthList(node, treeNode, resolve) {
 			if (node.level === 0) {
 				try {
-					const response = await groupsApi.getGroupEquipList({
-						pageNo: 1,
-						pageSize: 50,
+					const response = await groupsApi.getGroupEquip({
 						code: node.code,
 						lineNo: node.lineNo
 					});
-					const children = response.data.list.map(item => ({
+					const children = response.data.map(item => ({
 						...item,
 						key: item.id, //`${item.lineNo}-device-${item.deviceCode}`,  // authMode设为1表示设备
 						label: item.deviceName || item.deviceCode,
@@ -477,13 +489,20 @@ export default {
 			}
 			return -1;
 		},
+		/** 检查线路是否可启用 */
+		isLineEnable(lineNo) {
+			if(!this.lineInfo || this.lineInfo.length === 0) return true;
+			return this.lineInfo.includes(lineNo);
+		},
 		/** 显示授权弹窗 */
-    async showAuthDialog(data, total) {
+    async showAuthDialog(data, total, lineInfo) {
       this.drawerVisible = true;
 			this.AuthorizeForm.idCard = Array.isArray(data) ? data : [data];
 			this.existAuth = total;
+			this.lineInfo = lineInfo;
 			if(this.lineList.length>1){
-				this.form.selectedLine = this.lineList[0].lineNo  // 默认选中第一条线路
+				const enabledLine = this.lineList.find(line => this.isLineEnable(line.lineNo));
+				this.form.selectedLine = enabledLine ? enabledLine.lineNo : this.lineList[0].lineNo;  // 默认选中第一条可用的线路
 			}
 			this.onLineChange(); // 默认载入第一条线路的站点
 			this.selectedList = [];
@@ -687,15 +706,6 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-// .quick-date-buttons {
-// 	margin-top: 20px;
-//   display: flex;
-//   gap: 8px;
-//   flex-wrap: wrap;
-// }
-// .auth-column {
-// 	margin-top:20px;
-// }
 :deep(.el-form) {
   height: auto !important;
   min-height: calc(100% - 80px);
@@ -762,6 +772,16 @@ export default {
 .el-radio {
   display: block;
   margin: 8px 0;
+}
+/* 禁用状态样式 */
+:deep(.el-radio.is-disabled) {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+:deep(.el-radio.is-disabled .el-radio__label) {
+  color: #999;
+  cursor: not-allowed;
 }
 :deep(.station-list) .el-checkbox {
   margin-bottom: 0px;

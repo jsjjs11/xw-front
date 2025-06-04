@@ -84,3 +84,28 @@ export function addBlacklist(id) {
   })
 }
 
+// 用户门禁卡是否已激活
+export function isCardActive(data) {
+  return request({
+    url: '/nacs/cards/card-state',
+    method: 'post',
+    data: data
+  })
+}
+
+// 用户是否能够开卡
+export function checkEligibility(idCard) {
+  return request({
+    url: '/nacs/cards/check-eligibility?idCard=' + idCard,
+    method: 'get'
+  })
+}
+
+// 获取门禁卡的线路信息
+export function getLineInfo(data) {
+  return request({
+    url: '/nacs/cards/cards-info',
+    method: 'post',
+    data: data
+  })
+}
