@@ -35,7 +35,11 @@
               <dict-tag :type="DICT_TYPE.NACS_CARD_STATE" :value="scope.row.cardState" />
             </template>
           </el-table-column>
-          <el-table-column label="卡片来源" align="center" prop="cardSource"></el-table-column>
+          <el-table-column label="卡片来源" align="center" prop="cardSource">
+            <template v-slot="scope">
+              <dict-tag :type="DICT_TYPE.NACS_DATA_SOURCE" :value="scope.row.cardSource" />
+            </template>
+          </el-table-column>
           <el-table-column label="有效时间" align="center" prop="startDate" width="180">
             <template v-slot="scope">
               <span>{{ parseTime(scope.row.startDate) }}</span>
@@ -145,8 +149,7 @@ export default {
       try {
         this.loading = true
         const response = await getCards(this.queryParams.idCard)
-        this.cardList = response.data.list
-        this.total = response.data.total
+        this.cardList = [response.data];
       } catch (error) {
         console.error("获取卡列表失败", error)
         this.$modal.msgError("获取卡列表失败")
