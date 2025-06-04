@@ -10,7 +10,20 @@
         <template v-else>
           <el-button type="primary" plain icon="el-icon-plus" @click="creatCard" :disabled="createDisabled">开卡</el-button>
         </template>
-        <el-table v-loading="loading" :data="cardList" style="margin-top: 20px;">
+        <el-table v-loading="loading" :data="cardList" @expand-change="loadLineCard" style="margin-top: 20px;">
+          <!-- <el-table-column type="expand" width="60">
+            <template slot-scope="scope">
+              <el-table
+                :data="scope.row.lineCard"
+                border
+                style="width: 100%"
+                :row-key="row => row.id">
+                <el-table-column prop="lineCardNo" label="线路侧卡号"></el-table-column>
+                <el-table-column prop="lineName" label="线路名称"></el-table-column>
+                <el-table-column prop="lineCardState" label="线路侧卡状态"></el-table-column>
+              </el-table>
+            </template>
+          </el-table-column> -->
           <el-table-column label="卡号" align="center" prop="cardNo" />
           <el-table-column label="卡类型" align="center" prop="cardType">
             <template v-slot="scope">
@@ -22,6 +35,7 @@
               <dict-tag :type="DICT_TYPE.NACS_CARD_STATE" :value="scope.row.cardState" />
             </template>
           </el-table-column>
+          <el-table-column label="卡片来源" align="center" prop="cardSource"></el-table-column>
           <el-table-column label="有效时间" align="center" prop="startDate" width="180">
             <template v-slot="scope">
               <span>{{ parseTime(scope.row.startDate) }}</span>
@@ -84,7 +98,7 @@
 </template>
 
 <script>
-import { getCardsPage, updateCards, freezeCards, activateCards, addBlacklist, reportLost, checkEligibility } from '@/api/nacs/cards'
+import { getCards, updateCards, freezeCards, activateCards, addBlacklist, reportLost, checkEligibility } from '@/api/nacs/cards'
 import CardsForm from '@/views/nacs/cards/CardsForm.vue'
 import { DICT_TYPE } from '@/utils/dict'
 import { parseTime } from '@/utils/ruoyi'
@@ -130,8 +144,7 @@ export default {
     async getList() {
       try {
         this.loading = true
-        console.log(this.queryParams)
-        const response = await getCardsPage(this.queryParams)
+        const response = await getCards(this.queryParams.idCard)
         this.cardList = response.data.list
         this.total = response.data.total
       } catch (error) {
@@ -140,6 +153,11 @@ export default {
       } finally {
         this.loading = false
       }
+    },
+
+    /** 查询线路侧卡片 */
+    loadLineCard() {
+
     },
     /** 显示弹框 */
     async show(form) {

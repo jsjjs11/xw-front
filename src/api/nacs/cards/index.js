@@ -27,9 +27,17 @@ export function cancelCards(id) {
 }
 
 // 获得门禁卡片管理
-export function getCards(id) {
+export function getCards(idCard) {
   return request({
-    url: '/nacs/cards/get?id=' + id,
+    url: '/nacs/cards/get?idCard=' + idCard,
+    method: 'get'
+  })
+}
+
+// 获得线路侧卡片信息
+export function getLineCards(idCard) {
+  return request({
+    url: '/nacs/cards/line-cards?idCard=' + idCard,
     method: 'get'
   })
 }
