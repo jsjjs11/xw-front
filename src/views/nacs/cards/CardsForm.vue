@@ -187,10 +187,10 @@ import { parseTime} from "@/utils/ruoyi";
       async submitForm() {
         // 校验主表
         await this.$refs["formRef"].validate();
-                  this.formLoading = true;
+          this.formLoading = true;
         try {
-          const data = this.formData;
-                  // 修改的提交
+          const data = {...this.formData, cardSource: 0};
+          // 修改的提交
           if (data.id) {
             await CardsApi.updateCards(data);
             this.$modal.msgSuccess("修改成功");
