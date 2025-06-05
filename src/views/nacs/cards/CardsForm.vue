@@ -148,10 +148,10 @@ import { parseTime} from "@/utils/ruoyi";
     },
     methods: {
       /** 打开弹窗 */
-     async open(id, cardSource) {
+     async open(id) {
         this.dialogVisible = true;
         this.reset();
-        this.cardSource = cardSource;
+        
         // 修改时，设置数据
         if (id) {
           this.formLoading = true;
@@ -172,7 +172,7 @@ import { parseTime} from "@/utils/ruoyi";
         }
       },
       /** 从人员页面开卡 */
-      creadCard(form) {
+      creadCard(form, cardSource) {
         if (form) {
           this.reset();
           this.title = "开卡";
@@ -180,6 +180,7 @@ import { parseTime} from "@/utils/ruoyi";
           this.formData.employeeCode = form.employeeCode;
           this.formData.employeeName = form.username;
           this.formData.idCard = form.idCard;
+          this.cardSource = cardSource;
           // 设置默认的开始时间和结束时间
           this.handleQuickSelect(12); // 默认设置为1年
           this.dialogVisible = true;
