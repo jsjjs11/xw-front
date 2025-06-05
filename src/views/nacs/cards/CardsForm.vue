@@ -143,13 +143,15 @@ import { parseTime} from "@/utils/ruoyi";
           startDate: [{ required: true, message: '有效时间不能为空', trigger: 'blur' }],
           endDate: [{ required: true, message: '失效时间不能为空', trigger: 'blur' }],
         },
+        cardSource: 0,
       };
     },
     methods: {
       /** 打开弹窗 */
-     async open(id) {
+     async open(id, cardSource) {
         this.dialogVisible = true;
         this.reset();
+        this.cardSource = cardSource;
         // 修改时，设置数据
         if (id) {
           this.formLoading = true;
@@ -189,7 +191,7 @@ import { parseTime} from "@/utils/ruoyi";
         await this.$refs["formRef"].validate();
           this.formLoading = true;
         try {
-          const data = {...this.formData, cardSource: 0};
+          const data = {...this.formData, cardSource: this.cardSource };
           // 修改的提交
           if (data.id) {
             await CardsApi.updateCards(data);
