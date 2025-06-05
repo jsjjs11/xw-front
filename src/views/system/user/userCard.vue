@@ -10,15 +10,16 @@
         <template v-else>
           <el-button type="primary" plain icon="el-icon-plus" @click="creatCard" :disabled="createDisabled">开卡</el-button>
         </template>
-        <div v-if="cardList.length > 0 && cardSource === 0" class="card-list-container">
+        <div  class="card-list-container">
           <el-table v-loading="loading" :data="cardList" 
             @expand-change="handleExpandChange" 
             style="margin-top: 20px;" 
-            :row-key="row => row.id">
+            :row-key="row => row.id"
+            ref="table">
             <el-table-column type="expand" width="60">
               <template slot-scope="scope">
                 <div class="line-card-container">
-                  <h4 v-if="cardList.length > 1">线路侧卡片信息</h4>
+                  <h4 v-if="lineCardslength > 0">线路侧卡片信息</h4>
                   <p v-else>暂无线路侧卡片信息</p>
                   <el-table
                     :data="scope.row.lineCard"
@@ -105,7 +106,7 @@
           </el-table>
         </div>
         
-        <!-- 当没有线网卡时的线路侧卡片信息 -->
+        <!-- 当没有线网卡时的线路侧卡片信息
         <div v-if="cardSource === 1 && lineCards.length > 0" class="line-card-container">
           <h4>该用户没有线网卡，以下是线路卡信息</h4>
           <el-table
@@ -124,20 +125,11 @@
               </template>
             </el-table-column>
           </el-table>
-        </div>
+        </div> -->
         
-        <div v-else-if="cardList.length === 0 && lineCards.length === 0" class="no-data-container">
+        <!-- <div v-else-if="cardList.length === 0 && lineCards.length === 0" class="no-data-container">
           <p>暂无卡片信息</p>
-        </div>
-
-        <!-- 分页组件 -->
-        <!-- <pagination
-          v-show="total > 0"
-          :total="total"
-          :page.sync="queryParams.pageNo"
-          :limit.sync="queryParams.pageSize"
-          @pagination="getList"
-        /> -->
+        </div> -->
       </div>
     </el-dialog>
     <cards-form ref="cardFormRef" @success="getList" />
@@ -176,8 +168,7 @@ export default {
       // 字典定义
       DICT_TYPE,
       createDisabled: false,
-      lineCards: [],
-      expandedCardId: null, // 当前展开的卡片ID
+      lineCardslength: 0,
       lineMap: getLineDatas(),
       cardSource: 0, // 卡片来源
     }
@@ -199,23 +190,9 @@ export default {
         const response = await getCards(this.queryParams.idCard);
         if (response.data) {
           this.cardSource = response.data.cardSource;
-          if ( this.cardSource === 0) {
-            this.cardList = [response.data];
-          } else if (this.cardSource === 1) {
-            this.lineCards.push({
-              lineCardNo: response.data.cardNo,
-              lineNo: response.data.lineNo,
-              lineCardStatus: response.data.cardState,
-            });
-            try {
-              await this.loadLineCard()
-            } catch (error) {
-              console.error("获取线路侧其他卡片失败", error);
-            }
-          }
+          this.cardList = [response.data];
         } else {
           this.cardList = [];
-          this.lineCards = [];
         }
       } catch (error) {
         console.error("获取卡列表失败", error);
@@ -230,15 +207,13 @@ export default {
       try {
         const response = await getLineCards(this.queryParams.idCard)
         if (response.data) {
-          if (this.cardSource === 1) {
-            this.lineCards.push(...response.data);
-          }
-          
-          // 如果存在线网卡，将线路卡片信息附加到主卡对象
-          if (this.cardSource === 0 && this.cardList.length > 0) {
+          // 将线路卡片信息附加到主卡对象
+          if ( this.cardList.length > 0) {
             this.cardList.forEach(card => {
-              this.$set(card, 'lineCard', this.lineCards);
+              this.$set(card, 'lineCard', response.data);
+              this.lineCardslength = (response.data).length;
             });
+            
           }
         } 
       } catch (error) {
@@ -409,7 +384,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .card-container {
     padding: 0 10px;
 }
@@ -423,6 +398,13 @@ export default {
   background-color: #f9f9f9;
   border-radius: 4px;
   margin: 10px 0;
+}
+
+::v-deep .line-card-container .el-table {
+  max-height: 300px;
+  tr {
+    overflow-y: auto !important;
+  }
 }
 
 .line-card-container {
