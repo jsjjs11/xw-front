@@ -6,7 +6,7 @@
 		size="30%">
 		<el-form ref="form" :model="form" label-width="100px">
 			<el-form-item label="授权时区" prop="timeZone">
-				<el-select v-model="form.timePeriodId">
+				<el-select v-model="form.timeCode">
 					<el-option
 						v-for="item in timeZones"
 						:key="item.value"
@@ -49,7 +49,7 @@ export default {
 		return {
 			visible: false,
 			form: {
-				timePeriodId: 0,
+				timeCode: 0,
 				dateRange: [],
 				key: ""
 			},
@@ -67,8 +67,8 @@ export default {
 		show (row) {
 			this.visible = true;
 			this.form = {
-				timePeriodId: row.timePeriodId || 0,
-				dateRange: [row.startTime, row.endTime] || [],
+				timeCode: row.timeCode || 0,
+				dateRange: [row.startDate, row.endDate] || [],
 				key: row.key
 			}
 		},
@@ -102,9 +102,9 @@ export default {
 		},
 		handleSave() {
 			const result = {
-				timePeriodId: this.form.timePeriodId || 0,
-				startTime: this.formatDate(this.form.dateRange[0]),
-				endTime: this.formatDate(this.form.dateRange[1]),
+				timeCode: this.form.timeCode || 0,
+				startDate: this.formatDate(this.form.dateRange[0]),
+				endDate: this.formatDate(this.form.dateRange[1]),
 				key: this.form.key
 			};
 			// console.log(result);

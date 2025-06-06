@@ -194,6 +194,8 @@ export default {
         } else {
           this.cardList = [];
         }
+        const createable = await checkEligibility(this.queryParams.idCard)
+        this.createDisabled = !createable.data;
       } catch (error) {
         console.error("获取卡列表失败", error);
         this.$modal.msgError("获取卡列表失败");
@@ -243,8 +245,8 @@ export default {
       this.userInfo = form;
       this.queryParams.idCard = form.idCard;
       await this.getList()
-      const response = await checkEligibility(this.queryParams.idCard)
-      this.createDisabled = !response.data;
+      // const response = await checkEligibility(this.queryParams.idCard)
+      // this.createDisabled = !response.data;
       // if (this.cardList.length > 0) {
       //   this.createDisabled = true;
       // } else {

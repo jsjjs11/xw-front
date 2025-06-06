@@ -293,8 +293,21 @@ export default {
         const response = await AuthorizationApi.checkApply(params);
         if (response.data.length === 0) {
           const response2 = await CardApi.getLineInfo(params);
-          const lineInfo = response2.data ? response2.data.lineInfo ? response2.data.lineInfo : [] : [];
-          console.log(response2.data);
+          let lineInfo = [];
+          if (response2.data[0].cardSource === 1) {
+            lineInfo = response2.data ? response2.data[0].lineInfo ? response2.data[0].lineInfo : [] : [];
+            console.log(lineInfo);
+          } else if (response2.data[0].cardSource === 0) {
+            const userLineNos = response2.data[0].lineInfo || [];
+            if (userLineNos.length === 0) {
+              lineInfo = [];
+            } else {
+              // 获取所有线路号
+              const allLineNos = this.lineMap.map(line => line.lineNo);
+              // 计算差集：所有线路号 - 用户已有线路号
+              lineInfo = allLineNos.filter(lineNo => !userLineNos.includes(lineNo));
+            }
+          }
           this.$refs["authorizeDrawerRef"].showAuthDialog(this.queryParams.idCard, this.total, lineInfo);
         } else {
           this.$modal.msgError('该用户存在未审核的权限申请，请等待管理员审核');
@@ -308,7 +321,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .operation-buttons {
   margin: 20px 0;
 }
@@ -384,25 +397,25 @@ export default {
   margin: 8px 0;
 }
 
-.drawer-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 16px;
-  background: #fff;
-  text-align: right;
-  border-top: 1px solid #e8e8e8;
-}
-
-::v-deep .el-drawer__body {
-  height: 100%;
-  overflow: hidden;
-}
-
 ::v-deep .el-table {
   flex: 1;
-  overflow: auto;
-  height: 400px;
+  // overflow: hidden;
+  overflow-y:auto;
+  height: 400px !important;
+  .el-table__body-wrapper {
+    overflow-y:auto;
+    height: 260px !important;
+  }
 }
+::v-deep .el-dialog {
+  height: auto !important;
+  overflow: visible !important;
+  
+  .el-dialog__body {
+    overflow: visible !important;
+    max-height: none !important;
+    padding:30px 20px 40px 20px;
+  }
+}
+
 </style>

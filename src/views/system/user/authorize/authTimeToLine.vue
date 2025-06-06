@@ -13,7 +13,7 @@
 				<el-table-column label="线路名称" prop="lineName" width="120"></el-table-column>
 				<el-table-column label="授权时区" prop="timeZone">
 					<template #default="{row}">
-						<el-select v-model="row.timePeriodId">
+						<el-select v-model="row.timeCode">
 							<el-option
 								v-for="item in timeZones"
 								:key="item.value"
@@ -117,15 +117,15 @@ export default {
 				return `${year}-${month}-${day}`;
 			};
 			
-			const startTime = formatDate(today);
-			const endTime = formatDate(tenYearsLater);
+			const startDate = formatDate(today);
+			const endDate = formatDate(tenYearsLater);
 			
 			if (data && Array.isArray(data)) {
 				data.forEach(lineNo => {
 					this.tableData.push({
 						lineName: this.lineMap.find(line => line.lineNo === lineNo).name,
-						timePeriodId: 0,
-						dateRange: [startTime, endTime],
+						timeCode: 0,
+						dateRange: [startDate, endDate],
 						key: lineNo // 添加唯一key
 					});
 				});
@@ -135,7 +135,7 @@ export default {
 		handleClose() {
 			this.visible = false;
 			this.form = {
-				timePeriodId: 0,
+				timeCode: 0,
 				dateRange: [],
 				key: "",
 				lineNo: "",
@@ -146,9 +146,9 @@ export default {
 			const params = this.tableData.map(item => {
 				return {
 					lineNo: item.key,
-					timePeriodId: item.timePeriodId,
-					startTime: item.dateRange[0],
-					endTime: item.dateRange[1],
+					timeCode: item.timeCode,
+					startDate: item.dateRange[0],
+					endDate: item.dateRange[1],
 				}
 			});
 			console.log(params);

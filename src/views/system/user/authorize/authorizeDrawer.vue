@@ -70,12 +70,12 @@
 												@select-all="handleLeftSelectAll">
 												<el-table-column type="selection" width="60" :selectable="checkSelectable"></el-table-column>
 												<!-- <el-table-column type="index" width="60"></el-table-column> -->
-												<el-table-column label="权限名称" prop="label" width="calc(100% - 180px)" header-align="center">
+												<el-table-column label="权限名称" prop="label" width="calc(100% - 240px)" header-align="center">
 													<template #default="{row}">
 														<span :class="{ 'leaf-node': row.isLeaf }">{{ row.label }}</span>
 													</template>
 												</el-table-column>
-												<el-table-column label="权限模式" prop="authMode" width="120" header-align="center">
+												<el-table-column label="权限模式" prop="authMode" width="160" header-align="center">
 													<template v-slot="scope">
 														<dict-tag :type="DICT_TYPE.NACS_AUTH_MODE" :value="scope.row.authMode" />
 													</template>
@@ -99,9 +99,9 @@
 												:load = "loadAuthList">
 												<!-- <el-table-column type="index" width="50"></el-table-column> -->
 												<el-table-column prop="label" label="权限名称" width="calc(100% - 460px)" header-align="center"></el-table-column>
-												<el-table-column label="授权时区" prop="timePeriodId" width="120" header-align="center">
+												<el-table-column label="授权时区" prop="timeCode" width="120" header-align="center">
 													<template #default="{row}">
-															{{ getTimeZoneLabel(row.timePeriodId) }}
+															{{ getTimeZoneLabel(row.timeCode) }}
 													</template>
 												</el-table-column>
 												<el-table-column label="授权周期" prop="dateRange" width="200" header-align="center"></el-table-column>
@@ -216,16 +216,16 @@ export default {
 					return `${year}-${month}-${day}`;
         };
         
-        const startTime = formatDate(today);
-        const endTime = formatDate(tenYearsLater);
+        const startDate = formatDate(today);
+        const endDate = formatDate(tenYearsLater);
 				// 添加到右侧表格
 				this.selectedList.push({
 					...row,
 					children: row.children || [],
-					timePeriodId: 0,
-					startTime: startTime,
-					endTime: endTime,
-					dateRange: `${startTime}至${endTime}`,
+					timeCode: 0,
+					startDate: startDate,
+					endDate: endDate,
+					dateRange: `${startDate}至${endDate}`,
 					authSource: 0,
 				});
 			} else {
@@ -262,17 +262,17 @@ export default {
 					const day = String(date.getDate()).padStart(2, '0');
 					return `${year}-${month}-${day}`;
         };
-				const startTime = formatDate(today);
-        const endTime = formatDate(tenYearsLater);
+				const startDate = formatDate(today);
+        const endDate = formatDate(tenYearsLater);
 				selectableRows.forEach(row => {
 					if (!this.selectedList.some(item => item.key === row.key)) {
 						this.selectedList.push({
 							...row,
 							children: row.children || [],
-							timePeriodId: 0,
-							startTime: startTime,
-							endTime: endTime,
-							dateRange: `${startTime}至${endTime}`,
+							timeCode: 0,
+							startDate: startDate,
+							endDate: endDate,
+							dateRange: `${startDate}至${endDate}`,
 							authSource: 0,
 						});
 					}
@@ -329,19 +329,19 @@ export default {
     	if (index !== -1) {
         this.$set(this.selectedList, index, {
 					...this.selectedList[index],
-					timePeriodId: data.timePeriodId,
-					startTime: data.startTime,
-					endTime: data.endTime,
-					dateRange: `${data.startTime}至${data.endTime}`
+					timeCode: data.timeCode,
+					startDate: data.startDate,
+					endDate: data.endDate,
+					dateRange: `${data.startDate}至${data.endDate}`
         });
     	}
 		},
 		// 临时处理时区名称，需要增加接口返回时区名称
-		getTimeZoneLabel(timePeriodId) {
+		getTimeZoneLabel(timeCode) {
 			const timeZone = this.$refs.authTimeEditForm?.timeZones?.find(
-				item => item.value === timePeriodId
+				item => item.value === timeCode
 			);
-			return timeZone?.label || timePeriodId;
+			return timeZone?.label || timeCode;
     },
 		/** 时区/周期批量修改 */
 		handleEditTime() {
@@ -357,10 +357,10 @@ export default {
 				if (index !== -1) {
 					this.$set(this.selectedList, index, {
 						...this.selectedList[index],
-						timePeriodId: item.timePeriodId,
-						startTime: item.startTime,
-						endTime: item.endTime,
-						dateRange: `${item.startTime}至${item.endTime}`
+						timeCode: item.timeCode,
+						startDate: item.startDate,
+						endDate: item.endDate,
+						dateRange: `${item.startDate}至${item.endDate}`
 					});
 				}
 			}): null;
@@ -386,17 +386,27 @@ export default {
 					const day = String(date.getDate()).padStart(2, '0');
 					return `${year}-${month}-${day}`;
         };
-				const startTime = formatDate(today);
-        const endTime = formatDate(tenYearsLater);
+				const startDate = formatDate(today);
+        const endDate = formatDate(tenYearsLater);
 
 				// 获取当前已存在的setCode集合
 				const existingSetCodes = [...new Set(this.selectedList.map(item => item.setCode))];
-
-				// 移除被取消选中的集合的所有子项
-				this.selectedList = this.selectedList.filter(
-					item => !existingSetCodes.includes(item.setCode) || data.some(d => d.code === item.code)
-				);
+				const existingKeys = new Set(this.selectedList.map(item => item.key));
+				// 1. 获取新选中集合的所有setCode
+				const newSetCodes = new Set(data.map(item => item.setCode));
 				
+				// 移除selectedList中属于被取消集合的权限项,只移除那些有setCode且不在新选中集合中的项
+				this.selectedList = this.selectedList.filter(item => {
+					// 如果没有setCode，说明是手动添加的权限，保留
+					if (!item.setCode) return true;
+					
+					// 如果有setCode且在新选中集合中，保留
+					if (newSetCodes.has(item.setCode)) return true;
+					
+					// 移除有setCode但不在新选中集合中的项
+					return false;
+				});
+				console.log(this.selectedList)
 				// 添加新选中的集合的所有子项
 				// const newSetCodes = data.map(item => item.setCode);
 				const toAdd = data.filter(item => !this.selectedList.some(s => s.code === item.code));
@@ -404,17 +414,19 @@ export default {
 				toAdd.forEach(item => {
 					const key = `${item.lineNo}-${item.authMode}-${item.code}`;
 					// 检查是否已存在相同key的项
-					const isExist = this.selectedList.some(selectedItem => selectedItem.key === key);
-					if (!isExist) {
+					// const isExist = this.selectedList.some(selectedItem => selectedItem.key === key);
+					const isExist = existingKeys.has(key);
+					const isLineEnable = this.isLineEnable(item.lineNo);
+					if (!isExist && isLineEnable) {
 						if(item.authMode === 1){
 							this.selectedList.push({ 
 								...item,
 								key: key,
 								label: item.name,
-								timePeriodId: 0,
-								startTime: startTime,
-								endTime: endTime,
-								dateRange: `${startTime}至${endTime}`,
+								timeCode: 0,
+								startDate: startDate,
+								endDate: endDate,
+								dateRange: `${startDate}至${endDate}`,
 								authSource: 0,
 								isleaf: false,
 							})
@@ -424,10 +436,10 @@ export default {
 								key: key,
 								label: item.name,
 								children: item.children || [],
-								timePeriodId: 0,
-								startTime: startTime,
-								endTime: endTime,
-								dateRange: `${startTime}至${endTime}`,
+								timeCode: 0,
+								startDate: startDate,
+								endDate: endDate,
+								dateRange: `${startDate}至${endDate}`,
 								authSource: 0,
 								isleaf: false,
 								level: 0,
@@ -522,7 +534,7 @@ export default {
 								lineNo: item.lineNo, // 标记所属线路
 								stationNo: item.stationNo, // 标记所属车站
 								isleaf: false,
-								// dateRange:`${item.startTime}至${item.endTime}`
+								// dateRange:`${item.startDate}至${item.endDate}`
 							});
 						} else if (item.authMode === 2) {
 							this.selectedList.push({
@@ -536,10 +548,11 @@ export default {
 								level: 0,
 								hasChildren: true,
 								children: [],
-								// dateRange:`${item.startTime}至${item.endTime}`
+								// dateRange:`${item.startDate}至${item.endDate}`
 							});
 						}
 					});
+					console.log('已有权限数据:', this.selectedList)
 					// 同步左侧勾选状态
 					this.$nextTick(() => {
 						this.syncLeftSelection();
@@ -670,9 +683,9 @@ export default {
 					stationNo: item.stationNo,
 					code: item.code,
 					name: item.name,
-					timePeriodId: item.timePeriodId,
-					startTime: item.startTime,
-					endTime: item.endTime,
+					timeCode: item.timeCode,
+					startDate: item.startDate,
+					endDate: item.endDate,
 					authSource: item.authSource,
 				})
 			});
@@ -694,7 +707,7 @@ export default {
 		},
 		reset() {
 			this.form = {
-				timePeriodId: 0,
+				timeCode: 0,
 				dateRange: '',
 				selectedLine: '',
 				selectedStation: [],
@@ -871,11 +884,7 @@ export default {
 			}
 		}
 	}
-
-  
 }
-
-// 保持原有其他样式
 .leaf-node {
   color: #999;
   cursor: not-allowed;
