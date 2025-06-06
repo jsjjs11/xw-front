@@ -11,7 +11,7 @@
           <el-input
             type="textarea"
             :rows="3"
-            v-model="currentAudit.remark"
+            v-model="currentAudit.reviewOpinion"
             placeholder="请输入审核意见"></el-input>
         </el-form-item>
       </el-form>
@@ -61,16 +61,16 @@ export default {
       //   ]
       // },
       currentAudit: {
-        remark: '',
+        reviewOpinion: '',
       },
       params:{
         id: 0,
         idCard: "",
         authNo: "",
         reviewState: 0,
-        reviewContent: "",
+        reviewOpinion: "",
         leaderUserId: "",
-        remark: ""
+        reviewOpinion: ""
       },
 		}
 	},
@@ -81,7 +81,7 @@ export default {
       this.params.idCard = data.idCard;
       this.params.authNo = data.authNo;
       this.params.reviewState = data.reviewState;
-      this.params.reviewContent = data.reviewContent;
+      this.params.reviewOpinion = data.reviewOpinion;
       const userId = this.$store.getters.userId;
       this.params.leaderUserId = userId;
       console.log(this.params)
@@ -94,7 +94,7 @@ export default {
       this.$confirm('确认通过该申请吗？', '提示', {
         type: 'warning'
       }).then(async () => {
-        this.params.remark = this.currentAudit.remark;
+        this.params.reviewOpinion = this.currentAudit.reviewOpinion;
         try {
           this.params.reviewState = 1;
           await CheckApi.reviewCheck(this.params)
@@ -114,7 +114,7 @@ export default {
       this.$confirm('确认驳回该申请吗？', '提示', {
         type: 'warning'
       }).then(async () => {
-        this.params.remark = this.currentAudit.remark;
+        this.params.reviewOpinion = this.currentAudit.reviewOpinion;
         try {
           this.params.reviewState = 2;
           await CheckApi.reviewCheck(this.params);

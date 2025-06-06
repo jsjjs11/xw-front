@@ -37,7 +37,6 @@
 				<el-table-column type="selection" width="45" align="center" :reserve-selection="true"></el-table-column>
 				<el-table-column type="index" width="40" align="center" />
 				<el-table-column label="审核单号" align="center" prop="authNo"></el-table-column>
-				<el-table-column label="审核内容" align="center" prop="reviewContent"></el-table-column>
 				<el-table-column label="发起时间" align="center" prop="createTime"></el-table-column>
 				<!-- <el-table-column label="发起人" align="center" prop="checkUser"></el-table-column> -->
 				<el-table-column label="审核状态" align="center" prop="reviewState">
@@ -46,6 +45,7 @@
 					</template>
 				</el-table-column>
 				<el-table-column label="负责人" align="center" prop="leaderUserName"></el-table-column>
+				<el-table-column label="审核意见" align="center" prop="reviewOpinion"></el-table-column>
 				<el-table-column label="操作" align="center" width="250">
 					<template slot-scope="scope">
 						<el-button type="text" @click.stop="handleView(scope.row)"
