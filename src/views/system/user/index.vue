@@ -422,7 +422,7 @@ import {listSimpleDepts} from "@/api/system/dept";
 import {listSimplePosts} from "@/api/system/post";
 
 import {CommonStatusEnum} from "@/utils/constants";
-import {DICT_TYPE, getDictDatas} from "@/utils/dict";
+import {DICT_TYPE, getDictDatas, getLineDatas} from "@/utils/dict";
 import {assignUserRole, listUserRoles} from "@/api/system/permission";
 import {listSimpleRoles} from "@/api/system/role";
 import {getBaseHeader} from "@/utils/request";
@@ -572,6 +572,7 @@ export default {
       isViewMode: false,
       selectedRows: [],      // 多选时的选中行
       imageUrl: '',
+      lineMap: getLineDatas(),
     };
   },
   watch: {
@@ -835,10 +836,29 @@ export default {
         this.$message.error('请先选择两个以上用户')
         return
       }
-      
       const idCards = this.selectedRows.map(item => item.idCard)
+      const cardsInfo = await CardsApi.getLineInfo(idCards);
+      let lineInfo = [];
+      if (cardsInfo.data.length < idCards.length) {
+        this.$modal.msgError('存在未开卡的用户，请开卡后再进行权限管理');
+        return;
+      } else {
+        const allLineNos = this.lineMap.map(line => line.lineNo);
+        cardsInfo.data.forEach(item => {
+          if (item.cardSource === 0) {
+            // 取差集：allLineNos中有但userLineNos中没有的
+            const diff = item.lineInfo ? allLineNos.filter(lineNo => !item.lineInfo.includes(lineNo)) : allLineNos;
+            // 如果是第一个项目，直接赋值；否则取交集
+            lineInfo = lineInfo.length === 0 ? diff : lineInfo.filter(x => diff.includes(x));
+          } else if (item.cardSource === 1) {
+            // 直接取交集
+            lineInfo = lineInfo.length === 0 ? item.lineInfo : lineInfo.filter(x => item.lineInfo.includes(x));
+          }
+        });
+      }
+      
       // 检查用户卡片是否激活
-      const isCardActive = await CardApi.isCardActive(idCards);
+      const isCardActive = await CardsApi.isCardActive(idCards);
       if( !isCardActive.data) {
         this.$modal.msgError('存在未激活的门禁卡，请激活后再进行权限管理');
         return;
@@ -846,13 +866,18 @@ export default {
       // 检查是否有未审核权限
       const response = await AuthorizationApi.checkApply(idCards);
       if (response.data.length > 0) {
-        const resultString = response.data.join('、');
+        let resultString = '';
+        response.data.forEach(item => {
+          resultString += item.employeeName + '、';
+        })
+        resultString = resultString.substring(0, resultString.length - 1);
         this.$modal.msgError(resultString + '存在未审核的权限申请，请等待管理员审核');
         return;
       }
+      
       // const CardTotal = await CardsApi.getCards(idCards[0]);
       // console.log(CardTotal);
-      this.$refs["authorizeDrawerRef"].showAuthDialog(idCards, this.total);
+      this.$refs["authorizeDrawerRef"].showAuthDialog(idCards, lineInfo);
     },
     async handleAuthorize(row){
       // 统一获取选中行数据

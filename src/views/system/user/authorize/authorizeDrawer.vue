@@ -507,10 +507,10 @@ export default {
 			return this.lineInfo.includes(lineNo);
 		},
 		/** 显示授权弹窗 */
-    async showAuthDialog(data, total, lineInfo) {
+    async showAuthDialog(data, lineInfo) {
       this.drawerVisible = true;
 			this.AuthorizeForm.idCard = Array.isArray(data) ? data : [data];
-			this.existAuth = total;
+			
 			this.lineInfo = lineInfo;
 			if(this.lineList.length>1){
 				const enabledLine = this.lineList.find(line => this.isLineEnable(line.lineNo));
