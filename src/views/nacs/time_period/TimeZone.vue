@@ -161,13 +161,18 @@ export default {
 		},
 		// 添加时间段
     addTimeRange() {
-      this.timeForm.timeRanges.push({
-				weekdays:[],
-        startTime: '',
-        endTime: '',
-      });
-			this.checkAll.push(false);
-			this.isIndeterminate.push(false);
+		// 如果时间范围大于5则不能添加
+		if (this.timeForm.timeRanges.length >= 5) {
+			this.$message.warning('最多只能创建5个时区');
+			return;
+		}
+      	this.timeForm.timeRanges.push({
+			weekdays:[],
+        	startTime: '',
+        	endTime: '',
+        });
+		this.checkAll.push(false);
+		this.isIndeterminate.push(false);
     },
 
     // 删除时间段
