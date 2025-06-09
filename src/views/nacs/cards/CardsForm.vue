@@ -52,6 +52,11 @@
               </el-select>
             </el-form-item>
           </el-col>
+          <el-col :span="24">
+            <el-form-item label="键盘密码" prop="keyPass">
+              <el-input v-model="formData.keyPass" placeholder="请输入键盘密码" class="input-width" type="password" show-password/>
+            </el-form-item>
+          </el-col>
 <!--          <el-col :span="24">-->
 <!--            <el-form-item label="卡状态" prop="cardState">-->
 <!--              <el-select v-model="formData.cardState" placeholder="请选择卡状态" class="input-width">-->
@@ -128,6 +133,7 @@ import { parseTime} from "@/utils/ruoyi";
           idCard: undefined,
           cardType: undefined,
           cardState: undefined,
+          keyPass: undefined,
           startDate: undefined,
           endDate: undefined,
         },
@@ -140,6 +146,7 @@ import { parseTime} from "@/utils/ruoyi";
           employeeName: [{ required: true, message: '持卡人姓名不能为空', trigger: 'blur' }],
           idCard: [{ required: true, message: '持卡人身份证号不能为空', trigger: 'blur' }],
           cardType: [{ required: true, message: '卡类型不能为空', trigger: 'change' }],
+          keyPass: [{ required: true, message: '键盘密码不能为空', trigger: 'blur' }],
           startDate: [{ required: true, message: '有效时间不能为空', trigger: 'blur' }],
           endDate: [{ required: true, message: '失效时间不能为空', trigger: 'blur' }],
         },
@@ -224,6 +231,7 @@ import { parseTime} from "@/utils/ruoyi";
           idCard: undefined,
           cardType: undefined,
           cardState: undefined,
+          keyPass: undefined,
           startDate: undefined,
           endDate: undefined,
         };

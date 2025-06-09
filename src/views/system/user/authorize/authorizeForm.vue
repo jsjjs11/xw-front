@@ -308,7 +308,7 @@ export default {
               lineInfo = allLineNos.filter(lineNo => !userLineNos.includes(lineNo));
             }
           }
-          this.$refs["authorizeDrawerRef"].showAuthDialog(this.queryParams.idCard, this.total, lineInfo);
+          this.$refs["authorizeDrawerRef"].showAuthDialog(this.queryParams.idCard, lineInfo);
         } else {
           this.$modal.msgError('该用户存在未审核的权限申请，请等待管理员审核');
         }

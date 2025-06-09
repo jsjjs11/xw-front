@@ -67,15 +67,16 @@
 												:load = "loadAuthList"
 												ref= "authTable"
 												@select="handleLeftSelect"
-												@select-all="handleLeftSelectAll">
+												@select-all="handleLeftSelectAll"
+												class="left-table">
 												<el-table-column type="selection" width="60" :selectable="checkSelectable"></el-table-column>
 												<!-- <el-table-column type="index" width="60"></el-table-column> -->
-												<el-table-column label="权限名称" prop="label" width="calc(100% - 240px)" header-align="center">
+												<el-table-column label="权限名称" prop="label" width="calc(100% - 180px)" header-align="center">
 													<template #default="{row}">
-														<span :class="{ 'leaf-node': row.isLeaf }">{{ row.label }}</span>
+														<span :class="{ 'leaf-node': row.isLeaf }" style="text-align: left;">{{ row.label }}</span>
 													</template>
 												</el-table-column>
-												<el-table-column label="权限模式" prop="authMode" width="160" header-align="center">
+												<el-table-column label="权限模式" prop="authMode" width="120" align="center">
 													<template v-slot="scope">
 														<dict-tag :type="DICT_TYPE.NACS_AUTH_MODE" :value="scope.row.authMode" />
 													</template>
@@ -96,16 +97,21 @@
 												row-key = "key"
 												:tree-props = "{ children: 'children', hasChildren: 'hasChildren' }"
 												lazy
-												:load = "loadAuthList">
+												:load = "loadAuthList"
+												class="right-table">
 												<!-- <el-table-column type="index" width="50"></el-table-column> -->
-												<el-table-column prop="label" label="权限名称" width="calc(100% - 460px)" header-align="center"></el-table-column>
-												<el-table-column label="授权时区" prop="timeCode" width="120" header-align="center">
+												<el-table-column prop="label" label="权限名称" width="calc(100% - 460px)" header-align="center">
+													<template #default="{row}">
+														<span style="text-align: left; ">{{ row.label }}</span>
+													</template>
+												</el-table-column>
+												<el-table-column label="授权时区" prop="timeCode" width="120" align="center">
 													<template #default="{row}">
 															{{ getTimeZoneLabel(row.timeCode) }}
 													</template>
 												</el-table-column>
-												<el-table-column label="授权周期" prop="dateRange" width="200" header-align="center"></el-table-column>
-												<el-table-column label="操作" width="140" header-align="center">
+												<el-table-column label="授权周期" prop="dateRange" width="200" align="center"></el-table-column>
+												<el-table-column label="操作" width="140" align="center">
 													<template #default="{row}">
 														<el-button type="text" v-if="!row.isLeaf" @click="moveToLeft(row)">移除</el-button>
 														<el-button type="text" v-if="!row.isLeaf" @click="handleEdit(row)">编辑</el-button>
@@ -507,10 +513,10 @@ export default {
 			return this.lineInfo.includes(lineNo);
 		},
 		/** 显示授权弹窗 */
-    async showAuthDialog(data, total, lineInfo) {
+    async showAuthDialog(data, lineInfo) {
       this.drawerVisible = true;
 			this.AuthorizeForm.idCard = Array.isArray(data) ? data : [data];
-			this.existAuth = total;
+			
 			this.lineInfo = lineInfo;
 			if(this.lineList.length>1){
 				const enabledLine = this.lineList.find(line => this.isLineEnable(line.lineNo));
@@ -518,50 +524,53 @@ export default {
 			}
 			this.onLineChange(); // 默认载入第一条线路的站点
 			this.selectedList = [];
-			try {
-				const res = await AuthorizationApi.getCardPermissionsList(this.AuthorizeForm.idCard)
-				if(res.data && res.data.length > 0) {
-					// 处理返回的权限数据
-					res.data.forEach(item => {
-						const key = `${item.lineNo}-${item.authMode}-${item.code}`;
-						// const name = item.groupName ? item.groupName : item.deviceName;
-						if (item.authMode === 1) {
-							this.selectedList.push({
-								...item,
-								authMode: item.authMode,
-								key: key,
-								label: item.name,
-								lineNo: item.lineNo, // 标记所属线路
-								stationNo: item.stationNo, // 标记所属车站
-								isleaf: false,
-								// dateRange:`${item.startDate}至${item.endDate}`
-							});
-						} else if (item.authMode === 2) {
-							this.selectedList.push({
-								...item,
-								authMode: item.authMode,
-								key: key,
-								label: item.name,
-								lineNo: item.lineNo, // 标记所属线路
-								stationNo: item.stationNo, // 标记所属车站
-								isleaf: false,
-								level: 0,
-								hasChildren: true,
-								children: [],
-								// dateRange:`${item.startDate}至${item.endDate}`
-							});
-						}
-					});
-					console.log('已有权限数据:', this.selectedList)
-					// 同步左侧勾选状态
-					this.$nextTick(() => {
-						this.syncLeftSelection();
-					});
+			if (this.AuthorizeForm.idCard.length === 1) {
+				try {
+					const res = await AuthorizationApi.getCardPermissionsList(this.AuthorizeForm.idCard)
+					if(res.data && res.data.length > 0) {
+						// 处理返回的权限数据
+						res.data.forEach(item => {
+							const key = `${item.lineNo}-${item.authMode}-${item.code}`;
+							// const name = item.groupName ? item.groupName : item.deviceName;
+							if (item.authMode === 1) {
+								this.selectedList.push({
+									...item,
+									authMode: item.authMode,
+									key: key,
+									label: item.name,
+									lineNo: item.lineNo, // 标记所属线路
+									stationNo: item.stationNo, // 标记所属车站
+									isleaf: false,
+									// dateRange:`${item.startDate}至${item.endDate}`
+								});
+							} else if (item.authMode === 2) {
+								this.selectedList.push({
+									...item,
+									authMode: item.authMode,
+									key: key,
+									label: item.name,
+									lineNo: item.lineNo, // 标记所属线路
+									stationNo: item.stationNo, // 标记所属车站
+									isleaf: false,
+									level: 0,
+									hasChildren: true,
+									children: [],
+									// dateRange:`${item.startDate}至${item.endDate}`
+								});
+							}
+						});
+						console.log('已有权限数据:', this.selectedList)
+						// 同步左侧勾选状态
+						this.$nextTick(() => {
+							this.syncLeftSelection();
+						});
+					}
+				} catch(error) {
+					console.log(error)
+					this.$message.error('获取用户授权信息失败');
 				}
-			} catch(error) {
-				console.log(error)
-				this.$message.error('获取用户授权信息失败');
 			}
+			
     },
 		/** 关闭授权弹窗 */
     handleClose() {
@@ -966,5 +975,35 @@ export default {
   .cell {
     font-size: 14px;
   }
+	.el-table__body {
+		tr > td:first-child {  // 第一列是权限名称列
+			.cell {
+				display: flex !important;
+				justify-content: flex-start !important;
+				text-align: left !important;
+				padding-left: 10px;
+				> span {
+					display: inline-block;
+					text-align: left;
+				}
+			}
+		}
+	}
+}
+::v-deep .left-table {
+	.el-table__body {
+		tr > td:nth-child(2) {  // 第二列是权限名称列
+			.cell {
+				display: flex !important;
+				justify-content: flex-start !important;
+				text-align: left !important;
+				padding-left: 10px;
+				> span {
+					display: inline-block;
+					text-align: left;
+				}
+			}
+		}
+	}
 }
 </style>
