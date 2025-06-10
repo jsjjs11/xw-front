@@ -142,6 +142,7 @@ import * as groupsApi from "@/api/nacs/d_groups/index";
 import authTimeEditForm from "@/views/system/user/authorize/authTimeEditForm";
 import authTimeToLine from "@/views/system/user/authorize/authTimeToLine"
 import ChoosePermissionSetForm from "@/views/system/user/authorize/ChoosePermissionSetForm";
+import * as deptAuthApi from '@/api/nacs/department_auth';
 export default {
 	name: 'AuthorizeDrawer',
 	components: {
@@ -161,6 +162,7 @@ export default {
 			loading: true,
 			AuthorizeForm:{
         idCard: [],
+				deptId: [],
         authItems: undefined,
       },
 			drawerVisible: false,
@@ -232,7 +234,7 @@ export default {
 					startDate: startDate,
 					endDate: endDate,
 					dateRange: `${startDate}至${endDate}`,
-					authSource: 0,
+					// authSource: 0,
 				});
 			} else {
 				// 从右侧表格移除
@@ -279,7 +281,7 @@ export default {
 							startDate: startDate,
 							endDate: endDate,
 							dateRange: `${startDate}至${endDate}`,
-							authSource: 0,
+							// authSource: 0,
 						});
 					}
 				});
@@ -433,7 +435,7 @@ export default {
 								startDate: startDate,
 								endDate: endDate,
 								dateRange: `${startDate}至${endDate}`,
-								authSource: 0,
+								// authSource: 0,
 								isleaf: false,
 							})
 						} else if (item.authMode === 2) {
@@ -446,7 +448,7 @@ export default {
 								startDate: startDate,
 								endDate: endDate,
 								dateRange: `${startDate}至${endDate}`,
-								authSource: 0,
+								// authSource: 0,
 								isleaf: false,
 								level: 0,
 								hasChildren: true,
@@ -513,10 +515,11 @@ export default {
 			return this.lineInfo.includes(lineNo);
 		},
 		/** 显示授权弹窗 */
-    async showAuthDialog(data, lineInfo) {
+    async showAuthDialog(data, deptId, lineInfo) {
       this.drawerVisible = true;
 			this.AuthorizeForm.idCard = Array.isArray(data) ? data : [data];
-			
+			this.AuthorizeForm.deptId = deptId;
+			console.log(this.AuthorizeForm.deptId)
 			this.lineInfo = lineInfo;
 			if(this.lineList.length>1){
 				const enabledLine = this.lineList.find(line => this.isLineEnable(line.lineNo));
@@ -526,52 +529,61 @@ export default {
 			this.selectedList = [];
 			if (this.AuthorizeForm.idCard.length === 1) {
 				try {
-					const res = await AuthorizationApi.getCardPermissionsList(this.AuthorizeForm.idCard)
-					if(res.data && res.data.length > 0) {
-						// 处理返回的权限数据
-						res.data.forEach(item => {
-							const key = `${item.lineNo}-${item.authMode}-${item.code}`;
-							// const name = item.groupName ? item.groupName : item.deviceName;
-							if (item.authMode === 1) {
-								this.selectedList.push({
-									...item,
-									authMode: item.authMode,
-									key: key,
-									label: item.name,
-									lineNo: item.lineNo, // 标记所属线路
-									stationNo: item.stationNo, // 标记所属车站
-									isleaf: false,
-									// dateRange:`${item.startDate}至${item.endDate}`
-								});
-							} else if (item.authMode === 2) {
-								this.selectedList.push({
-									...item,
-									authMode: item.authMode,
-									key: key,
-									label: item.name,
-									lineNo: item.lineNo, // 标记所属线路
-									stationNo: item.stationNo, // 标记所属车站
-									isleaf: false,
-									level: 0,
-									hasChildren: true,
-									children: [],
-									// dateRange:`${item.startDate}至${item.endDate}`
-								});
-							}
-						});
-						console.log('已有权限数据:', this.selectedList)
-						// 同步左侧勾选状态
-						this.$nextTick(() => {
-							this.syncLeftSelection();
-						});
-					}
+					const res = await AuthorizationApi.getCardPermissionsList(this.AuthorizeForm.idCard);
+					await this.handlePermissionData(res.data);
 				} catch(error) {
-					console.log(error)
+					console.log(error);
 					this.$message.error('获取用户授权信息失败');
 				}
+			} else if (this.AuthorizeForm.idCard.length === 0 && this.AuthorizeForm.deptId) {
+				try {
+					const res = await deptAuthApi.getdeptPermission(this.AuthorizeForm.deptId);
+					await this.handlePermissionData(res.data);
+				} catch(error) {
+					console.log(error);
+					this.$message.error('获取部门授权信息失败');
+				}
 			}
-			
     },
+		handlePermissionData(data) {
+			if (data && data.length > 0) {
+				data.forEach(item => {
+					const key = `${item.lineNo}-${item.authMode}-${item.code}`;
+					const permissionItem = {
+						...item,
+						authMode: item.authMode,
+						key: key,
+						label: item.name,
+						lineNo: item.lineNo,
+						stationNo: item.stationNo,
+						isleaf: false,
+						dateRange: `${this.formatDateFromArray(item.startDate)}至${this.formatDateFromArray(item.endDate)}`,
+						timeCode: Number(item.timeCode),
+					};
+					
+					if (item.authMode === 2) {
+						permissionItem.level = 0;
+						permissionItem.hasChildren = true;
+						permissionItem.children = [];
+					}
+					
+					this.selectedList.push(permissionItem);
+				});
+				
+				console.log('已有权限数据:', this.selectedList);
+				this.$nextTick(() => {
+					this.syncLeftSelection();
+				});
+			}
+		},
+		formatDateFromArray(dateArray) {
+			// 确保月份和日期是两位数
+			const year = dateArray[0];
+			const month = String(dateArray[1]).padStart(2, '0');
+			const day = String(dateArray[2]).padStart(2, '0');
+			
+			return `${year}-${month}-${day}`;
+		},
 		/** 关闭授权弹窗 */
     handleClose() {
       this.drawerVisible = false;
@@ -681,8 +693,6 @@ export default {
 			// 		return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
 			// 	})
 			// 	.join(',');
-			
-			// 按authMode分类门禁项
 			const authItems = [];
 
 			this.selectedList.forEach(item => {
@@ -695,15 +705,37 @@ export default {
 					timeCode: item.timeCode,
 					startDate: item.startDate,
 					endDate: item.endDate,
-					authSource: item.authSource,
+					authSource: this.AuthorizeForm.deptId ? 1 : 0,
 				})
 			});
-			const params = {
-				idCards: this.AuthorizeForm.idCard,
-				authItems,
-			};
+			let params;
+			if (this.AuthorizeForm.deptId && this.AuthorizeForm.idCard.length === 0) {
+				params = {
+					deptIds: this.AuthorizeForm.deptId,
+					authItems,
+				}
+			} else {
+				params = {
+					idCards: this.AuthorizeForm.idCard,
+					authItems,
+				}
+			}
+			// const params = {
+			// 	idCards: this.AuthorizeForm.idCard,
+			// 	authItems,
+			// };
 			console.log('提交授权参数:', params);
-			// if (this.existAuth === 0) {
+			if (this.AuthorizeForm.deptId && this.AuthorizeForm.idCard.length === 0) {
+				try {
+					await deptAuthApi.createdeptPermission(params);
+					this.$message.success('授权成功');
+					this.reset();
+					this.drawerVisible = false;
+				} catch (error) {
+					console.log('授权失败:', error);
+					this.$message.error('授权失败');
+				}
+			} else {
 				try {
 					await AuthorizationApi.createCardPermissionsList(params);
 					this.$message.success('授权成功');
@@ -713,6 +745,7 @@ export default {
 					console.log('授权失败:', error);
 					this.$message.error('授权失败');
 				}
+			}
 		},
 		reset() {
 			this.form = {

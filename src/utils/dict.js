@@ -96,6 +96,7 @@ export const DICT_TYPE = {
   NACS_ACCESS_TYPE:"nacs_access_type",                    //门禁访问类型
   NACS_CHECK_STATE:"nacs_check_state",                    //审核状态
   NACS_DATA_SOURCE: 'nacs_data_source',                   //数据来源
+  NACS_AUTH_CATE: 'nacs_auth_cate',                       //授权类别
   // ......
 
 

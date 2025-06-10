@@ -1,16 +1,16 @@
 <template>
   <div>
     <el-dialog :title="title" :visible.sync="visible" width="900px">
-      <el-form ref="formRef" :model="formData" :rules="rules" :inline="true" label-position="left">
+      <el-form ref="formRef" :model="queryParams" :rules="rules" :inline="true" label-position="left">
         <!-- 权限组名称 -->
         <el-form-item label="权限名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入权限名称" style="width: 200px" />
+          <el-input v-model="queryParams.name" placeholder="请输入权限名称" style="width: 200px" />
         </el-form-item>
 
         <!-- 权限类型 -->
-        <el-form-item label="权限类型" prop="authType">
-          <el-select v-model="formData.authType" placeholder="请选择权限类型" clearable style="width: 200px">
-            <el-option v-for="dict in authTypeOptions" :key="dict.value" :label="dict.label" :value="dict.value" />
+        <el-form-item label="权限模式" prop="authMode">
+          <el-select v-model="queryParams.authMode" placeholder="请选择权限模式" clearable style="width: 200px">
+            <el-option v-for="dict in authModeOptions" :key="dict.value" :label="dict.label" :value="dict.value" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -27,7 +27,7 @@
       <!-- 权限列表表格 -->
       <el-table :data="tableData" style="width: 100%; margin-top: 20px;">
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="lineName" label="线路名称" align="center" width="150"/>
+        <el-table-column prop="lineName" label="线路名称" align="center" width="100"/>
         <el-table-column prop="name" label="权限名称" align="center" width="230">
           <template v-slot="scope">
             <el-link
@@ -40,9 +40,9 @@
             <span v-else>{{ scope.row.name }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="authType" label="权限类型" align="center">
+        <el-table-column prop="authCate" label="权限类别" align="center">
           <template v-slot="scope">
-            <dict-tag :type="DICT_TYPE.NACS_AUTH_TYPE" :value="scope.row.authType" />
+            <dict-tag :type="DICT_TYPE.NACS_AUTH_CATE" :value="scope.row.authCate" />
           </template>
         </el-table-column>
         <el-table-column prop="authMode" label="权限模式" align="center">
@@ -91,19 +91,19 @@ export default {
       // 表单数据
       formData: {
         name: '',
-        authType: undefined
+        authMode: undefined
       },
       // 表单校验规则
       rules: {
-        groupName: [
-          { required: true, message: '权限组名称不能为空', trigger: 'blur' }
-        ],
-        authType: [
-          { required: true, message: '请选择权限类型', trigger: 'change' }
-        ]
+        // name: [
+        //   { required: true, message: '权限组名称不能为空', trigger: 'blur' }
+        // ],
+        // authMode: [
+        //   { required: true, message: '请选择权限类型', trigger: 'change' }
+        // ]
       },
       // 权限类型选项
-      authTypeOptions: getDictDatas(DICT_TYPE.NACS_AUTH_MODE),
+      authModeOptions: getDictDatas(DICT_TYPE.NACS_AUTH_MODE),
       // 表格数据
       tableData: [{
         lineName: '2号线',
@@ -125,6 +125,8 @@ export default {
         pageNo: 1,
         pageSize: 10,
         idCard: undefined,
+        name: undefined,
+        authMode: undefined,
       },
       // 字典定义
       DICT_TYPE,
@@ -170,7 +172,7 @@ export default {
     reset() {
       this.formData = {
         name: '',
-        authType: undefined
+        authMode: undefined
       }
       if (this.$refs.formRef) {
         this.$refs.formRef.resetFields()
@@ -212,7 +214,7 @@ export default {
     /** 重置按钮操作 */
     handleReset() {
       this.formData.name = '';
-      this.formData.authType = undefined;
+      this.formData.authMode = undefined;
       if (this.$refs.formRef) {
         this.$refs.formRef.resetFields();
       }
@@ -308,7 +310,8 @@ export default {
               lineInfo = allLineNos.filter(lineNo => !userLineNos.includes(lineNo));
             }
           }
-          this.$refs["authorizeDrawerRef"].showAuthDialog(this.queryParams.idCard, lineInfo);
+          const deptId = [];
+          this.$refs["authorizeDrawerRef"].showAuthDialog(this.queryParams.idCard, deptId, lineInfo);
         } else {
           this.$modal.msgError('该用户存在未审核的权限申请，请等待管理员审核');
         }
