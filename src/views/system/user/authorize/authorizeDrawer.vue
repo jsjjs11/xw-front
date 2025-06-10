@@ -711,7 +711,7 @@ export default {
 			let params;
 			if (this.AuthorizeForm.deptId && this.AuthorizeForm.idCard.length === 0) {
 				params = {
-					deptIds: this.AuthorizeForm.deptId,
+					deptId: this.AuthorizeForm.deptId,
 					authItems,
 				}
 			} else {
