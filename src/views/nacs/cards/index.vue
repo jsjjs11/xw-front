@@ -72,6 +72,11 @@
       <el-table-column label="持卡人编号ID" align="center" prop="employeeCode" />
       <el-table-column label="持卡人姓名" align="center" prop="employeeName" />
       <el-table-column label="持卡人身份证号" align="center" prop="idCard" />
+      <el-table-column label="卡片来源" align="center" prop="cardSource">
+        <template v-slot="scope">
+          <dict-tag :type="DICT_TYPE.NACS_DATA_SOURCE" :value="scope.row.cardSource" />
+        </template>
+      </el-table-column>
       <el-table-column label="卡类型" align="center" prop="cardType">
         <template v-slot="scope">
           <dict-tag :type="DICT_TYPE.NACS_CARD_TYPE" :value="scope.row.cardType" />

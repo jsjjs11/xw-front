@@ -705,7 +705,7 @@ export default {
 					timeCode: item.timeCode,
 					startDate: item.startDate,
 					endDate: item.endDate,
-					authSource: this.AuthorizeForm.deptId ? 1 : 0,
+					authSource: this.AuthorizeForm.deptId && this.AuthorizeForm.idCard.length === 0 ? 1 : 0,
 				})
 			});
 			let params;
