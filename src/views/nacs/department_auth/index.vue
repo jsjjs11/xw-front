@@ -51,7 +51,7 @@
           <el-button v-if="scope.row.parentId !== 0" size="mini" type="text" icon="el-icon-delete"
             @click="handleDelete(scope.row)" v-hasPermi="['system:dept:delete']">删除</el-button> -->
           <el-button size="mini" type="text" icon="el-icon-s-check"
-            @click="handleAuth(scope.row)">授权</el-button>
+            @click="handleAuth(scope.row)" v-hasPermi="['nacs:dept:auth']">授权</el-button>
         </template>
       </el-table-column>
     </el-table>

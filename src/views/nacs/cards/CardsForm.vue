@@ -146,7 +146,7 @@ import { parseTime} from "@/utils/ruoyi";
           employeeName: [{ required: true, message: '持卡人姓名不能为空', trigger: 'blur' }],
           idCard: [{ required: true, message: '持卡人身份证号不能为空', trigger: 'blur' }],
           cardType: [{ required: true, message: '卡类型不能为空', trigger: 'change' }],
-          keyPass: [{ required: true, message: '键盘密码不能为空', trigger: 'blur' }],
+          // keyPass: [{ required: true, message: '键盘密码不能为空', trigger: 'blur' }],
           startDate: [{ required: true, message: '有效时间不能为空', trigger: 'blur' }],
           endDate: [{ required: true, message: '失效时间不能为空', trigger: 'blur' }],
         },

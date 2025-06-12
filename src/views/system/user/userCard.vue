@@ -3,13 +3,17 @@
     <el-dialog :title="title" :visible.sync="visible" width="1200px" append-to-body @close="close">
       <div class="card-container">
         <template v-if="createDisabled">
-          <el-tooltip content="该用户已有卡，不能再开卡" placement="top">
+          <el-tooltip content="该用户已有线网卡，不能再开卡" placement="top">
             <el-button type="primary" plain icon="el-icon-plus" @click="creatCard" :disabled="createDisabled">开卡</el-button>
           </el-tooltip>
         </template>
         <template v-else>
           <el-button type="primary" plain icon="el-icon-plus" @click="creatCard" :disabled="createDisabled">开卡</el-button>
         </template>
+        <el-button type="text" 
+          v-if="cardList.length > 0" 
+          @click="handleAuthorize" 
+          style="float: right;margin-right:20px">去授权<i class="el-icon-right el-icon--right"></i></el-button>
         <div  class="card-list-container">
           <el-table v-loading="loading" :data="cardList" 
             @expand-change="handleExpandChange" 
@@ -133,6 +137,7 @@
       </div>
     </el-dialog>
     <cards-form ref="cardFormRef" @success="getList" />
+    <authorize-form ref="authorizeFormRef" @success="handleSuccess" />
   </div>
 </template>
 
@@ -140,11 +145,12 @@
 import { getCards, updateCards, freezeCards, activateCards, addBlacklist, reportLost, checkEligibility, getLineCards } from '@/api/nacs/cards'
 import CardsForm from '@/views/nacs/cards/CardsForm.vue'
 import { DICT_TYPE, getLineDatas } from '@/utils/dict'
-import { parseTime } from '@/utils/ruoyi'
+import { parseTime } from '@/utils/ruoyi';
+import AuthorizeForm from './authorize/authorizeForm.vue'
 
 export default {
   name: "UserCard",
-  components: { CardsForm },
+  components: { CardsForm, AuthorizeForm },
   data() {
     return {
       // 遮罩层
@@ -174,6 +180,10 @@ export default {
     }
   },
   methods: {
+    /** 跳转至授权界面 */
+    handleAuthorize(){
+      this.$refs["authorizeFormRef"].show(this.userInfo);
+    },
     /** 开卡 */
     creatCard() {
       if (this.userInfo.id === undefined) {
