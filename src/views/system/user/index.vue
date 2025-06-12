@@ -60,8 +60,8 @@
               v-hasPermi="['system:user:update']">修改</el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-dropdown @command="handleCommand" v-hasPermi="['system:user:authorize']">
-              <el-button size="mini" type="primary" icon="el-icon-s-check">权限授权</el-button>
+            <el-dropdown @command="handleCommand" >
+              <el-button size="mini" type="primary" v-hasPermi="['system:user:authorize']" icon="el-icon-s-check">权限授权</el-button>
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item command="handleAuthorize" size="mini" type="primary">用户权限授权</el-dropdown-item>
                 <el-dropdown-item command="handleAuthorizeByGroup" size="mini" type="primary">用户批量授权</el-dropdown-item>

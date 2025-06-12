@@ -137,7 +137,7 @@
       </div>
     </el-dialog>
     <cards-form ref="cardFormRef" @success="getList" />
-    <authorize-form ref="authorizeFormRef" @success="handleSuccess" />
+    <authorize-form ref="authorizeFormRef" />
   </div>
 </template>
 
