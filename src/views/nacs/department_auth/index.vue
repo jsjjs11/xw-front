@@ -29,7 +29,7 @@
 
     <el-table v-if="refreshTable" v-loading="loading" :data="deptList" row-key="id" :default-expand-all="isExpandAll"
       :tree-props="{children: 'children', hasChildren: 'hasChildren'}" height="calc(100vh - 190px)">
-      <el-table-column prop="name" label="部门名称" width="360"></el-table-column>
+      <el-table-column prop="name" label="部门名称" width="240"></el-table-column>
       <el-table-column prop="leader" label="负责人" :formatter="userNicknameFormat" width="180" />
       <el-table-column prop="sort" label="排序" width="200"></el-table-column>
       <el-table-column prop="status" label="状态" width="120">

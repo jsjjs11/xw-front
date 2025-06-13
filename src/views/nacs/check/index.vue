@@ -61,7 +61,7 @@
 				<el-table-column type="expand" width="1">
 					<template #default="{ row }">
 						<div v-show="activeRow === row.authNo" class="expand-content">
-							<el-table :data="row.detailData" border height="380px">
+							<el-table :data="row.detailData" border height="380px" :row-class-name="tableRowClassName">
 								<el-table-column label="员工姓名" prop="employeeName" align="center"
 									width="180"></el-table-column>
 								<el-table-column label="身份证号" prop="idCard" align="center"
@@ -157,17 +157,17 @@ export default {
         this.loading = false;
       }
     },
-	formatTimestamp(timestamp) {
-		const date = new Date(timestamp);
-		const year = date.getFullYear();
-		const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始需+1
-		const day = String(date.getDate()).padStart(2, '0');
-		const hours = String(date.getHours()).padStart(2, '0');
-		const minutes = String(date.getMinutes()).padStart(2, '0');
-		const seconds = String(date.getSeconds()).padStart(2, '0');
-		return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-	},
-	/** 搜索按钮操作 */
+		formatTimestamp(timestamp) {
+			const date = new Date(timestamp);
+			const year = date.getFullYear();
+			const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始需+1
+			const day = String(date.getDate()).padStart(2, '0');
+			const hours = String(date.getHours()).padStart(2, '0');
+			const minutes = String(date.getMinutes()).padStart(2, '0');
+			const seconds = String(date.getSeconds()).padStart(2, '0');
+			return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+		},
+		/** 搜索按钮操作 */
     handleSearch() {
       this.queryParams.pageNo = 1;
       this.getList();
@@ -186,40 +186,50 @@ export default {
       this.handleSearch();
     },
 		/** 详情按钮操作 */
-	async handleView(row) {
-		try {
-			if (this.activeRow === row.authNo) {
-				this.activeRow = null;
-				return;
-			}
-			this.loading = true;
-			// 调用API获取详情数据
-			const res = await CheckApi.getCheckDetail(row.authNo);
-			// 合并详情数据到当前行
-			this.list = this.list.map(item => {
-				if (item.authNo === row.authNo) {
-					return {
-						...item,
-						detailData: [...res.data]
-					};
+		async handleView(row) {
+			try {
+				if (this.activeRow === row.authNo) {
+					this.activeRow = null;
+					return;
 				}
-				return item;
-			});
-			this.activeRow = row.authNo;
-			this.$nextTick(() => {
-				this.$refs.tableRef.toggleRowExpansion(row, true);
-			})
-		} catch (error) {
-			console.error("获取详情失败", error);
-			this.$modal.msgError("获取详情失败");
-		} finally {
-				this.loading = false;
-		}
-	},
-	/** 审核按钮操作 */
-	handleCheck(row) {
-		this.$refs["formRef"].open(row);
-	},
+				this.loading = true;
+				// 调用API获取详情数据
+				const res = await CheckApi.getCheckDetail(row.authNo);
+				// 合并详情数据到当前行
+				this.list = this.list.map(item => {
+					if (item.authNo === row.authNo) {
+						return {
+							...item,
+							detailData: [...res.data]
+						};
+					}
+					return item;
+				});
+				this.activeRow = row.authNo;
+				this.$nextTick(() => {
+					this.$refs.tableRef.toggleRowExpansion(row, true);
+				})
+			} catch (error) {
+				console.error("获取详情失败", error);
+				this.$modal.msgError("获取详情失败");
+			} finally {
+					this.loading = false;
+			}
+		},
+		/** 审核按钮操作 */
+		handleCheck(row) {
+			this.$refs["formRef"].open(row);
+		},
+		tableRowClassName({row}) {
+			if (row.operateType === 0) {
+				return 'row-add';
+			} else if (row.operateType === 1) {
+				return 'row-update';
+			} else if (row.operateType === 2) {
+				return 'row-delete';
+			}
+			return '';
+    },
 	}
 }
 </script>
@@ -249,4 +259,16 @@ export default {
 ::v-deep .el-table__expanded-cell {
 	padding: 0px !important;
 }
+::v-deep {
+	.row-add {
+		background-color: #f0f9eb !important;  // 新增 - 浅绿色
+	}
+	.row-update {
+		background-color: #fdf6ec !important;  // 修改 - 浅橙色
+	}
+	.row-delete {
+		background-color: #fef0f0 !important;  // 删除 - 浅红色
+	}
+}
+
 </style>

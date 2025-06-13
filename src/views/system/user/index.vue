@@ -14,7 +14,7 @@
         <div class="head-container">
           <el-tree :data="deptOptions" :props="defaultProps" :expand-on-click-node="false"
             :filter-node-method="filterNode" ref="tree" default-expand-all highlight-current
-            @node-click="handleNodeClick" />
+            @node-click="handleNodeClick" style="overflow-y:auto; height: calc(100vh - 160px);"/>
         </div>
       </el-col>
       <!--用户数据-->
@@ -877,7 +877,7 @@ export default {
       
       // const CardTotal = await CardsApi.getCards(idCards[0]);
       // console.log(CardTotal);
-      this.$refs["authorizeDrawerRef"].showAuthDialog(idCards, lineInfo);
+      this.$refs["authorizeDrawerRef"].showAuthDialog(idCards, [], lineInfo);
     },
     async handleAuthorize(row){
       // 统一获取选中行数据

@@ -301,6 +301,7 @@ export default {
         await reportLost(row.id)
         this.$modal.msgSuccess("卡片已挂失")
         await this.getList()
+        await this.loadLineCard()
       } catch (error) {
         if (error !== 'cancel') {
           this.$modal.msgError('挂失失败')
@@ -328,6 +329,7 @@ export default {
         await freezeCards(row.id)
         this.$modal.msgSuccess("卡片已冻结")
         await this.getList()
+        await this.loadLineCard()
       } catch (error) {
         if (error !== 'cancel') {
           this.$modal.msgError('冻结失败')
@@ -357,6 +359,7 @@ export default {
         await addBlacklist(row.id)
         this.$modal.msgSuccess("卡片已加入黑名单")
         await this.getList()
+        await this.loadLineCard()
       } catch (error) {
         if (error !== 'cancel') {
           this.$modal.msgError('加入黑名单失败')
@@ -383,6 +386,7 @@ export default {
         await activateCards(row.id)
         this.$modal.msgSuccess("卡片已恢复正常")
         await this.getList()
+        await this.loadLineCard()
       } catch (error) {
         console.error("恢复操作失败", error)
         if (error !== 'cancel') {
