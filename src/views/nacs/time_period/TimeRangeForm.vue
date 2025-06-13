@@ -17,16 +17,16 @@
 					<el-time-picker
 						v-model="form.startTime"
 						placeholder="开始时间"
-						format="HH:mm:ss"
-    				value-format="HH:mm:ss">
+						format="HH:mm"
+    				value-format="HH:mm">
 					</el-time-picker>
 				</el-form-item>
 				<el-form-item label="结束时间">
 					<el-time-picker
 						v-model="form.endTime"
 						placeholder="结束时间"
-						format="HH:mm:ss"
-    				value-format="HH:mm:ss">
+						format="HH:mm"
+    				value-format="HH:mm">
 					</el-time-picker>
 				</el-form-item>
 			</el-form>

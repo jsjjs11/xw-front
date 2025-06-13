@@ -10,8 +10,15 @@
           <el-input v-model="formData.name" placeholder="请输入线路名称" />
         </el-form-item>
         <el-form-item label="线路颜色" prop="color">
-          <el-color-picker v-model="formData.color" show-alpha :predefine="predefineColors" class="custom-color-picker"></el-color-picker>
+          <el-color-picker v-model="formData.color" show-alpha :predefine="predefineColors"
+            class="custom-color-picker"></el-color-picker>
           <!-- <el-input v-model="formData.color" placeholder="请输入线路颜色" /> -->
+        </el-form-item>
+        <el-form-item label="授权模式" prop="authMode">
+          <el-select v-model="formData.authMode" placeholder="请选择授权模式">
+            <el-option v-for="dict in this.getDictDatas(DICT_TYPE.NACS_AUTH_MODE)" :key="dict.value" :label="dict.label"
+              :value="dict.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="负责人用户ID" prop="leaderUserId">
           <el-input v-model="formData.leaderUserId" placeholder="请输入负责人用户ID" />

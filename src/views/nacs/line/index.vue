@@ -3,19 +3,21 @@
     <!-- 搜索工作栏 -->
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="100px">
       <el-form-item label="线路编号" prop="lineNo">
-        <el-input v-model="queryParams.lineNo" placeholder="请输入线路编号" clearable @keyup.enter.native="handleQuery"/>
+        <el-input v-model="queryParams.lineNo" placeholder="请输入线路编号" clearable @keyup.enter.native="handleQuery" />
       </el-form-item>
       <el-form-item label="线路名称" prop="name">
-        <el-input v-model="queryParams.name" placeholder="请输入线路名称" clearable @keyup.enter.native="handleQuery"/>
+        <el-input v-model="queryParams.name" placeholder="请输入线路名称" clearable @keyup.enter.native="handleQuery" />
       </el-form-item>
-    
+
       <el-form-item label="负责人用户ID" prop="leaderUserId">
-        <el-input v-model="queryParams.leaderUserId" placeholder="请输入负责人用户ID" clearable @keyup.enter.native="handleQuery"/>
+        <el-input v-model="queryParams.leaderUserId" placeholder="请输入负责人用户ID" clearable
+          @keyup.enter.native="handleQuery" />
       </el-form-item>
 
       <el-form-item label="创建时间" prop="createTime">
-        <el-date-picker v-model="queryParams.createTime" style="width: 240px" value-format="yyyy-MM-dd HH:mm:ss" type="daterange"
-                        range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期" :default-time="['00:00:00', '23:59:59']" />
+        <el-date-picker v-model="queryParams.createTime" style="width: 240px" value-format="yyyy-MM-dd HH:mm:ss"
+          type="daterange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期"
+          :default-time="['00:00:00', '23:59:59']" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" @click="handleQuery">搜索</el-button>
@@ -27,31 +29,35 @@
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="openForm(undefined)"
-                   v-hasPermi="['nacs:lines:create']">新增</el-button>
+          v-hasPermi="['nacs:lines:create']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport" :loading="exportLoading"
-                   v-hasPermi="['nacs:lines:export']">导出</el-button>
+        <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport"
+          :loading="exportLoading" v-hasPermi="['nacs:lines:export']">导出</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="list" :stripe="true" :show-overflow-tooltip="true" height="calc(100vh - 260px)">
-      <el-table-column label="主键ID" align="center" prop="id" hidden/>
+    <el-table v-loading="loading" :data="list" :stripe="true" :show-overflow-tooltip="true"
+      height="calc(100vh - 260px)">
+      <el-table-column label="主键ID" align="center" prop="id" hidden />
       <el-table-column label="线路编号" align="center" prop="lineNo" />
       <el-table-column label="线路名称" align="center" prop="name" />
-      <el-table-column label="线路颜色" align="center" prop="color" >
+      <el-table-column label="线路颜色" align="center" prop="color">
         <template v-slot="scope">
-          <el-tag
-            :color=scope.row.color
-           >
+          <el-tag :color=scope.row.color>
           </el-tag>
-
-
-
         </template>
       </el-table-column>
       <el-table-column label="负责人用户ID" align="center" prop="leaderUserId" />
+      <el-table-column label="授权模式" align="center" prop="authMode">
+        <template v-slot="scope">
+          <dict-tag :type="DICT_TYPE.NACS_AUTH_MODE" :value="scope.row.authMode" />
+        </template>
+      </el-table-column>
+      <el-table-column label="默认授权时区" align="center" prop="timeCode">
+        
+      </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
         <template v-slot="scope">
@@ -61,22 +67,23 @@
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template v-slot="scope">
           <el-button size="mini" type="text" icon="el-icon-edit" @click="openForm(scope.row.id)"
-                     v-hasPermi="['nacs:lines:update']">修改</el-button>
+            v-hasPermi="['nacs:lines:update']">修改</el-button>
           <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)"
-                     v-hasPermi="['nacs:lines:delete']">删除</el-button>
+            v-hasPermi="['nacs:lines:delete']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
     <!-- 分页组件 -->
     <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNo" :limit.sync="queryParams.pageSize"
-                @pagination="getList"/>
+      @pagination="getList" />
     <!-- 对话框(添加 / 修改) -->
     <LinesForm ref="formRef" @success="getList" />
-    </div>
+  </div>
 </template>
 
 <script>
 import * as LinesApi from '@/api/nacs/line';
+import * as TimePeriodApi from '@/api/nacs/time_period';
 import LinesForm from './LinesForm.vue';
 export default {
   name: "Lines",
@@ -112,6 +119,7 @@ export default {
         remark: null,
         createTime: [],
       },
+      allTimePeriod: [],
       predefineColors: [
 				'#ff4500',
 				'#ff8c00',
@@ -138,6 +146,8 @@ export default {
     async getList() {
       try {
       this.loading = true;
+      const timePeriod = await TimePeriodApi.getTimePeriodAll();
+      this.allTimePeriod = timePeriod.data;
         const res = await LinesApi.getLinesPage(this.queryParams);
         this.list = res.data.list;
         this.total = res.data.total;

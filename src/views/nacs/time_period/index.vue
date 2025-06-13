@@ -15,17 +15,18 @@
 				</el-radio-group>
 			</el-col>
 			<el-col :span="21" :xs="24" class="content-container">
-				<!-- <el-button type="primary" @click="handleAddTimeZone" icon="el-icon-plus" style="width: 150px;">创建新时区</el-button> -->
 				<div v-if="timeZoneList && timeZoneList.length === 0" class="empty-data">
 					未同步数据
 				</div>
-				<div v-else v-for="(zone, zoneIndex) in timeZoneList" :key="zoneIndex" class="time-period-container">
+        <el-button  v-if="timeZoneList && timeZoneList.length !== 0"  type="primary" @click="handleChangeTimeZone" icon="el-icon-plus" style="width: 150px;">同步修改</el-button>
+
+        <div v-if="timeZoneList && timeZoneList.length !== 0" v-for="(zone, zoneIndex) in timeZoneList" :key="zoneIndex" class="time-period-container">
 					<el-row type="flex" justify="space-between" align="middle" class="time-period-header">
 						<span class="time-period-title">{{ zone.timeName }}</span>
 						<div>
-							<el-button type="text" size="mini" @click="handleZoneDelete">删除</el-button>
+							<!-- <el-button type="text" size="mini" @click="handleZoneDelete">删除</el-button>
 							<el-switch v-model="status" active-color="rgb(12 140 255)"
-								inactive-color="#ff4949"></el-switch>
+								inactive-color="#ff4949"></el-switch> -->
 						</div>
 					</el-row>
 					<el-table :data="zone.timePeriodData" border style="width: 100%">
@@ -44,8 +45,8 @@
 							<template slot-scope="scope">
 								<el-button type="text" size="mini"
 									@click="handleEdit(scope.row, zoneIndex)">修改</el-button>
-								<el-button type="text" size="mini"
-									@click="handleDelete(scope.row, zoneIndex)">删除</el-button>
+								<!-- <el-button type="text" size="mini"
+									@click="handleDelete(scope.row, zoneIndex)">删除</el-button> -->
 							</template>
 						</el-table-column>
 					</el-table>
@@ -76,6 +77,7 @@ export default {
 			lineList: getLineDatas(),
 			week: week,
 			status: true,
+      rawData:null,
 			timeZoneList: [
 			],
 			editingRow: null,
@@ -96,17 +98,18 @@ export default {
 				let resData = await TimePeriodApi.getTimePeriod(this.selectedLine);
 				let res = resData.data
 				// 解析res数组中的每条记录
+                this.rawData = res;
 				res.forEach(record => {
-					
+
 					// 构建时间段数据
 					const timePeriodData = [];
-					
+
 					// 遍历5个可能的时间段
 					for(let i = 1; i <= 5; i++) {
 						const startTime = record[`startTime${i}`];
-						const endTime = record[`endTime${i}`]; 
+						const endTime = record[`endTime${i}`];
 						const weekFlag = record[`weekFlag${i}`];
-						
+
 						// 如果存在开始时间,说明这个时间段有效
 						if(startTime) {
 							// 解析周标识为布尔数组
@@ -120,11 +123,11 @@ export default {
 									weekArray.unshift(false);
 								}
 							}
-							
+
 							timePeriodData.push({
 								timeRanges: [
 									{ status: weekArray[0] }, // 周六
-									{ status: weekArray[1] }, // 周一 
+									{ status: weekArray[1] }, // 周一
 									{ status: weekArray[2] }, // 周二
 									{ status: weekArray[3] }, // 周三
 									{ status: weekArray[4] }, // 周四
@@ -140,13 +143,43 @@ export default {
 					// 构建完整的时区数据
 					this.timeZoneList.push({
 						timeName: record.timeName,
+            id:record.id,
 						timePeriodData: timePeriodData
 					});
 				});
 			}
 		},
-		handleAddTimeZone() {
-			this.$refs["timeZoneRef"].openForm();
+		handleChangeTimeZone() {
+			//遍历timeZoneList 将timeRanges编码成二进制字符串，如果全部为1则将第八位置1 其余位置为0
+			
+			let commitData = []
+			this.timeZoneList.forEach(zone => {
+				//根据id 找到rawData中的对应数据
+				let rawData = this.rawData.find(item => item.id === zone.id);
+				zone.timePeriodData.forEach((timeRange,index) => {
+					rawData[`weekFlag${index+1}`] = this.getBinaryString(timeRange.timeRanges);
+					rawData[`startTime${index+1}`] = timeRange.startTime;
+					rawData[`endTime${index+1}`] = timeRange.endTime;
+				})
+				
+				commitData.push(rawData)
+			});
+			TimePeriodApi.createTimePeriod({ TimePeriod:commitData });
+		},
+		getBinaryString(timeRanges){
+			let count = 0;
+			let binary = timeRanges.map(range => {	
+				if(range.status){
+					count++;
+				}
+				return range.status ? '1' : '0'
+			}).join('');
+			if(count === 7){
+				binary = '1' + '0000000';
+			}else{
+				binary = '0' + binary;
+			}
+			return binary;
 		},
 		handleTimeZoneConfirm(data) {
 			const week = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
@@ -160,7 +193,7 @@ export default {
 					endTime: range.endTime || "23:59:59"
 				};
 			});
-			
+
 			this.timeZoneList.push({
 				timeName: data.name,
 				timePeriodData: timePeriodData
@@ -184,7 +217,7 @@ export default {
 				this.$message({
 					type: 'info',
 					message: '已取消删除'
-				});          
+				});
 			});
 		},
 		handleAdd(zoneIndex) {
@@ -200,8 +233,8 @@ export default {
 			this.timeZoneList[zoneIndex].timePeriodData.push({
 				timeRanges: this.createNewTimeRanges(),
 				week: [...week],
-				startTime: "00:00:00",
-				endTime: "23:59:59",
+				startTime: "00:00",
+				endTime: "23:59",
 			})
 		},
 		createNewTimeRanges() {
@@ -216,7 +249,7 @@ export default {
 		handleTimeRangeConfirm(data) {
 			console.log(data);
 			const zoneIndex = this.editingZoneIndex;
-			const index = this.timeZoneList[zoneIndex].timePeriodData.findIndex(row => 
+			const index = this.timeZoneList[zoneIndex].timePeriodData.findIndex(row =>
 				row.startTime === this.editingRow.startTime && row.endTime === this.editingRow.endTime
 			);
 			if (index !== -1) {
@@ -248,7 +281,7 @@ export default {
 				this.$message({
 					type: 'info',
 					message: '已取消删除'
-				});          
+				});
 			});
 		},
 	}
