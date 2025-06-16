@@ -55,8 +55,11 @@
           <dict-tag :type="DICT_TYPE.NACS_AUTH_MODE" :value="scope.row.authMode" />
         </template>
       </el-table-column>
+      
       <el-table-column label="默认授权时区" align="center" prop="timeCode">
-        
+        <template v-slot="scope">
+          {{ allTimePeriod.find(item => item.lineNo === scope.row.lineNo&&item.timeCode === scope.row.timeCode)?.timeName }}
+        </template>
       </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">

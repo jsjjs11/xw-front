@@ -44,6 +44,7 @@ export default {
 		return {
 			dialogVisible: false,
 			form: {
+        periodDataId:null,
 				weekdays: [],
 				startTime: "",
 				endTime: "",
@@ -56,8 +57,9 @@ export default {
 	methods: {
 		show(row) {
 			const weekdays = row.timeRanges ? row.timeRanges.map((item, index) => (item.status ? this.weekdays[index] : null))
-										.filter(Boolean) : [] 
+										.filter(Boolean) : []
 			this.form = {
+        periodDataId:row.periodDataId,
 				weekdays: weekdays,
 				startTime: row.startTime,
 				endTime: row.endTime,
@@ -108,15 +110,16 @@ export default {
 				this.$message.error('请填写完整的时间范围');
 				return;
 			}
-			
+
 			// 验证开始时间不能晚于结束时间
 			if (this.form.startTime > this.form.endTime) {
 				this.$message.error('开始时间不能晚于结束时间');
 				return;
 			}
-			
+
 			// 构建返回数据
 			const result = {
+        periodDataId:this.form.periodDataId,
 				weekdays: this.form.weekdays,
 				startTime: this.form.startTime,
 				endTime: this.form.endTime,
@@ -124,7 +127,7 @@ export default {
 					status: this.form.weekdays.includes(day)
 				}))
 			};
-			
+
 			// 触发父组件事件
 			this.$emit('confirm', result);
 			this.dialogVisible = false;
