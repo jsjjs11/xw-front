@@ -21,8 +21,8 @@
               :value="parseInt(dict.value)" />
           </el-select>
         </el-form-item>
-        <el-form-item label="默认授权时区" prop="timeCode">
-          <div style="display: flex; align-items: center;">
+        <el-form-item label="默认授权时区" prop="timeCode" v-if="edit">
+          <div style="display: flex; align-items: center;"  >
             <el-select v-model="formData.timeCode" placeholder="请选择默认授权时区">
               <el-option v-for="timeCode in timeCodeList" :key="timeCode.timeCode" :label="timeCode.timeName"
                 :value="timeCode.timeCode" />
@@ -61,6 +61,7 @@ export default {
                   },
   data() {
     return {
+      edit:false,
       // 弹出层标题
       dialogTitle: "",
       // 是否显示弹出层
@@ -111,6 +112,7 @@ export default {
       // 修改时，设置数据
       if (id) {
         this.formLoading = true;
+        this.edit = true;
         try {
         
           const res = await LinesApi.getLines(id);
@@ -122,8 +124,11 @@ export default {
         } finally {
           this.formLoading = false;
         }
+      }else{
+        this.edit = false;
+        this.title = "新增线路信息";
       }
-      this.title = "新增线路信息";
+      
     },
     /** 提交按钮 */
     async submitForm() {
