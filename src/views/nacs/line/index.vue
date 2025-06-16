@@ -40,7 +40,6 @@
 
     <el-table v-loading="loading" :data="list" :stripe="true" :show-overflow-tooltip="true"
       height="calc(100vh - 260px)">
-      <el-table-column label="主键ID" align="center" prop="id" hidden />
       <el-table-column label="线路编号" align="center" prop="lineNo" />
       <el-table-column label="线路名称" align="center" prop="name" />
       <el-table-column label="线路颜色" align="center" prop="color">
@@ -49,15 +48,20 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="负责人用户ID" align="center" prop="leaderUserId" />
+
       <el-table-column label="授权模式" align="center" prop="authMode">
         <template v-slot="scope">
           <dict-tag :type="DICT_TYPE.NACS_AUTH_MODE" :value="scope.row.authMode" />
         </template>
       </el-table-column>
+
       <el-table-column label="默认授权时区" align="center" prop="timeCode">
-        
+        <template v-slot="scope">
+          {{ allTimePeriod.find(item => item.lineNo === scope.row.lineNo&&item.timeCode ===
+          scope.row.timeCode)?.timeName }}
+        </template>
       </el-table-column>
+      <el-table-column label="负责人用户ID" align="center" prop="leaderUserId" />
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
         <template v-slot="scope">

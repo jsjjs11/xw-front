@@ -5,7 +5,7 @@
  * @Author: ym
  * @Date: 2025-04-15 16:22:46
  * @LastEditors: ym
- * @LastEditTime: 2025-06-13 15:52:42
+ * @LastEditTime: 2025-06-16 15:14:07
  */
 import request from '@/utils/request'
 
@@ -18,7 +18,7 @@ export function getTimePeriod(lineNo) {
 }
 export function getTimePeriodAll() {
   return request({
-    url: '/nacs/time-rule/list-all-simple1',
+    url: '/nacs/time-rule/get-all-time-rule',
     method: 'get'
   })
 }

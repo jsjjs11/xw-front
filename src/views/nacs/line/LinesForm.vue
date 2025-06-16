@@ -16,10 +16,27 @@
         </el-form-item>
         <el-form-item label="授权模式" prop="authMode">
           <el-select v-model="formData.authMode" placeholder="请选择授权模式">
+
             <el-option v-for="dict in this.getDictDatas(DICT_TYPE.NACS_AUTH_MODE)" :key="dict.value" :label="dict.label"
-              :value="dict.value" />
+              :value="parseInt(dict.value)" />
           </el-select>
         </el-form-item>
+        <el-form-item label="默认授权时区" prop="timeCode" v-if="edit">
+          <div style="display: flex; align-items: center;"  >
+            <el-select v-model="formData.timeCode" placeholder="请选择默认授权时区">
+              <el-option v-for="timeCode in timeCodeList" :key="timeCode.timeCode" :label="timeCode.timeName"
+                :value="timeCode.timeCode" />
+            </el-select>
+            <span v-if="!timeCodeList.length" style="color: red; margin-left: 10px;">未同步时区</span>
+          </div>
+        </el-form-item>
+        <!-- <el-form-item label="默认授权时区" prop="timeCode">
+          <el-select v-model="formData.timeCode" placeholder="请选择默认授权时区">
+
+            <el-option v-for="timeCode in timeCodeList" :key="timeCode.timeCode" :label="timeCode.timeName"
+              :value="timeCode.timeCode" />
+          </el-select>
+        </el-form-item> -->
         <el-form-item label="负责人用户ID" prop="leaderUserId">
           <el-input v-model="formData.leaderUserId" placeholder="请输入负责人用户ID" />
         </el-form-item>
@@ -36,6 +53,7 @@
 </template>
 
 <script>
+import * as TimePeriodApi from '@/api/nacs/time_period';
 import * as LinesApi from '@/api/nacs/line';
 export default {
   name: "LinesForm",
@@ -43,6 +61,7 @@ export default {
                   },
   data() {
     return {
+      edit:false,
       // 弹出层标题
       dialogTitle: "",
       // 是否显示弹出层
@@ -50,13 +69,16 @@ export default {
       // 表单的加载中：1）修改时的数据加载；2）提交的按钮禁用
       formLoading: false,
       // 表单参数
+      timeCodeList:[],
       formData: {
         id: undefined,
+        authMode:"0",
         lineNo: undefined,
         name: undefined,
         color: undefined,
         leaderUserId: undefined,
         remark: undefined,
+        timeCode:undefined,
       },
       // 表单校验
       formRules: {
@@ -90,15 +112,23 @@ export default {
       // 修改时，设置数据
       if (id) {
         this.formLoading = true;
+        this.edit = true;
         try {
+        
           const res = await LinesApi.getLines(id);
+
           this.formData = res.data;
+          let resData = await TimePeriodApi.getTimePeriod(this.formData.lineNo);
+          this.timeCodeList = resData.data
           this.title = "修改线路信息";
         } finally {
           this.formLoading = false;
         }
+      }else{
+        this.edit = false;
+        this.title = "新增线路信息";
       }
-      this.title = "新增线路信息";
+      
     },
     /** 提交按钮 */
     async submitForm() {
@@ -133,6 +163,7 @@ export default {
         color: undefined,
         leaderUserId: undefined,
         remark: undefined,
+        authMode:undefined
       };
       this.resetForm("formRef");
     }

@@ -125,6 +125,7 @@ export default {
 							}
 
 							timePeriodData.push({
+                periodDataId:i,
 								timeRanges: [
 									{ status: weekArray[0] }, // 周六
 									{ status: weekArray[1] }, // 周一
@@ -151,7 +152,7 @@ export default {
 		},
 		handleChangeTimeZone() {
 			//遍历timeZoneList 将timeRanges编码成二进制字符串，如果全部为1则将第八位置1 其余位置为0
-			
+
 			let commitData = []
 			this.timeZoneList.forEach(zone => {
 				//根据id 找到rawData中的对应数据
@@ -161,14 +162,14 @@ export default {
 					rawData[`startTime${index+1}`] = timeRange.startTime;
 					rawData[`endTime${index+1}`] = timeRange.endTime;
 				})
-				
+
 				commitData.push(rawData)
 			});
 			TimePeriodApi.createTimePeriod({ TimePeriod:commitData });
 		},
 		getBinaryString(timeRanges){
 			let count = 0;
-			let binary = timeRanges.map(range => {	
+			let binary = timeRanges.map(range => {
 				if(range.status){
 					count++;
 				}
@@ -189,11 +190,18 @@ export default {
 						status: range.weekdays.includes(day)
 					})),
 					week: [...week],
-					startTime: range.startTime || "00:00:00",
-					endTime: range.endTime || "23:59:59"
+					startTime: range.startTime || "00:00",
+					endTime: range.endTime || "23:59"
 				};
 			});
-
+			// this.timeZoneList.forEach(item=>{
+			// 	if (item.periodDataId==data.periodDataId){
+			// 		return {
+			// 			timeName: data.name,
+			// 			timePeriodData: timePeriodData
+			// 		}
+			// 	}
+			// })
 			this.timeZoneList.push({
 				timeName: data.name,
 				timePeriodData: timePeriodData
@@ -230,7 +238,9 @@ export default {
 				});
 				return;
 			}
+      let index = this.timeZoneList[zoneIndex].timePeriodData.length
 			this.timeZoneList[zoneIndex].timePeriodData.push({
+				periodDataId:index+1,
 				timeRanges: this.createNewTimeRanges(),
 				week: [...week],
 				startTime: "00:00",
@@ -250,7 +260,7 @@ export default {
 			console.log(data);
 			const zoneIndex = this.editingZoneIndex;
 			const index = this.timeZoneList[zoneIndex].timePeriodData.findIndex(row =>
-				row.startTime === this.editingRow.startTime && row.endTime === this.editingRow.endTime
+				row.periodDataId == data.periodDataId
 			);
 			if (index !== -1) {
 				this.$set(this.timeZoneList[zoneIndex].timePeriodData, index, {
