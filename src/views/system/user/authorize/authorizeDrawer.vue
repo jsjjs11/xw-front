@@ -136,7 +136,7 @@
 	</div>
 </template>
 <script>
-import {getLineDatas, DICT_TYPE} from "@/utils/dict";
+import {getLineDatas, DICT_TYPE, getDictDatas} from "@/utils/dict";
 import * as AuthorizationApi from '@/api/nacs/authorize';
 import * as groupsApi from "@/api/nacs/d_groups/index";
 import authTimeEditForm from "@/views/system/user/authorize/authTimeEditForm";
@@ -180,6 +180,7 @@ export default {
 			checkAll: false,
 			isIndeterminate: false,
 			lineInfo: [],
+			authFailReasonDictDatas: getDictDatas(DICT_TYPE.NACS_AUTH_FAIL_REASONS),
 		}
 	},
 	mounted() {
@@ -737,10 +738,38 @@ export default {
 				}
 			} else {
 				try {
-					await AuthorizationApi.createCardPermissionsList(params);
-					this.$message.success('授权成功');
+					const res = await AuthorizationApi.createCardPermissionsList(params);
+					if (res.data.length === 0) {
+						this.$message.success('授权成功');
+					} else {
+						let userNames = res.data.map(item => item.employeeName).join(',');
+						let message = `<div class="auth-error-container">`;
+						message += `<p style="font-weight: bold; margin-bottom: 10px;">用户 ${userNames} 授权未成功，原因如下：</p>`;
+						message += `<table style="width: 100%; border-collapse: collapse; border: 1 solid #dfe6ec;">`;
+						message += `<tr><th style="padding: 10px;">姓名</th><th style="padding: 10px;">线路</th><th style="padding: 10px;">失败原因</th></tr>`;
+						
+						res.data.forEach(item => {
+							item.authFailReason.forEach(reason => {
+								const reasonText = this.authFailReasonDictDatas.find(item => item.value === String(reason.failReason))?.label 
+																		|| reason.failReason;
+								message += `<tr>`;
+								message += `<td style="padding: 10px;">${item.employeeName}</td>`;
+								message += `<td style="padding: 10px;">${reason.lineName}</td>`;
+								message += `<td style="padding: 10px;">${reasonText}</td>`;
+								message += `</tr>`; 
+							});
+						});
+						
+						message += `</table></div>`;
+						this.$alert(message, '授权失败原因', {
+							dangerouslyUseHTMLString: true,
+							showConfirmButton: true,
+							confirmButtonText: '确定'
+						});
+					}
 					this.reset();
 					this.drawerVisible = false;
+					console.log(this.authFailReasonDictDatas)
 				} catch (error) {
 					console.log('授权失败:', error);
 					this.$message.error('授权失败');

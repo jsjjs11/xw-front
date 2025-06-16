@@ -267,7 +267,7 @@ export default {
 		background-color: #fdf6ec !important;  // 修改 - 浅橙色
 	}
 	.row-delete {
-		background-color: #fef0f0 !important;  // 删除 - 浅红色
+		background-color: #fbdcdc !important;  // 删除 - 浅红色
 	}
 }
 

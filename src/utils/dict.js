@@ -97,6 +97,7 @@ export const DICT_TYPE = {
   NACS_CHECK_STATE:"nacs_check_state",                    //审核状态
   NACS_DATA_SOURCE: 'nacs_data_source',                   //数据来源
   NACS_AUTH_CATE: 'nacs_auth_cate',                       //授权类别
+  NACS_AUTH_FAIL_REASONS: 'nacs_auth_fail_reasons',       //授权失败原因
   // ......
 
 

@@ -844,17 +844,17 @@ export default {
         return;
       } else {
         const allLineNos = this.lineMap.map(line => line.lineNo);
-        cardsInfo.data.forEach(item => {
-          if (item.cardSource === 0) {
-            // 取差集：allLineNos中有但userLineNos中没有的
-            const diff = item.lineInfo ? allLineNos.filter(lineNo => !item.lineInfo.includes(lineNo)) : allLineNos;
-            // 如果是第一个项目，直接赋值；否则取交集
-            lineInfo = lineInfo.length === 0 ? diff : lineInfo.filter(x => diff.includes(x));
-          } else if (item.cardSource === 1) {
-            // 直接取交集
-            lineInfo = lineInfo.length === 0 ? item.lineInfo : lineInfo.filter(x => item.lineInfo.includes(x));
-          }
-        });
+        // cardsInfo.data.forEach(item => {
+        //   if (item.cardSource === 0) {
+        //     // 取差集：allLineNos中有但userLineNos中没有的
+        //     const diff = item.lineInfo ? allLineNos.filter(lineNo => !item.lineInfo.includes(lineNo)) : allLineNos;
+        //     // 如果是第一个项目，直接赋值；否则取交集
+        //     lineInfo = lineInfo.length === 0 ? diff : lineInfo.filter(x => diff.includes(x));
+        //   } else if (item.cardSource === 1) {
+        //     // 直接取交集
+        //     lineInfo = lineInfo.length === 0 ? item.lineInfo : lineInfo.filter(x => item.lineInfo.includes(x));
+        //   }
+        // });
       }
       
       // 检查用户卡片是否激活

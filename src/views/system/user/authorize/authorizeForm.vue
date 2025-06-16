@@ -407,7 +407,7 @@ export default {
   height: 400px !important;
   .el-table__body-wrapper {
     overflow-y:auto;
-    height: 260px !important;
+    height: 320px !important;
   }
 }
 ::v-deep .el-dialog {
