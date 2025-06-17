@@ -143,6 +143,7 @@ import authTimeEditForm from "@/views/system/user/authorize/authTimeEditForm";
 import authTimeToLine from "@/views/system/user/authorize/authTimeToLine"
 import ChoosePermissionSetForm from "@/views/system/user/authorize/ChoosePermissionSetForm";
 import * as deptAuthApi from '@/api/nacs/department_auth';
+import * as TimePeriodApi from '@/api/nacs/time_period';
 export default {
 	name: 'AuthorizeDrawer',
 	components: {
@@ -231,7 +232,7 @@ export default {
 				this.selectedList.push({
 					...row,
 					children: row.children || [],
-					timeCode: 0,
+					timeCode: row.timeCode || 0,
 					startDate: startDate,
 					endDate: endDate,
 					dateRange: `${startDate}至${endDate}`,
@@ -278,7 +279,7 @@ export default {
 						this.selectedList.push({
 							...row,
 							children: row.children || [],
-							timeCode: 0,
+							timeCode: row.timeCode || 0,
 							startDate: startDate,
 							endDate: endDate,
 							dateRange: `${startDate}至${endDate}`,
@@ -347,7 +348,11 @@ export default {
 		},
 		// 临时处理时区名称，需要增加接口返回时区名称
 		getTimeZoneLabel(timeCode) {
-			const timeZone = this.$refs.authTimeEditForm?.timeZones?.find(
+			// const res = await TimePeriodApi.getTimePeriodAll();
+			// const timeName = res.find(item => item.lineNo === lineNo&&item.timeCode ===timeCode)?.timeName
+			// return timeName || timeCode;
+			const timeZonelist = [{ value:0, label:'全时区' }]
+			const timeZone = timeZonelist.find(
 				item => item.value === timeCode
 			);
 			return timeZone?.label || timeCode;
@@ -422,6 +427,7 @@ export default {
 
 				toAdd.forEach(item => {
 					const key = `${item.lineNo}-${item.authMode}-${item.code}`;
+					
 					// 检查是否已存在相同key的项
 					// const isExist = this.selectedList.some(selectedItem => selectedItem.key === key);
 					const isExist = existingKeys.has(key);
@@ -432,7 +438,7 @@ export default {
 								...item,
 								key: key,
 								label: item.name,
-								timeCode: 0,
+								timeCode: item.timeCode || 0,
 								startDate: startDate,
 								endDate: endDate,
 								dateRange: `${startDate}至${endDate}`,
@@ -445,7 +451,7 @@ export default {
 								key: key,
 								label: item.name,
 								children: item.children || [],
-								timeCode: 0,
+								timeCode: item.timeCode || 0,
 								startDate: startDate,
 								endDate: endDate,
 								dateRange: `${startDate}至${endDate}`,
@@ -559,6 +565,8 @@ export default {
 						stationNo: item.stationNo,
 						isleaf: false,
 						dateRange: `${this.formatDateFromArray(item.startDate)}至${this.formatDateFromArray(item.endDate)}`,
+						startDate: this.formatDateFromArray(item.startDate),
+						endDate: this.formatDateFromArray(item.endDate),
 						timeCode: Number(item.timeCode),
 					};
 					
@@ -687,13 +695,6 @@ export default {
 		},
 		/** 提交授权 */
 		async handleAuthConfirm() {
-			// 格式化日期范围
-			// const dateRangeStr = this.form.dateRange
-			// 	.map(date => {
-			// 		const d = new Date(date);
-			// 		return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
-			// 	})
-			// 	.join(',');
 			const authItems = [];
 
 			this.selectedList.forEach(item => {
@@ -741,12 +742,12 @@ export default {
 					const res = await AuthorizationApi.createCardPermissionsList(params);
 					if (res.data.length === 0) {
 						this.$message.success('授权成功');
-					} else {
+					} else if (res.data[0].idCard) {
 						let userNames = res.data.map(item => item.employeeName).join(',');
 						let message = `<div class="auth-error-container">`;
 						message += `<p style="font-weight: bold; margin-bottom: 10px;">用户 ${userNames} 授权未成功，原因如下：</p>`;
-						message += `<table style="width: 100%; border-collapse: collapse; border: 1 solid #dfe6ec;">`;
-						message += `<tr><th style="padding: 10px;">姓名</th><th style="padding: 10px;">线路</th><th style="padding: 10px;">失败原因</th></tr>`;
+						message += `<table style="width: 100%; border-collapse: collapse;">`;
+						message += `<tr><th style="padding: 10px;border-bottom: 1px solid #dfe6ec;">姓名</th><th style="padding: 10px;border-bottom: 1px solid #dfe6ec;">线路</th><th style="padding: 10px;border-bottom: 1px solid #dfe6ec;">失败原因</th></tr>`;
 						
 						res.data.forEach(item => {
 							item.authFailReason.forEach(reason => {
@@ -766,6 +767,10 @@ export default {
 							showConfirmButton: true,
 							confirmButtonText: '确定'
 						});
+					} else {
+						const reasonText = this.authFailReasonDictDatas.find(item => item.value === String(res.data[0].authFailReason[0].failReason))
+															?.label || reason.failReason;
+						this.$alert(`该用户授权失败，原因：${reasonText}`, '授权失败原因', {confirmButtonText: '确定'});
 					}
 					this.reset();
 					this.drawerVisible = false;
@@ -778,7 +783,7 @@ export default {
 		},
 		reset() {
 			this.form = {
-				timeCode: 0,
+				timeCode: '',
 				dateRange: '',
 				selectedLine: '',
 				selectedStation: [],

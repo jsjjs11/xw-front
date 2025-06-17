@@ -191,7 +191,13 @@ export default {
 	margin-left: 30px;
 	margin-right: 30px;
 	margin-top: 20px;
+	
 }
+::v-deep .el-table__body-wrapper {
+	overflow-y: auto;
+	max-height: 740px;
+}
+
 .list-header {
 	padding: 15px 20px;
 	display: flex;
