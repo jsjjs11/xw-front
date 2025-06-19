@@ -10,7 +10,7 @@ export function deptPermissionPage(params) {
 // 获取部门权限
 export function getdeptPermission(deptId) {
 	return request({
-		url: '/nacs/dept-permissions/get?id=' + deptId,
+		url: '/nacs/dept-permissions/get?deptId=' + deptId,
 		method: 'get'
 	})
 }

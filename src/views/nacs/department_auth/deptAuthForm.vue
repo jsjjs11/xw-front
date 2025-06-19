@@ -3,8 +3,9 @@
 		<el-dialog :title="title" :visible.sync="visible" width="900px" :close="close">
 			<!-- 操作按钮 -->
       <div class="operation-buttons">
-        <el-button type="primary" icon="el-icon-user" @click="showAuthDrawer()">部门预设权限授权</el-button>
+        <el-button type="primary" icon="el-icon-user" @click="showAuthDrawer()">部门预设权限管理</el-button>
         <el-button type="info" icon="el-icon-edit" @click="handleRegisterAuth(scope.row)">注销授权</el-button>
+        <el-button type="primary" icon="el-icon-s-promotion" @click="handleGrandAuth()">下发权限</el-button>
       </div>
       <!-- 权限列表表格 -->
       <el-table :data="tableData" style="width: 100%; margin-top: 20px;">
@@ -44,13 +45,14 @@
         @pagination="getList" />
 		</el-dialog>
 		<group-detail-form ref="groupDetailFormRef"/>
-		<authorize-drawer ref="authorizeDrawerRef"/>
+		<authorize-drawer ref="authorizeDrawerRef" @success="getList"/>
 	</div>
 </template>
 <script>
 import { DICT_TYPE, getLineDatas, getDictDatas } from '@/utils/dict';
 import groupDetailForm from '@/views/system/user/authorize/groupDetailForm.vue';
 import AuthorizeDrawer from '@/views/system/user/authorize/authorizeDrawer.vue';
+import * as AuthorizationApi from '@/api/nacs/authorize';
 import * as deptAuthApi from '@/api/nacs/department_auth';
 export default {
 	name: 'DeptAuthForm',
@@ -99,13 +101,24 @@ export default {
 		close() {
 			this.visible = false
 		},
+    /** 下发权限 */
+    async handleGrandAuth() {
+      try {
+        await deptAuthApi.createdeptPermission(this.queryParams.deptId)
+        this.$modal.msgSuccess("下发权限成功");
+        this.getList();
+      } catch (error) {
+        console.error("下发权限失败", error)
+        this.$modal.msgError("下发权限失败")
+      }
+    },
 		/** 注销授权 */
     async handleRegisterAuth(row) {
       // TODO: 实现注销授权逻辑
       try {
         await this.$modal.confirm('确认注销该权限的授权吗？')
         this.loading = true
-        // await AuthorizationApi.deleteCardPermissionsList(row.id)
+        await AuthorizationApi.deleteCardPermissionsList(row.id)
         this.$modal.msgSuccess("该权限已申请注销")
         await this.getList()
       } catch (error) {
