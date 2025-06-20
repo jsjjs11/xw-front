@@ -62,7 +62,7 @@
 								<div class="column auth-transfer">
 									<div class="section-title-container">
 										<div class="section-title">门禁列表</div>
-										<template v-if="AuthorizeForm.deptId.length === 0">
+										<template v-if="AuthorizeForm.deptId.length === 0 && AuthorizeForm.idCard.length === 1">
 											<el-checkbox v-model="hasDeptAuth">添加部门预设权限</el-checkbox>
 										</template>
 									</div>
@@ -594,16 +594,26 @@ export default {
 			if (this.AuthorizeForm.idCard.length === 1) {
 				try {
 					const res = await AuthorizationApi.getCardPermissionsList(this.AuthorizeForm.idCard);
-					await this.handlePermissionData(res.data);
+					await this.handlePermissionData(res.data, false);
 				} catch(error) {
 					console.log(error);
 					this.$message.error('获取用户授权信息失败');
 				}
+				if(this.hasDeptAuth) {
+					try {
+						const response = await deptAuthApi.getDeptPresetPermissions(this.AuthorizeForm.idCard);
+						this.handlePermissionData(response.data, true);
+					} catch(error) {
+						console.log(error);
+						this.$message.error('获取部门预设权限失败');
+					}
+				}
+				
 			} else if (this.AuthorizeForm.idCard.length === 0 && this.AuthorizeForm.deptId) {
 				this.title = '部门预设权限管理';
 				try {
 					const res = await deptAuthApi.getdeptPermission(this.AuthorizeForm.deptId);
-					await this.handlePermissionData(res.data);
+					await this.handlePermissionData(res.data, false);
 				} catch(error) {
 					console.log(error);
 					this.$message.error('获取部门授权信息失败');
@@ -611,7 +621,7 @@ export default {
 			}
     },
 
-		handlePermissionData(data) {
+		handlePermissionData(data, isDeptAuth) {
 			if (data && data.length > 0) {
 				data.forEach(item => {
 					const key = `${item.lineNo}-${item.authMode}-${item.code}`;
@@ -619,7 +629,7 @@ export default {
 						...item,
 						authMode: item.authMode,
 						key: key,
-						label: item.name,
+						label: isDeptAuth ? `${item.name}(部门预设权限)` : item.name,
 						lineNo: item.lineNo,
 						stationNo: item.stationNo,
 						isleaf: false,
@@ -634,7 +644,6 @@ export default {
 						permissionItem.hasChildren = true;
 						permissionItem.children = [];
 					}
-					
 					this.selectedList.push(permissionItem);
 				});
 				
@@ -801,7 +810,7 @@ export default {
 					}
 					users.push({
 						idCard: user.idCard,
-						excludePermissions: unAuthLineNos.length > 0 ? 
+						permissions: unAuthLineNos.length > 0 ? 
 							this.selectedList.filter(perm => unAuthLineNos.includes(perm.lineNo)) : []
 					});
 				});
