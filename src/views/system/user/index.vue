@@ -60,15 +60,16 @@
               v-hasPermi="['system:user:update']">修改</el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-dropdown @command="handleCommand" >
-              <el-button size="mini" type="primary" v-hasPermi="['system:user:authorize']" icon="el-icon-s-check">权限授权</el-button>
-              <el-dropdown-menu slot="dropdown">
+            <!-- <el-dropdown @command="handleCommand" > -->
+              <el-button size="mini" type="primary" v-hasPermi="['system:user:authorize']" icon="el-icon-s-check"
+              @click="handleAuthorizeByGroup">用户批量权限授权</el-button>
+              <!-- <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item command="handleAuthorize" size="mini" type="primary">用户权限授权</el-dropdown-item>
                 <el-dropdown-item command="handleAuthorizeByGroup" size="mini" type="primary">用户批量授权</el-dropdown-item>
                 <el-divider></el-divider>
                 <el-dropdown-item command="reloadAuthorize" size="mini" type="primary">重新加载权限</el-dropdown-item>
               </el-dropdown-menu>
-            </el-dropdown>
+            </el-dropdown> -->
           </el-col>
           <el-col :span="1.5">
             <el-button type="primary" plain icon="el-icon-view" size="mini" @click="handleView">查看</el-button>
@@ -84,8 +85,9 @@
           <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :columns="columns"></right-toolbar>
         </el-row>
 
-        <el-table v-loading="loading" :data="userList" highlight-current-row @selection-change="handleSelectionChange">
-          <el-table-column type="selection" width="45" align="center" />
+        <el-table v-loading="loading" :data="userList" highlight-current-row @selection-change="handleSelectionChange"
+          ref="userTable">
+          <el-table-column type="selection" width="45" align="center" reverse-selection/>
           <el-table-column label="用户编号" align="center" key="id" prop="id" width="100" v-if="columns[0].visible" />
           <el-table-column label="用户名称" align="center" key="username" prop="username" v-if="columns[1].visible"
             :show-overflow-tooltip="true" />
@@ -840,10 +842,14 @@ export default {
       const cardsInfo = await CardsApi.getLineInfo(idCards);
       let lineInfo = [];
       if (cardsInfo.data.length < idCards.length) {
-        this.$modal.msgError('存在未开卡的用户，请开卡后再进行权限管理');
+        const noCardUsers = idCards.filter(idCard => !cardsInfo.data.some(item => item.idCard === idCard));
+        const noCardNames = noCardUsers.map(idCard => this.selectedRows.find(item => item.idCard === idCard).username);
+        this.$modal.msgError('用户' + noCardNames.join('，') + '还没有开卡，请先开卡后再进行权限管理');
+        // this.$modal.msgError('存在未开卡的用户，请开卡后再进行权限管理');
         return;
       } else {
-        const allLineNos = this.lineMap.map(line => line.lineNo);
+        lineInfo = cardsInfo.data;
+        // const allLineNos = this.lineMap.map(line => line.lineNo);
         // cardsInfo.data.forEach(item => {
         //   if (item.cardSource === 0) {
         //     // 取差集：allLineNos中有但userLineNos中没有的
@@ -859,8 +865,10 @@ export default {
       
       // 检查用户卡片是否激活
       const isCardActive = await CardsApi.isCardActive(idCards);
-      if( !isCardActive.data) {
-        this.$modal.msgError('存在未激活的门禁卡，请激活后再进行权限管理');
+      if( isCardActive.data && isCardActive.data.length > 0 ) {
+        const noActiveUsers = idCards.filter(idCard => isCardActive.data.some(item => item.idCard === idCard));
+        const noActiveNames = noActiveUsers.map(idCard => this.selectedRows.find(item => item.idCard === idCard).username);
+        this.$modal.msgError('用户' + noActiveNames.join('，') + '的门禁卡状态异常，请激活后再进行权限管理');
         return;
       }
       // 检查是否有未审核权限

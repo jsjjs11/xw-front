@@ -295,21 +295,26 @@ export default {
         const response = await AuthorizationApi.checkApply(params);
         if (response.data.length === 0) {
           const response2 = await CardApi.getLineInfo(params);
-          let lineInfo = [];
-          if (response2.data[0].cardSource === 1) {
-            lineInfo = response2.data ? response2.data[0].lineInfo ? response2.data[0].lineInfo : [] : [];
-            console.log(lineInfo);
-          } else if (response2.data[0].cardSource === 0) {
-            const userLineNos = response2.data[0].lineInfo || [];
-            if (userLineNos.length === 0) {
-              lineInfo = [];
-            } else {
-              // 获取所有线路号
-              const allLineNos = this.lineMap.map(line => line.lineNo);
-              // 计算差集：所有线路号 - 用户已有线路号
-              lineInfo = allLineNos.filter(lineNo => !userLineNos.includes(lineNo));
-            }
-          }
+          // let lineInfo = [];
+          // if (response2.data[0].cardSource === 1) {
+          //   lineInfo = response2.data ? response2.data[0].normalLines ? response2.data[0].normalLines : [] : [];
+          //   console.log(lineInfo);
+          // } else if (response2.data[0].cardSource === 0) {
+          //   const userLineNos = response2.data[0].lineInfo || [];
+          //   if (userLineNos.length === 0) {
+          //     lineInfo = [];
+          //   } else {
+          //     // 获取所有线路号
+          //     const allLineNos = this.lineMap.map(line => line.lineNo);
+          //     // 计算差集：所有线路号 - 用户已有线路号
+          //     lineInfo = allLineNos.filter(lineNo => !userLineNos.includes(lineNo));
+          //   }
+          // }
+          const lineInfo = response2.data;
+          // ? {
+          //   normalLines: response2.data[0].normalLines, 
+          //   unAuthLines: response2.data[0].unAuthLines
+          // } :[]
           const deptId = [];
           this.$refs["authorizeDrawerRef"].showAuthDialog(this.queryParams.idCard, deptId, lineInfo);
         } else {

@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<el-drawer
-			title="用户授权"
+			:title="title"
 			direction="rtl"
       size="90%"
 			:modal="true"
@@ -29,6 +29,14 @@
 														:class="`color-radio-${line.lineNo}`" 
 														:disabled="!isLineEnable(line.lineNo)">
 														{{ line.name }}
+														<el-tooltip 
+															v-if="showUnauthWarning(line.lineNo)"
+															effect="dark" 
+															placement="right">
+															<!-- :content="getUnauthWarningText(line.lineNo)" -->
+															<div slot="content" v-html="getUnauthWarningText(line.lineNo)" style="white-space: pre-line;"></div>
+															<i class="el-icon-warning" style="color: #F56C6C; margin-left: 5px;"></i>
+													</el-tooltip>
 													</el-radio>
 												</template>
 											</el-timeline-item>
@@ -52,7 +60,12 @@
 							<!-- 门禁列 -->
 							<el-col :span="18">
 								<div class="column auth-transfer">
-									<div class="section-title">门禁列表</div>
+									<div class="section-title-container">
+										<div class="section-title">门禁列表</div>
+										<template v-if="AuthorizeForm.deptId.length === 0">
+											<el-checkbox v-model="hasDeptAuth">添加部门预设权限</el-checkbox>
+										</template>
+									</div>
 									<div class="dual-table-container">
 										<div class="table-wrapper left-table">
 											<div class="table-header">
@@ -153,6 +166,7 @@ export default {
 	},
 	data() {
 		return {
+			title: '用户授权',
 			visible: false,
 			form: {
 				selectedLine: '',
@@ -182,6 +196,8 @@ export default {
 			isIndeterminate: false,
 			lineInfo: [],
 			authFailReasonDictDatas: getDictDatas(DICT_TYPE.NACS_AUTH_FAIL_REASONS),
+			hasDeptAuth: true,
+			unAuthLines: {},
 		}
 	},
 	mounted() {
@@ -194,6 +210,36 @@ export default {
     }
 	},
 	methods: {
+		// 检查是否显示授权警告
+    showUnauthWarning(lineNo) {
+			if (!this.unAuthLines || this.unAuthLines.length === 0) return false;
+			return this.unAuthLines.some(user => {
+				// 检查unAuthLines中的线路
+				const hasUnauthLine = user.unAuthLines && user.unAuthLines.some(line => line.lineNo === lineNo);
+				// 检查normalLines中的线路 - 如果当前线路不在normalLines中，则需要显示警告
+				const hasNormalLine = user.normalLines && user.normalLines.length > 0 && !user.normalLines.includes(lineNo);
+				return hasUnauthLine || hasNormalLine;
+			});
+    },
+    
+    // 获取授权警告文本
+    getUnauthWarningText(lineNo) {
+			if (!this.unAuthLines || this.unAuthLines.length === 0) return '';
+			const warnings = [];
+			this.unAuthLines.forEach(user => {
+				const unAuthLine = user.unAuthLines && user.unAuthLines.find(line => line.lineNo === lineNo);
+				if (unAuthLine) {
+					const reasonText = this.authFailReasonDictDatas.find(
+						item => item.value === String(unAuthLine.failReason)
+					)?.label || unAuthLine.failReason;
+					warnings.push(`用户${user.employeeName}不能在该线路授予权限，原因：${reasonText}`);
+				}
+				if (user.normalLines && user.normalLines.length > 0 && !user.normalLines.includes(lineNo)){
+					warnings.push(`用户${user.employeeName}不能在该线路授予权限，原因：用户没有线网卡，且没有该条线路的线路卡`);
+				}
+			});
+			return warnings.join('<br>');
+    },
 		// 递归统计非叶子节点
     countNonLeafNodes(nodes) {
       let count = 0
@@ -524,10 +570,21 @@ export default {
 		/** 显示授权弹窗 */
     async showAuthDialog(data, deptId, lineInfo) {
       this.drawerVisible = true;
+			this.title = '用户授权';
 			this.AuthorizeForm.idCard = Array.isArray(data) ? data : [data];
 			this.AuthorizeForm.deptId = deptId;
-			console.log(this.AuthorizeForm.deptId)
-			this.lineInfo = lineInfo;
+			if (this.AuthorizeForm.idCard.length === 1){
+				if (lineInfo[0].cardSource === 0) {
+					const unAuthNos = lineInfo[0].unAuthLines.map(item => item.lineNo);
+					const allLineNos = this.lineList.map(line => line.lineNo);
+					this.lineInfo = allLineNos.filter(lineNo => !unAuthNos.includes(lineNo));
+				} else if (lineInfo[0].cardSource === 1) {
+					this.lineInfo = lineInfo[0].normalLines;
+				}
+			} else if (this.AuthorizeForm.idCard.length > 1) {
+				this.lineInfo = []
+			}
+			this.unAuthLines = lineInfo;
 			if(this.lineList.length>1){
 				const enabledLine = this.lineList.find(line => this.isLineEnable(line.lineNo));
 				this.form.selectedLine = enabledLine ? enabledLine.lineNo : this.lineList[0].lineNo;  // 默认选中第一条可用的线路
@@ -543,6 +600,7 @@ export default {
 					this.$message.error('获取用户授权信息失败');
 				}
 			} else if (this.AuthorizeForm.idCard.length === 0 && this.AuthorizeForm.deptId) {
+				this.title = '部门预设权限管理';
 				try {
 					const res = await deptAuthApi.getdeptPermission(this.AuthorizeForm.deptId);
 					await this.handlePermissionData(res.data);
@@ -552,6 +610,7 @@ export default {
 				}
 			}
     },
+
 		handlePermissionData(data) {
 			if (data && data.length > 0) {
 				data.forEach(item => {
@@ -564,10 +623,10 @@ export default {
 						lineNo: item.lineNo,
 						stationNo: item.stationNo,
 						isleaf: false,
-						dateRange: `${this.formatDateFromArray(item.startDate)}至${this.formatDateFromArray(item.endDate)}`,
-						startDate: this.formatDateFromArray(item.startDate),
-						endDate: this.formatDateFromArray(item.endDate),
-						timeCode: Number(item.timeCode),
+						dateRange: item.startDate && item.endDate ? `${this.formatDateFromArray(item.startDate)}至${this.formatDateFromArray(item.endDate)}`: '',
+						startDate: item.startDate ? this.formatDateFromArray(item.startDate): '',
+						endDate: item.endDate ? this.formatDateFromArray(item.endDate): '',
+						timeCode: item.timeCode ? Number(item.timeCode): 0,
 					};
 					
 					if (item.authMode === 2) {
@@ -716,11 +775,53 @@ export default {
 					deptId: this.AuthorizeForm.deptId,
 					authItems,
 				}
-			} else {
+			} else if (this.AuthorizeForm.idCard.length === 1){
 				params = {
 					idCards: this.AuthorizeForm.idCard,
 					authItems,
 				}
+			} else if (this.AuthorizeForm.idCard.length > 1) {
+				// 多用户授权逻辑
+				const defaultPermissions = [];
+				const users = [];
+				// 获取所有线路号
+				const allLineNos = this.lineList.map(line => line.lineNo);
+				// 处理每个用户的不可授权线路
+				this.unAuthLines.forEach(user => {
+					let unAuthLineNos = [];
+					if (user.cardSource === 0) {
+						// cardSource为0时，unAuthLines中的线路号为不可授权线路
+						unAuthLineNos = user.unAuthLines.map(item => item.lineNo);
+					} else if (user.cardSource === 1) {
+						// cardSource为1时，先减去unAuthLines中的线路号，再与全线路取差值
+						const normalLines = user.normalLines || [];
+						const unAuthLines = user.unAuthLines?.map(item => item.lineNo) || [];
+						const availableLines = normalLines.filter(lineNo => !unAuthLines.includes(lineNo));
+						unAuthLineNos = allLineNos.filter(lineNo => !availableLines.includes(lineNo));
+					}
+					users.push({
+						idCard: user.idCard,
+						excludePermissions: unAuthLineNos.length > 0 ? 
+							this.selectedList.filter(perm => unAuthLineNos.includes(perm.lineNo)) : []
+					});
+				});
+				// 默认权限是所有选中的权限
+				defaultPermissions.push(...this.selectedList.map(item => ({
+					authMode: item.authMode,
+					lineNo: item.lineNo,
+					stationNo: item.stationNo,
+					code: item.code,
+					name: item.name,
+					timeCode: item.timeCode,
+					startDate: item.startDate,
+					endDate: item.endDate,
+					authSource: 0,
+				})));
+				params = {
+					defaultPermissions,
+					users
+				};
+				console.log('多用户授权参数:', params);
 			}
 			// const params = {
 			// 	idCards: this.AuthorizeForm.idCard,
@@ -730,7 +831,8 @@ export default {
 			if (this.AuthorizeForm.deptId && this.AuthorizeForm.idCard.length === 0) {
 				try {
 					await deptAuthApi.createdeptPermission(params);
-					this.$message.success('授权成功');
+					this.$message.success('权限已更改');
+					this.$emit('success');
 					this.reset();
 					this.drawerVisible = false;
 				} catch (error) {
@@ -741,7 +843,7 @@ export default {
 				try {
 					const res = await AuthorizationApi.createCardPermissionsList(params);
 					if (res.data.length === 0) {
-						this.$message.success('授权成功');
+						this.$message.success('权限已更改，请等待审核');
 					} else if (res.data[0].idCard) {
 						let userNames = res.data.map(item => item.employeeName).join(',');
 						let message = `<div class="auth-error-container">`;
@@ -774,7 +876,6 @@ export default {
 					}
 					this.reset();
 					this.drawerVisible = false;
-					console.log(this.authFailReasonDictDatas)
 				} catch (error) {
 					console.log('授权失败:', error);
 					this.$message.error('授权失败');
@@ -1072,5 +1173,25 @@ export default {
 			}
 		}
 	}
+}
+.section-title-container {
+	display: flex;
+	// justify-content: space-between;
+	align-items: center;
+	padding: 0 16px;
+	margin-bottom: 10px;
+	
+	.section-title {
+		margin: 0;
+	}
+	.el-checkbox {
+		margin-left: 454px;
+		// margin-right: 600px; // 与右侧表格对齐
+	}
+}
+:deep(.el-tooltip__popper) {
+  white-space: pre-line;
+  max-width: 400px;
+  line-height: 1.5;
 }
 </style>
