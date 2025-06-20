@@ -104,7 +104,7 @@ export default {
     /** 下发权限 */
     async handleGrandAuth() {
       try {
-        await deptAuthApi.createdeptPermission(this.queryParams.deptId)
+        await deptAuthApi.assignDeptPermission(this.queryParams.deptId)
         this.$modal.msgSuccess("下发权限成功");
         this.getList();
       } catch (error) {

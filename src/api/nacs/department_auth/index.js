@@ -24,3 +24,19 @@ export function createdeptPermission(data) {
 	})
 }
 
+// 下发部门权限
+export function assignDeptPermission(depId) {
+	return request({
+		url: '/nacs/dept-permissions/assign?deptId=' + depId,
+		method: 'get',
+	})
+}
+
+// 查询用户所在部门部门预设权限
+export function getDeptPresetPermissions(idCard) {
+	return request({
+		url: '/nacs/dept-permissions/get-by-user?idCard=' + idCard,
+		method: 'get'
+	})
+}
+
