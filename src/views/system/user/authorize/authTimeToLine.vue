@@ -15,7 +15,7 @@
 					<template #default="{row}">
 						<el-select v-model="row.timeCode">
 							<el-option
-								v-for="item in timeZones"
+								v-for="item in row.timeZones"
 								:key="item.value"
 								:label="item.label"
 								:value="item.value"></el-option>
@@ -45,6 +45,7 @@
 	</div>
 </template>
 <script>
+import * as TimePeriodApi from '@/api/nacs/time_period';
 import { getLineDatas } from '@/utils/dict'
 export default {
 	name: "authTimeToLine",
@@ -100,7 +101,7 @@ export default {
 		}
 	},
 	methods: {
-		show(data) {
+		async show(data) {
 			this.visible = true;
 			this.tableData = []; // 清空原有数据
 
@@ -121,14 +122,34 @@ export default {
 			const endDate = formatDate(tenYearsLater);
 			
 			if (data && Array.isArray(data)) {
-				data.forEach(lineNo => {
-					this.tableData.push({
-						lineName: this.lineMap.find(line => line.lineNo === lineNo).name,
-						timeCode: 0,
-						dateRange: [startDate, endDate],
-						key: lineNo // 添加唯一key
-					});
+				const promises = data.map(async lineNo => {
+					try {
+						const res = await TimePeriodApi.getTimePeriod(lineNo);
+						if (res.data && res.data.length > 0) {
+							return {
+								lineName: this.lineMap.find(line => line.lineNo === lineNo).name,
+								dateRange: [startDate, endDate],
+								key: lineNo,
+								timeCode: res.data[0].timeCode, // 添加默认值
+								timeZones: res.data.map(item => ({
+									value: item.timeCode,
+									label: item.timeName
+								}))
+							};
+						} else {
+							return {
+								lineName: this.lineMap.find(line => line.lineNo === lineNo).name,
+								dateRange: [startDate, endDate],
+								key: lineNo,
+								timeCode: 0,
+								timeZones: [{value: 0, label: '全时区'}] // 添加默认时区
+							};
+						}
+					} catch (error) {
+						console.error(`获取线路${lineNo}时区失败:`, error);
+					}
 				});
+				this.tableData = await Promise.all(promises);
 			}
 			console.log(this.tableData);
 		},

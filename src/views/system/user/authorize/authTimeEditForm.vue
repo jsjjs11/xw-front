@@ -43,6 +43,7 @@
 	
 </template>
 <script>
+import * as TimePeriodApi from '@/api/nacs/time_period';
 export default {
 	name: "AuthTimeEditForm",
 	data() {
@@ -60,17 +61,21 @@ export default {
         { type: 'year', label: '一年' },
         { type: 'decade', label: '十年' }
 			],
-			timeZones: [{ value:0, label:'全时区' }]
+			timeZones: [{ value:0, label:'全时区' }],
+			lineNo: '',
 		}
 	},
 	methods: {
-		show (row) {
+		async show (row) {
 			this.visible = true;
 			this.form = {
 				timeCode: row.timeCode || 0,
 				dateRange: [row.startDate, row.endDate] || [],
 				key: row.key
 			}
+			this.lineNo = row.lineNo;
+			const res = await TimePeriodApi.getTimePeriod(this.lineNo);
+			this.timeZones = res.data.map(item => ({ value: item.timeCode, label: item.timeName }));
 		},
 		handleQuickDate(type) {
       const start = new Date()
@@ -113,6 +118,14 @@ export default {
 		},
 		formatDate(date) {
 			if (!date) return '';
+			// 处理字符串格式的日期
+			if (typeof date === 'string') {
+					date = new Date(date);
+			}
+			// 确保是有效的Date对象
+			if (!(date instanceof Date) || isNaN(date.getTime())) {
+					return '';
+			}
 			const year = date.getFullYear();
 			const month = String(date.getMonth() + 1).padStart(2, '0');
 			const day = String(date.getDate()).padStart(2, '0');

@@ -120,7 +120,7 @@
 												</el-table-column>
 												<el-table-column label="授权时区" prop="timeCode" width="120" align="center">
 													<template #default="{row}">
-															{{ getTimeZoneLabel(row.timeCode) }}
+															{{ row.timeName }}
 													</template>
 												</el-table-column>
 												<el-table-column label="授权周期" prop="dateRange" width="200" align="center"></el-table-column>
@@ -197,7 +197,21 @@ export default {
 			lineInfo: [],
 			authFailReasonDictDatas: getDictDatas(DICT_TYPE.NACS_AUTH_FAIL_REASONS),
 			hasDeptAuth: true,
-			unAuthLines: {},
+			unAuthLines: [],
+			timePeriodCache: null,
+		}
+	},
+	watch: {
+		hasDeptAuth(newVal) {
+			if (newVal) {
+				this.addDeptPresetPermissions();
+				this.$nextTick(() => {
+					this.syncLeftSelection();
+				});
+			} else {
+				// 移除部门预设权限
+				this.removeDeptPresetPermissions();
+			}
 		}
 	},
 	mounted() {
@@ -282,6 +296,7 @@ export default {
 					startDate: startDate,
 					endDate: endDate,
 					dateRange: `${startDate}至${endDate}`,
+					timeName: row.timeName,
 					// authSource: 0,
 				});
 			} else {
@@ -296,7 +311,7 @@ export default {
 			this.$nextTick(() => {
 				this.$refs.authTable.toggleRowSelection(row, isSelected);
 			});
-			// console.log(this.selectedList)
+			console.log(this.selectedList)
 		},
 		/** 左侧表格全选 */
 		handleLeftSelectAll(selection) {
@@ -329,6 +344,7 @@ export default {
 							startDate: startDate,
 							endDate: endDate,
 							dateRange: `${startDate}至${endDate}`,
+							timeName: row.timeName,
 							// authSource: 0,
 						});
 					}
@@ -393,15 +409,19 @@ export default {
     	}
 		},
 		// 临时处理时区名称，需要增加接口返回时区名称
-		getTimeZoneLabel(timeCode) {
-			// const res = await TimePeriodApi.getTimePeriodAll();
-			// const timeName = res.find(item => item.lineNo === lineNo&&item.timeCode ===timeCode)?.timeName
-			// return timeName || timeCode;
-			const timeZonelist = [{ value:0, label:'全时区' }]
-			const timeZone = timeZonelist.find(
-				item => item.value === timeCode
-			);
-			return timeZone?.label || timeCode;
+		getTimeZoneLabel(timeCode, lineNo) {
+			if (!this.timePeriodCache) {
+        return timeCode; // 如果缓存不存在，直接返回timeCode
+      }
+			const timePeriod = this.timePeriodCache.find(
+        item => item.lineNo === lineNo && item.timeCode === timeCode
+      );
+      return timePeriod?.timeName || '全时区';
+			// const timeZonelist = [{ value:0, label:'全时区' }]
+			// const timeZone = timeZonelist.find(
+			// 	item => item.value === timeCode
+			// );
+			// return timeZone?.label || timeCode;
     },
 		/** 时区/周期批量修改 */
 		handleEditTime() {
@@ -471,25 +491,30 @@ export default {
 				// const newSetCodes = data.map(item => item.setCode);
 				const toAdd = data.filter(item => !this.selectedList.some(s => s.code === item.code));
 
-				toAdd.forEach(item => {
+				toAdd.forEach(async item => {
 					const key = `${item.lineNo}-${item.authMode}-${item.code}`;
 					
 					// 检查是否已存在相同key的项
 					// const isExist = this.selectedList.some(selectedItem => selectedItem.key === key);
 					const isExist = existingKeys.has(key);
 					const isLineEnable = this.isLineEnable(item.lineNo);
+					const timeName = this.getTimeZoneLabel(item.timeCode, item.lineNo);
+					const res = await TimePeriodApi.getTimePeriod(item.lineNo);
+					const timeCode = res.data[0]?.timeCode;
+					console.log(timeCode)
 					if (!isExist && isLineEnable) {
 						if(item.authMode === 1){
 							this.selectedList.push({ 
 								...item,
 								key: key,
 								label: item.name,
-								timeCode: item.timeCode || 0,
+								timeCode:  timeCode || 0,
 								startDate: startDate,
 								endDate: endDate,
 								dateRange: `${startDate}至${endDate}`,
 								// authSource: 0,
 								isleaf: false,
+								timeName: timeName,
 							})
 						} else if (item.authMode === 2) {
 							this.selectedList.push({
@@ -497,7 +522,7 @@ export default {
 								key: key,
 								label: item.name,
 								children: item.children || [],
-								timeCode: item.timeCode || 0,
+								timeCode: timeCode || 0,
 								startDate: startDate,
 								endDate: endDate,
 								dateRange: `${startDate}至${endDate}`,
@@ -505,6 +530,7 @@ export default {
 								isleaf: false,
 								level: 0,
 								hasChildren: true,
+								timeName: timeName,
 							})
 						}
 					}
@@ -514,6 +540,7 @@ export default {
 					this.syncLeftSelection();
 				});
 			}
+			console.log(this.selectedList)
 		},
 		// /** 快捷移除门禁集合 */
 		// handleRemoveAuthSet() {
@@ -573,6 +600,10 @@ export default {
 			this.title = '用户授权';
 			this.AuthorizeForm.idCard = Array.isArray(data) ? data : [data];
 			this.AuthorizeForm.deptId = deptId;
+			if (!this.timePeriodCache) {
+        const res = await TimePeriodApi.getTimePeriodAll();
+        this.timePeriodCache = res.data;
+      }
 			if (this.AuthorizeForm.idCard.length === 1){
 				if (lineInfo[0].cardSource === 0) {
 					const unAuthNos = lineInfo[0].unAuthLines.map(item => item.lineNo);
@@ -599,15 +630,7 @@ export default {
 					console.log(error);
 					this.$message.error('获取用户授权信息失败');
 				}
-				if(this.hasDeptAuth) {
-					try {
-						const response = await deptAuthApi.getDeptPresetPermissions(this.AuthorizeForm.idCard);
-						this.handlePermissionData(response.data, true);
-					} catch(error) {
-						console.log(error);
-						this.$message.error('获取部门预设权限失败');
-					}
-				}
+				this.addDeptPresetPermissions();
 				
 			} else if (this.AuthorizeForm.idCard.length === 0 && this.AuthorizeForm.deptId) {
 				this.title = '部门预设权限管理';
@@ -625,6 +648,7 @@ export default {
 			if (data && data.length > 0) {
 				data.forEach(item => {
 					const key = `${item.lineNo}-${item.authMode}-${item.code}`;
+					const timeName = this.getTimeZoneLabel(item.timeCode, item.lineNo);
 					const permissionItem = {
 						...item,
 						authMode: item.authMode,
@@ -637,6 +661,7 @@ export default {
 						startDate: item.startDate ? this.formatDateFromArray(item.startDate): '',
 						endDate: item.endDate ? this.formatDateFromArray(item.endDate): '',
 						timeCode: item.timeCode ? Number(item.timeCode): 0,
+						timeName: timeName || '全时区',
 					};
 					
 					if (item.authMode === 2) {
@@ -646,12 +671,32 @@ export default {
 					}
 					this.selectedList.push(permissionItem);
 				});
-				
 				console.log('已有权限数据:', this.selectedList);
 				this.$nextTick(() => {
 					this.syncLeftSelection();
 				});
 			}
+		},
+		// 添加部门预设权限
+		async addDeptPresetPermissions() {
+			if(this.hasDeptAuth) {
+				try {
+					const response = await deptAuthApi.getDeptPresetPermissions(this.AuthorizeForm.idCard);
+					this.handlePermissionData(response.data, true);
+				} catch(error) {
+					console.log(error);
+					this.$message.error('获取部门预设权限失败');
+				}
+			}
+		},
+		// 移除部门预设权限
+		removeDeptPresetPermissions() {
+			this.selectedList = this.selectedList.filter(item => 
+				!item.label || !item.label.includes('(部门预设权限)')
+			);
+			this.$nextTick(() => {
+				this.syncLeftSelection();
+			});
 		},
 		formatDateFromArray(dateArray) {
 			// 确保月份和日期是两位数
@@ -675,6 +720,8 @@ export default {
       if(this.form.selectedLine){
 				const res = await AuthorizationApi.getGroupsOrDevicesList(this.form.selectedLine);
 				const {groups, stations, devices} = res.data;
+				const timeCode = res.data.timeCode;
+				const timeName = this.getTimeZoneLabel(timeCode, this.form.selectedLine);
 				// console.log(res.data)
 				// 车站数据
 				this.stationList = stations ? stations.map(item => ({
@@ -698,7 +745,9 @@ export default {
 					level: 0,
 					isleaf: false,
 					hasChildren: true,
-					children: []
+					children: [],
+					timeCode: timeCode,
+					timeName: timeName || '全时区',
 				})) : [];
 				this.deviceList = devices ? devices.map(item => ({
 					...item,
@@ -710,6 +759,8 @@ export default {
 					lineNo: this.form.selectedLine,
 					stationNo: item.stationNo,
 					isleaf: false,
+					timeCode: timeCode,
+					timeName: timeName || '全时区',
 				})) : [];
 				// console.log("门禁设备", this.deviceList)
 				// console.log("车站", this.stationList)
@@ -784,13 +835,8 @@ export default {
 					deptId: this.AuthorizeForm.deptId,
 					authItems,
 				}
-			} else if (this.AuthorizeForm.idCard.length === 1){
-				params = {
-					idCards: this.AuthorizeForm.idCard,
-					authItems,
-				}
-			} else if (this.AuthorizeForm.idCard.length > 1) {
-				// 多用户授权逻辑
+			} else if (this.AuthorizeForm.idCard.length >= 1) {
+				// 用户授权逻辑
 				const defaultPermissions = [];
 				const users = [];
 				// 获取所有线路号
@@ -830,7 +876,6 @@ export default {
 					defaultPermissions,
 					users
 				};
-				console.log('多用户授权参数:', params);
 			}
 			// const params = {
 			// 	idCards: this.AuthorizeForm.idCard,
