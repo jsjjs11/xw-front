@@ -882,6 +882,7 @@ export default {
 			// 	authItems,
 			// };
 			console.log('提交授权参数:', params);
+			
 			if (this.AuthorizeForm.deptId && this.AuthorizeForm.idCard.length === 0) {
 				try {
 					await deptAuthApi.createdeptPermission(params);
@@ -893,47 +894,67 @@ export default {
 					console.log('授权失败:', error);
 					this.$message.error('授权失败');
 				}
-			} else {
-				try {
-					const res = await AuthorizationApi.createCardPermissionsList(params);
-					if (res.data.length === 0) {
+			} else if (this.AuthorizeForm.idCard.length >= 1) {
+				// 检查是否有用户存在无效权限
+        const hasInvalidPermissions = params.users.some(user => user.permissions.length > 0);
+				if (hasInvalidPermissions) {
+					let message = `<div class="auth-error-container" 
+						style="max-height: 60vh; overflow: hidden; display: flex; flex-direction: column;">`;
+					message += `<p style="font-weight: bold; margin-bottom: 10px;">存在无法授予的权限，是否继续进行授权？</p>`;
+					message += `<div style="flex: 1;">`;
+        	message += `<table style="width: 100%; border-collapse: collapse; min-width: 600px;">`;
+        	message += `<thead style="position: sticky; top: 0; background: #f5f7fa; z-index: 1;">`;
+					message += `<tr><th style="padding: 12px 16px;border-bottom: 1px solid #dfe6ec;">姓名</th>
+						<th style="padding: 12px 16px;border-bottom: 1px solid #dfe6ec;">线路</th>
+						<th style="padding: 12px 16px;border-bottom: 1px solid #dfe6ec;">无效的权限</th></tr>`;
+					
+					params.users.forEach(item => {
+						item.permissions.forEach(perm => {
+							const employeeName = this.unAuthLines.find(user => user.idCard === item.idCard)?.employeeName || item.idCard;
+							const lineName = this.lineList.find(line => line.lineNo === perm.lineNo)?.name || perm.lineNo;
+							message += `<tr>`;
+							message += `<td style="padding: 12px 16px;">${employeeName}</td>`;
+							message += `<td style="padding: 12px 16px;">${lineName}</td>`;
+							message += `<td style="padding: 12px 16px;">${perm.name}</td>`;
+							message += `</tr>`; 
+						});
+					});
+					
+					message += `</tbody></table></div></div>`;
+					this.$confirm(message, '无效的权限', {
+						dangerouslyUseHTMLString: true,
+						showConfirmButton: true,
+						confirmButtonText: '确定',
+						cancelButtonText: '取消',
+						// type:	'warning'
+					}).then(async () => {
+						try {
+							const res = await AuthorizationApi.createCardPermissionsList(params);
+							this.$message.success('权限已更改，请等待审核');
+							this.reset();
+							this.drawerVisible = false;
+						} catch (error) {
+							console.log('授权失败:', error);
+							this.$message.error('授权失败');
+						}
+					}).catch(() => {
+						this.$message({
+							type: 'info',
+							message: '已取消授权'
+						});  
+					});
+				} else {
+					try {
+						const res = await AuthorizationApi.createCardPermissionsList(params);
 						this.$message.success('权限已更改，请等待审核');
-					} else if (res.data[0].idCard) {
-						let userNames = res.data.map(item => item.employeeName).join(',');
-						let message = `<div class="auth-error-container">`;
-						message += `<p style="font-weight: bold; margin-bottom: 10px;">用户 ${userNames} 授权未成功，原因如下：</p>`;
-						message += `<table style="width: 100%; border-collapse: collapse;">`;
-						message += `<tr><th style="padding: 10px;border-bottom: 1px solid #dfe6ec;">姓名</th><th style="padding: 10px;border-bottom: 1px solid #dfe6ec;">线路</th><th style="padding: 10px;border-bottom: 1px solid #dfe6ec;">失败原因</th></tr>`;
-						
-						res.data.forEach(item => {
-							item.authFailReason.forEach(reason => {
-								const reasonText = this.authFailReasonDictDatas.find(item => item.value === String(reason.failReason))?.label 
-																		|| reason.failReason;
-								message += `<tr>`;
-								message += `<td style="padding: 10px;">${item.employeeName}</td>`;
-								message += `<td style="padding: 10px;">${reason.lineName}</td>`;
-								message += `<td style="padding: 10px;">${reasonText}</td>`;
-								message += `</tr>`; 
-							});
-						});
-						
-						message += `</table></div>`;
-						this.$alert(message, '授权失败原因', {
-							dangerouslyUseHTMLString: true,
-							showConfirmButton: true,
-							confirmButtonText: '确定'
-						});
-					} else {
-						const reasonText = this.authFailReasonDictDatas.find(item => item.value === String(res.data[0].authFailReason[0].failReason))
-															?.label || reason.failReason;
-						this.$alert(`该用户授权失败，原因：${reasonText}`, '授权失败原因', {confirmButtonText: '确定'});
+						this.reset();
+						this.drawerVisible = false;
+					} catch (error) {
+						console.log('授权失败:', error);
+						this.$message.error('授权失败');
 					}
-					this.reset();
-					this.drawerVisible = false;
-				} catch (error) {
-					console.log('授权失败:', error);
-					this.$message.error('授权失败');
 				}
+				
 			}
 		},
 		reset() {
@@ -949,6 +970,35 @@ export default {
 	}
 }
 </script>
+<style lang="scss">
+.el-message-box {
+  width: 700px;
+  .auth-error-container {
+    overflow: hidden;
+		margin-left: 12px;
+		margin-right: 12px;
+	}
+  table {
+    width: 100%;
+    thead {
+			overflow-y: auto;
+
+		}
+    th, td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #ebeef5;
+      // text-align: center;
+    }
+    
+    th {
+      position: sticky;
+      // top: 0;
+      background: #f5f7fa;
+      z-index: 1;
+    }
+  }
+}
+</style>
 <style lang="scss" scoped>
 :deep(.el-form) {
   height: auto !important;
