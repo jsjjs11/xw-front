@@ -930,7 +930,13 @@ export default {
 					}).then(async () => {
 						try {
 							const res = await AuthorizationApi.createCardPermissionsList(params);
-							this.$message.success('权限已更改，请等待审核');
+							if (res.data.length === 0) {
+								this.$message.success('权限已更改，请等待审核');
+							} else if (!res.data[0].idCard){
+								const reasonText = this.authFailReasonDictDatas.find(item => item.value === String(res.data[0].authFailReason[0].failReason))
+															?.label || reason.failReason;
+								this.$alert(`该用户授权失败，原因：${reasonText}`, '授权失败原因', {confirmButtonText: '确定'});
+							}
 							this.reset();
 							this.drawerVisible = false;
 						} catch (error) {
@@ -946,7 +952,13 @@ export default {
 				} else {
 					try {
 						const res = await AuthorizationApi.createCardPermissionsList(params);
-						this.$message.success('权限已更改，请等待审核');
+						if (res.data.length === 0) {
+							this.$message.success('权限已更改，请等待审核');
+						} else if (!res.data[0].idCard){
+							const reasonText = this.authFailReasonDictDatas.find(item => item.value === String(res.data[0].authFailReason[0].failReason))
+														?.label || reason.failReason;
+							this.$alert(`用户授权失败，原因：${reasonText}`, '授权失败原因', {confirmButtonText: '确定'});
+						}
 						this.reset();
 						this.drawerVisible = false;
 					} catch (error) {
@@ -982,7 +994,7 @@ export default {
     width: 100%;
     thead {
 			overflow-y: auto;
-
+			overflow-x: auto;
 		}
     th, td {
       padding: 12px 16px;
