@@ -28,7 +28,7 @@ export function createdeptPermission(data) {
 export function assignDeptPermission(depId) {
 	return request({
 		url: '/nacs/dept-permissions/assign?deptId=' + depId,
-		method: 'get',
+		method: 'post',
 	})
 }
 
