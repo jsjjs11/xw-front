@@ -1,4 +1,14 @@
+/*
+ * @copyright: 2021 NANJING SAC Rail Traffic Engineering CO., LTD
+ * @Descripttion: 
+ * @version: V1.0
+ * @Author: ym
+ * @Date: 2025-05-07 10:07:32
+ * @LastEditors: ym
+ * @LastEditTime: 2025-06-16 15:38:52
+ */
 import { listSimpleLineDatas } from '@/api/nacs/line/index'
+import { TimePicker } from 'element-ui';
 
 const state = {
   /**
@@ -51,7 +61,8 @@ const actions = {
           lineNo: lineData.lineNo,
           name: lineData.name,
           color: lineData.color,
-          authMode:lineData.authMode
+          authMode:lineData.authMode,
+          timeCode:lineData.timeCode
         })
       })
       // 存储到 Store 中
