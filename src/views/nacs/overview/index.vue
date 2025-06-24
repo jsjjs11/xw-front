@@ -40,13 +40,14 @@
             <el-col :span="14">
                 <el-card class="content-card" style="height: calc(100vh - 240px);">
                     <div slot="header">
-                        <span>地铁运行线路图</span>
+                      <span>地铁运行线路图</span>
+                      <el-button style="float: right; padding: 3px 0" type="text" @click="resetSubWayLine">Reset</el-button>
                     </div>
                     <div style="width: 100%; height: 100%; position: relative;">
-                        <img src="@/assets/images/xianluda.png"
-                            style="width: 100%; height: 100%; object-fit: contain;" />
+<!--                        <img src="@/assets/images/xianluda.png"
+                            style="width: 100%; height: 100%; object-fit: contain;" />-->
+                      <subway-line ref="subwayline"></subway-line>
                     </div>
-
                 </el-card>
             </el-col>
 
@@ -84,8 +85,13 @@
 </template>
 
 <script>
+
+import SubwayLine from './subwayline/subwayLine'
 export default {
   name: "Overview",
+  components: {
+    SubwayLine
+  },
   data() {
     return {
       activities: [
@@ -147,6 +153,11 @@ export default {
             },
       ]
     };
+  },
+  methods: {
+    resetSubWayLine() {
+      this.$refs.subwayline.resetViewBox();
+    }
   }
 };
 </script>
