@@ -113,9 +113,14 @@
 												:load = "loadAuthList"
 												class="right-table">
 												<!-- <el-table-column type="index" width="50"></el-table-column> -->
-												<el-table-column prop="label" label="权限名称" width="calc(100% - 460px)" header-align="center">
+												<el-table-column prop="label" label="权限名称" width="calc(100% - 420px)" header-align="center">
 													<template #default="{row}">
 														<span style="text-align: left; ">{{ row.label }}</span>
+													</template>
+												</el-table-column>
+												<el-table-column label="权限来源" prop="authSource" width="120" align="center">
+													<template v-slot="scope">
+														<dict-tag :type="DICT_TYPE.NACS_AUTH_SOURCE" :value="scope.row.authSource" />
 													</template>
 												</el-table-column>
 												<el-table-column label="授权时区" prop="timeCode" width="120" align="center">
@@ -123,7 +128,7 @@
 															{{ row.timeName }}
 													</template>
 												</el-table-column>
-												<el-table-column label="授权周期" prop="dateRange" width="200" align="center"></el-table-column>
+												<el-table-column label="授权周期" prop="dateRange" width="180" align="center"></el-table-column>
 												<el-table-column label="操作" width="140" align="center">
 													<template #default="{row}">
 														<el-button type="text" v-if="!row.isLeaf" @click="moveToLeft(row)">移除</el-button>
@@ -196,7 +201,7 @@ export default {
 			isIndeterminate: false,
 			lineInfo: [],
 			authFailReasonDictDatas: getDictDatas(DICT_TYPE.NACS_AUTH_FAIL_REASONS),
-			hasDeptAuth: true,
+			hasDeptAuth: false,
 			unAuthLines: [],
 			timePeriodCache: null,
 		}
@@ -598,6 +603,7 @@ export default {
     async showAuthDialog(data, deptId, lineInfo) {
       this.drawerVisible = true;
 			this.title = '用户授权';
+			this.hasDeptAuth = false;
 			this.AuthorizeForm.idCard = Array.isArray(data) ? data : [data];
 			this.AuthorizeForm.deptId = deptId;
 			if (!this.timePeriodCache) {
@@ -653,7 +659,7 @@ export default {
 						...item,
 						authMode: item.authMode,
 						key: key,
-						label: isDeptAuth ? `${item.name}(部门预设权限)` : item.name,
+						label: item.name,
 						lineNo: item.lineNo,
 						stationNo: item.stationNo,
 						isleaf: false,
@@ -669,6 +675,9 @@ export default {
 						permissionItem.hasChildren = true;
 						permissionItem.children = [];
 					}
+					if (isDeptAuth) {
+						permissionItem.authSource = 1;
+					}
 					this.selectedList.push(permissionItem);
 				});
 				console.log('已有权限数据:', this.selectedList);
@@ -683,6 +692,29 @@ export default {
 				try {
 					const response = await deptAuthApi.getDeptPresetPermissions(this.AuthorizeForm.idCard);
 					this.handlePermissionData(response.data, true);
+					// 对this.selectedList中重复的权限进行合并
+					const mergedList = [];
+					const keyMap = new Map();
+					
+					this.selectedList.forEach(item => {
+						if (!keyMap.has(item.key)) {
+							keyMap.set(item.key, item);
+							mergedList.push(item);
+						} else {
+							// 如果权限已存在且是部门预设权限，则保留部门预设权限的标记
+							const existingItem = keyMap.get(item.key);
+							if (existingItem.authSource === 1) {
+								const index = mergedList.findIndex(i => i.key === item.key);
+								mergedList[index] = item;
+								keyMap.set(item.key, item);
+							}
+						}
+					});
+					
+					this.selectedList = mergedList;
+					this.$nextTick(() => {
+						this.syncLeftSelection();
+					});
 				} catch(error) {
 					console.log(error);
 					this.$message.error('获取部门预设权限失败');
@@ -691,9 +723,7 @@ export default {
 		},
 		// 移除部门预设权限
 		removeDeptPresetPermissions() {
-			this.selectedList = this.selectedList.filter(item => 
-				!item.label || !item.label.includes('(部门预设权限)')
-			);
+			this.selectedList = this.selectedList.filter(item => item.authSource !== 1);
 			this.$nextTick(() => {
 				this.syncLeftSelection();
 			});
@@ -978,6 +1008,7 @@ export default {
 				// searchAuth: '',
 				authItems: [],
 			};
+			this.hasDeptAuth = false;
 		}
 	}
 }
@@ -1135,11 +1166,11 @@ export default {
 
     &.left-table {
       margin-right: 8px;
-			flex: 0 0 40%;
+			flex: 0 0 35%;
     }
     &.right-table {
       margin-left: 8px;
-			flex: 0 0 60%;
+			flex: 0 0 65%;
     }
 
 		.table-header {
@@ -1301,7 +1332,7 @@ export default {
 		margin: 0;
 	}
 	.el-checkbox {
-		margin-left: 454px;
+		margin-left: 395px;
 		// margin-right: 600px; // 与右侧表格对齐
 	}
 }
