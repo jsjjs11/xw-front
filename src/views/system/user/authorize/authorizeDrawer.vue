@@ -900,7 +900,7 @@ export default {
 					timeCode: item.timeCode,
 					startDate: item.startDate,
 					endDate: item.endDate,
-					authSource: 0,
+					authSource: item.authSource ? item.authSource : 0,
 				})));
 				params = {
 					defaultPermissions,
