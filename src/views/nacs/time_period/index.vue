@@ -16,7 +16,8 @@
 			</el-col>
 			<el-col :span="21" :xs="24" class="content-container">
 				<div v-if="timeZoneList && timeZoneList.length === 0" class="empty-data">
-					未同步数据
+					<i class="el-icon-warning-outline empty-icon"></i>
+					<div class="empty-text">未同步数据</div>
 				</div>
         <el-button  v-if="timeZoneList && timeZoneList.length !== 0"  type="primary" @click="handleChangeTimeZone" icon="el-icon-plus" style="width: 150px;">同步修改</el-button>
 
@@ -368,5 +369,27 @@ export default {
 	margin-top: 15px;
 	margin-bottom: 15px;
 	font-weight: bold;
+}
+
+.empty-data {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	min-height: 400px;
+	text-align: center;
+}
+
+.empty-icon {
+	font-size: 80px;
+	color: #c0c4cc;
+	margin-bottom: 20px;
+}
+
+.empty-text {
+	font-size: 24px;
+	font-weight: bold;
+	color: #606266;
 }
 </style>

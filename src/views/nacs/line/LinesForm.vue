@@ -114,7 +114,7 @@ export default {
         this.formLoading = true;
         this.edit = true;
         try {
-        
+
           const res = await LinesApi.getLines(id);
 
           this.formData = res.data;
@@ -128,7 +128,7 @@ export default {
         this.edit = false;
         this.title = "新增线路信息";
       }
-      
+
     },
     /** 提交按钮 */
     async submitForm() {

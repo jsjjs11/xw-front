@@ -1,3 +1,12 @@
+<!--
+ * @copyright: 2021 NANJING SAC Rail Traffic Engineering CO., LTD
+ * @Descripttion: 
+ * @version: V1.0
+ * @Author: ym
+ * @Date: 2025-04-07 15:03:02
+ * @LastEditors: ym
+ * @LastEditTime: 2025-06-24 13:39:51
+-->
 <template>
   <div class="sidebar-logo-container" :class="{'collapse':collapse}" :style="{ backgroundColor: sideTheme === 'theme-dark' ? variables.menuBackground : variables.menuLightBackground }">
     <transition name="sidebarLogoFade">
@@ -14,7 +23,7 @@
 </template>
 
 <script>
-import logoImg from '@/assets/logo/logo.png'
+import logoImg from '@/assets/logo/sac.png'
 import variables from '@/assets/styles/variables.scss'
 
 export default {
