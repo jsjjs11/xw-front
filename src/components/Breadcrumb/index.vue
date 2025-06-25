@@ -35,7 +35,11 @@ export default {
       const first = matched[0]
 
       if (!this.isDashboard(first)) {
-        matched = [{ path: '/index', meta: { title: '首页' }}].concat(matched)
+        // 检查是否已经存在首页项，避免重复添加
+        const hasHomePage = matched.some(item => item.path === '/index' || item.path === '/')
+        if (!hasHomePage) {
+          matched = [{ path: '/index', meta: { title: '首页' }}].concat(matched)
+        }
       }
 
       this.levelList = matched.filter(item => item.meta && item.meta.title && item.meta.breadcrumb !== false)
