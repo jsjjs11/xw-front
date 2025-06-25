@@ -68,13 +68,18 @@ import Tinymce from '@/components/tinymce/index.vue'
 Vue.component('tinymce', Tinymce)
 import '@/assets/icons'
 import request from "@/utils/request" // 实现 form generator 使用自己定义的 axios request 对象
-console.log(request)
+//console.log(request)
 Vue.prototype.$axios = request
 import '@/styles/index.scss'
 
 // 默认点击背景不关闭弹窗
 import ElementUI from 'element-ui'
 ElementUI.Dialog.props.closeOnClickModal.default = false
+
+import VxeUIAll, {VxeUI} from 'vxe-pc-ui'
+import 'vxe-pc-ui/lib/style.css'
+import VxeUITable from 'vxe-table'
+import 'vxe-table/lib/style.css'
 
 /**
  * If you don't want to use mock-server
@@ -88,6 +93,9 @@ ElementUI.Dialog.props.closeOnClickModal.default = false
 Vue.use(Element, {
   size: localStorage.getItem("size") || "medium", // set element-ui default size
 });
+
+Vue.use(VxeUIAll)
+Vue.use(VxeUITable)
 
 Vue.config.productionTip = false
 
