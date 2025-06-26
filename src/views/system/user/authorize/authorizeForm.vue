@@ -288,10 +288,18 @@ export default {
       try {
         const params = [this.queryParams.idCard];
         const responseCard = await CardApi.isCardActive(params);
-        if (responseCard.data === false) {
-          this.$modal.msgError('该用户的门禁卡未激活，请先激活卡');
+        if( responseCard.data && responseCard.data.length > 0 ) {
+          const authFailReasonDictDatas = this.getDictDatas(DICT_TYPE.NACS_AUTH_FAIL_REASONS)
+
+            const reasonText = authFailReasonDictDatas.find(item => item.value === String(responseCard.data[0].authFailReason[0].failReason))
+              ?.label || "";
+          this.$modal.msgError(reasonText + '，请激活后再进行权限管理');
           return;
         }
+        // if (responseCard.data === false) {
+        //   this.$modal.msgError('该用户的门禁卡未激活，请先激活卡');
+        //   return;
+        // }
         const response = await AuthorizationApi.checkApply(params);
         if (response.data.length === 0) {
           const response2 = await CardApi.getLineInfo(params);
@@ -312,7 +320,7 @@ export default {
           // }
           const lineInfo = response2.data;
           // ? {
-          //   normalLines: response2.data[0].normalLines, 
+          //   normalLines: response2.data[0].normalLines,
           //   unAuthLines: response2.data[0].unAuthLines
           // } :[]
           const deptId = [];
@@ -418,7 +426,7 @@ export default {
 ::v-deep .el-dialog {
   height: auto !important;
   overflow: visible !important;
-  
+
   .el-dialog__body {
     overflow: visible !important;
     max-height: none !important;

@@ -2,7 +2,7 @@
     <div class="page-container">
         <el-row :gutter="20" style="height: 100%;">
             <!-- 左侧：线路选择 -->
-            <el-col :span="2">
+            <el-col :span="3">
                 <div class="section-title">线路列表</div>
                 <el-radio-group v-model="selectedLine" @change="onLineChange" style="width: 100%;">
                     <el-timeline class="custom-timeline">
@@ -16,7 +16,7 @@
                 </el-radio-group>
             </el-col>
             <!-- 右侧：Tab切换表格 -->
-            <el-col :span="22">
+            <el-col :span="21">
                 <el-tabs v-model="activeTab" type="card" @tab-click="onTabChange">
                     <el-tab-pane label="卡授权" name="cardauth">
                         <el-table :data="tableData_cardauth" style="width: 100%" height="calc(100vh - 220px)">

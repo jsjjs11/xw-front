@@ -24,7 +24,7 @@
 				</el-date-picker>
 				<!-- 快捷按钮行 -->
 				<div class="quick-date-buttons">
-					<el-button 
+					<el-button
 						v-for="btn in quickButtons"
 						:key="btn.type"
 						@click="handleQuickDate(btn.type)"
@@ -40,7 +40,7 @@
 			<el-button @click="visible = false">取消</el-button>
 		</div>
 	</el-drawer>
-	
+
 </template>
 <script>
 import * as TimePeriodApi from '@/api/nacs/time_period';
@@ -50,7 +50,7 @@ export default {
 		return {
 			visible: false,
 			form: {
-				timeCode: 0,
+				timeCode: "0",
 				dateRange: [],
 				key: ""
 			},
@@ -61,21 +61,34 @@ export default {
         { type: 'year', label: '一年' },
         { type: 'decade', label: '十年' }
 			],
-			timeZones: [{ value:0, label:'全时区' }],
+			timeZones: [{ value:"0", label:'全时区' }],
 			lineNo: '',
 		}
 	},
 	methods: {
 		async show (row) {
-			this.visible = true;
-			this.form = {
-				timeCode: row.timeCode || 0,
-				dateRange: [row.startDate, row.endDate] || [],
-				key: row.key
-			}
+
 			this.lineNo = row.lineNo;
 			const res = await TimePeriodApi.getTimePeriod(this.lineNo);
 			this.timeZones = res.data.map(item => ({ value: item.timeCode, label: item.timeName }));
+			if(this.timeZones.length==0){
+        this.timeZones = [{ value:"0", label:'全时区' }];
+      }
+      console.log(row,this.timeZones)
+      this.$nextTick(() => {
+        // 如果 row.timeCode 不是字符串则转成字符串
+        let timeCode = row.timeCode;
+        if (typeof timeCode !== 'string') {
+          timeCode = timeCode !== undefined && timeCode !== null ? String(timeCode) : "0";
+        }
+        this.form = {
+          timeCode: timeCode || "0",
+          dateRange: [row.startDate, row.endDate] || [],
+          key: row.key
+        }
+      });
+      this.visible = true;
+
 		},
 		handleQuickDate(type) {
       const start = new Date()
