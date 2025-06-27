@@ -38,6 +38,11 @@
 				<el-table-column type="index" width="40" align="center" />
 				<el-table-column label="审核单号" align="center" prop="authNo"></el-table-column>
 				<el-table-column label="发起时间" align="center" prop="createTime"></el-table-column>
+				<el-table-column label="权限类型" align="center" prop="authType">
+					<template slot-scope="scope">
+						<dict-tag :type="DICT_TYPE.NACS_AUTH_TYPE" :value="scope.row.authType" />
+					</template>
+				</el-table-column>
 				<!-- <el-table-column label="发起人" align="center" prop="checkUser"></el-table-column> -->
 				<el-table-column label="审核状态" align="center" prop="reviewState">
 					<template slot-scope="scope">
