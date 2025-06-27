@@ -313,11 +313,11 @@ export default {
 ::v-deep .el-table {
   flex: 1;
   // overflow: hidden;
-  overflow-y:auto;
+  // overflow-y:auto;
   height: 400px !important;
   .el-table__body-wrapper {
     overflow-y:auto;
-    height: 260px !important;
+    height: 350px !important;
   }
 }
 ::v-deep .el-dialog {
