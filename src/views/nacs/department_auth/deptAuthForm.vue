@@ -109,9 +109,12 @@ export default {
         this.$modal.msgSuccess("权限已下发，请等待审核");
         this.getList();
         let userNames = res.data.map(item => item.employeeName).join(',');
-        let message = `<div class="auth-error-container">`;
-        message += `<p style="font-weight: bold; margin-bottom: 10px;">用户 ${userNames} 的部门预设权限无法生效，原因如下：</p>`;
-        message += `<table style="width: 100%; border-collapse: collapse;">`;
+        let message = `<div class="auth-error-container"
+          style="max-height: 60vh; overflow: hidden; display: flex; flex-direction: column;>`;
+        message += `<p style="font-weight: bold; margin-bottom: 20px;">用户 ${userNames} 的部门预设权限无法生效，原因如下：</p>`;
+        message += `<div style="flex: 1;overflow-y:auto;">`;
+        message += `<table style="width: 100%; border-collapse: collapse;margin-top: 20px;">`;
+        message += `<thead style="position: sticky; top: 0; background: #f5f7fa; z-index: 1; ">`;
         message += `<tr><th style="padding: 10px;border-bottom: 1px solid #dfe6ec;">姓名</th>
           <th style="padding: 10px;border-bottom: 1px solid #dfe6ec;">线路</th>
           <th style="padding: 10px;border-bottom: 1px solid #dfe6ec;">失效原因</th></tr>`;
@@ -128,7 +131,7 @@ export default {
           });
         });
         
-        message += `</table></div>`;
+        message += `</tbody></table></div></div>`
         this.$alert(message, '失效权限', {
           dangerouslyUseHTMLString: true,
           showConfirmButton: true,
@@ -191,6 +194,35 @@ export default {
 	}
 }
 </script>
+<style lang="scss">
+.el-message-box {
+  width: 700px;
+  .auth-error-container {
+    overflow: hidden;
+		margin-left: 12px;
+		margin-right: 12px;
+	}
+  table {
+    width: 100%;
+    thead {
+			overflow-y: auto;
+			overflow-x: auto;
+		}
+    th, td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #ebeef5;
+      // text-align: center;
+    }
+
+    th {
+      position: sticky;
+      // top: 0;
+      background: #f5f7fa;
+      z-index: 1;
+    }
+  }
+}
+</style>
 <style lang="scss" scoped>
 .operation-buttons {
   margin: 0px 0;

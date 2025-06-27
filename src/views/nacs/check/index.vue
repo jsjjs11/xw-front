@@ -84,6 +84,11 @@
 										<dict-tag :type="DICT_TYPE.NACS_AUTH_MODE" :value="scope.row.authMode" />
 									</template>
 								</el-table-column>
+								<el-table-column prop="authSource" label="权限来源" align="center" width="120">
+									<template v-slot="scope">
+									<dict-tag :type="DICT_TYPE.NACS_AUTH_SOURCE" :value="scope.row.authSource" />
+									</template>
+								</el-table-column>
 								<el-table-column label="操作类型" prop="operateType" align="center" width="120">
 									<template slot-scope="scope">
 										<dict-tag :type="DICT_TYPE.NACS_OP_DATA_TYPE" :value="scope.row.operateType" />
