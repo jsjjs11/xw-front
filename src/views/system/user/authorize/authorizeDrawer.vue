@@ -642,7 +642,7 @@ export default {
 				this.title = '部门预设权限管理';
 				try {
 					const res = await deptAuthApi.getdeptPermission(this.AuthorizeForm.deptId);
-					await this.handlePermissionData(res.data, false);
+					await this.handlePermissionData(res.data, true);
 				} catch(error) {
 					console.log(error);
 					this.$message.error('获取部门授权信息失败');
@@ -663,9 +663,9 @@ export default {
 						lineNo: item.lineNo,
 						stationNo: item.stationNo,
 						isleaf: false,
-						dateRange: item.startDate && item.endDate ? `${this.formatDateFromArray(item.startDate)}至${this.formatDateFromArray(item.endDate)}`: '',
-						startDate: item.startDate ? this.formatDateFromArray(item.startDate): '',
-						endDate: item.endDate ? this.formatDateFromArray(item.endDate): '',
+						dateRange: item.startDate && item.endDate ? `${item.startDate}至${item.endDate}`: '',
+						startDate: item.startDate ? item.startDate: '',
+						endDate: item.endDate ? item.endDate: '',
 						timeCode: item.timeCode ? Number(item.timeCode): 0,
 						timeName: timeName || '全时区',
 					};

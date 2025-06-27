@@ -4,7 +4,7 @@
 			<!-- 操作按钮 -->
       <div class="operation-buttons">
         <el-button type="primary" icon="el-icon-user" @click="showAuthDrawer()">部门预设权限管理</el-button>
-        <el-button type="info" icon="el-icon-edit" @click="handleRegisterAuth(scope.row)">注销授权</el-button>
+        <!-- <el-button type="info" icon="el-icon-edit" @click="handleRegisterAuth(scope.row)">注销授权</el-button> -->
         <el-button type="primary" icon="el-icon-s-promotion" @click="handleGrandAuth()">下发权限</el-button>
       </div>
       <!-- 权限列表表格 -->
@@ -33,11 +33,11 @@
             <dict-tag :type="DICT_TYPE.NACS_AUTH_MODE" :value="scope.row.authMode" />
           </template>
         </el-table-column>
-        <el-table-column prop="authSource" label="权限来源" align="center">
+        <!-- <el-table-column prop="authSource" label="权限来源" align="center">
           <template v-slot="scope">
             <dict-tag :type="DICT_TYPE.NACS_AUTH_SOURCE" :value="scope.row.authSource" />
           </template>
-        </el-table-column>
+        </el-table-column> -->
       </el-table>
 
       <!-- 分页组件 -->
@@ -83,6 +83,7 @@ export default {
       drawerVisible: false,
       // 当前选中的权限组
       currentGroup: {},
+      authFailReasonDictDatas: getDictDatas(DICT_TYPE.NACS_AUTH_FAIL_REASONS),
 		}
 	},
 	methods: {
@@ -104,9 +105,35 @@ export default {
     /** 下发权限 */
     async handleGrandAuth() {
       try {
-        await deptAuthApi.assignDeptPermission(this.queryParams.deptId)
-        this.$modal.msgSuccess("下发权限成功");
+        const res = await deptAuthApi.assignDeptPermission(this.queryParams.deptId)
+        this.$modal.msgSuccess("权限已下发，请等待审核");
         this.getList();
+        let userNames = res.data.map(item => item.employeeName).join(',');
+        let message = `<div class="auth-error-container">`;
+        message += `<p style="font-weight: bold; margin-bottom: 10px;">用户 ${userNames} 的部门预设权限无法生效，原因如下：</p>`;
+        message += `<table style="width: 100%; border-collapse: collapse;">`;
+        message += `<tr><th style="padding: 10px;border-bottom: 1px solid #dfe6ec;">姓名</th>
+          <th style="padding: 10px;border-bottom: 1px solid #dfe6ec;">线路</th>
+          <th style="padding: 10px;border-bottom: 1px solid #dfe6ec;">失效原因</th></tr>`;
+        
+        res.data.forEach(item => {
+          item.authFailReason.forEach(reason => {
+            const reasonText = this.authFailReasonDictDatas.find(item => item.value === String(reason.failReason))?.label 
+                                || reason.failReason;
+            message += `<tr>`;
+            message += `<td style="padding: 10px;">${item.employeeName}</td>`;
+            message += `<td style="padding: 10px;">${reason.lineName}</td>`;
+            message += `<td style="padding: 10px;">${reasonText}</td>`;
+            message += `</tr>`; 
+          });
+        });
+        
+        message += `</table></div>`;
+        this.$alert(message, '失效权限', {
+          dangerouslyUseHTMLString: true,
+          showConfirmButton: true,
+          confirmButtonText: '确定'
+        });
       } catch (error) {
         console.error("下发权限失败", error)
         this.$modal.msgError("下发权限失败")
