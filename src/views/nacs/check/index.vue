@@ -38,7 +38,7 @@
 				<el-table-column type="index" width="40" align="center" />
 				<el-table-column label="审核单号" align="center" prop="authNo"></el-table-column>
 				<el-table-column label="发起时间" align="center" prop="createTime"></el-table-column>
-				<el-table-column label="权限类型" align="center" prop="authType">
+				<el-table-column label="授权类型" align="center" prop="authType">
 					<template slot-scope="scope">
 						<dict-tag :type="DICT_TYPE.NACS_AUTH_TYPE" :value="scope.row.authType" />
 					</template>
