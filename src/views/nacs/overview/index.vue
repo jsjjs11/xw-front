@@ -97,7 +97,19 @@
           <div style="width: 100%; height: 100%; position: relative;">
             <!--                        <img src="@/assets/images/xianluda.png"
                             style="width: 100%; height: 100%; object-fit: contain;" />-->
-            <subway-line ref="subwayline"></subway-line>
+            <subway-line 
+              ref="subwayline" 
+              @station-click="handleStationClick"
+              @line-click="handleLineClick"></subway-line>
+            <show-detail
+              :visible="showInfo"
+              :title="popupTitle"
+              :content="popupContent"
+              :icon="popupIcon"
+              :icon-class="popupIconClass"
+              :position="{ top: '20px', left: '20px' }"
+              @close="closePopup"
+            />
           </div>
         </el-card>
       </el-col>
@@ -138,10 +150,12 @@
 <script>
 
 import SubwayLine from './subwayline/subwayLine'
+import showDetail from './subwayline/showDetail'
 export default {
   name: "Overview",
   components: {
-    SubwayLine
+    SubwayLine,
+    showDetail
   },
   data() {
     return {
@@ -202,12 +216,56 @@ export default {
                 timestamp: '12月07日 11:51',
                 content: '新开卡: 9282143512410C, 持卡人: 程余1125<br>卡号: 9282143512410C 有效期: 00:00-00:00 卡类型: 1',
             },
-      ]
+      ],
+      showInfo: false,
+      popupTitle: '',
+      popupContent: '',
+      popupIcon: '',
+      popupIconClass: '',
     };
   },
   methods: {
     resetSubWayLine() {
       this.$refs.subwayline.resetViewBox();
+    },
+    // 处理车站点击
+    handleStationClick(station) {
+      this.popupTitle = station.name;
+      this.popupIcon = station.isTransfer ? '⇄' : 'Ⓜ';
+      this.popupIconClass = 'station-icon';
+      
+      const lineNames = station.lines.map(lid => `线路${lid}`).join(', ');
+      
+      this.popupContent = `
+        <p><strong>车站名称:</strong> ${station.name}</p>
+        <p><strong>类型:</strong> ${station.isTransfer ? '换乘站' : '普通站'}</p>
+        <p><strong>位置:</strong> (${station.x}, ${station.y})</p>
+        <p><strong>经过线路:</strong> ${lineNames}</p>
+        <p><strong>运营状态:</strong> 正常</p>
+      `;
+      
+      this.showInfo = true;
+    },
+    
+    // 处理线路点击
+    handleLineClick(line) {
+      this.popupTitle = line.name + '线路';
+      this.popupIcon = '➤';
+      this.popupIconClass = 'line-icon';
+      
+      this.popupContent = `
+        <p><strong>线路名称:</strong> ${line.name}</p>
+        <p><strong>车站数量:</strong> ${line.stations.length}</p>
+        <p><strong>运营状态:</strong> 正常运营</p>
+        <p><strong>首末班车:</strong> 6:00 - 23:30</p>
+      `;
+      
+      this.showInfo = true;
+    },
+    
+    // 关闭弹窗
+    closePopup() {
+      this.showInfo = false;
     }
   }
 };

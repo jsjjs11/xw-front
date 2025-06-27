@@ -16,7 +16,6 @@
     @mouseup="endDrag"
     @wheel="handleZoom"
     @click="handleContainerClick"
-    @click:element="handleElementClick"
   >
     <component
       v-for="(item, index) in items"
@@ -51,6 +50,7 @@
       @unregister="unregisterElement"
       @click="handleContainerEvent('click')"
       @contextmenu="handleContainerEvent('contextmenu')"
+      @element-click="handleElementClick"
     >
       <!-- 递归渲染组内子元素 -->
       <template v-if="item.type === 'group' && item.items">
@@ -193,11 +193,15 @@ export default {
     resetViewBox() {
       this.currentViewBox  = { ...this.initialViewBox };
     },
+    // 修改容器点击事件处理
     handleContainerClick(event) {
-      this.$emit('click', event);
+      // 只有当点击的是SVG容器本身（而不是子元素）时才触发
+      if (event.target === this.$el) {
+        this.$emit('click', event);
+      }
     },
     handleElementClick(item, event) {
-      this.$emit('click:element', item, event);
+      this.$emit('element-click', item, event);
     }
   },
   beforeDestroy() {

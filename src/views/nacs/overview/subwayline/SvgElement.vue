@@ -20,6 +20,7 @@
     v-else
     :is="elementType"
     v-bind="elementProps"
+    @click="handleClick"
   />
 </template>
 
@@ -94,6 +95,10 @@ export default {
       } else {
         console.warn(`元素 ${this.itemData.id} 没有定义更新函数`);
       }
+    },
+    handleClick(event) {
+      // 触发自定义事件
+      this.$emit('element-click', this.itemData, event);
     }
   }
 };
