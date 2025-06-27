@@ -24,14 +24,14 @@
 												:key="line.lineNo"
 												size="large">
 												<template #dot>
-													<el-radio 
-														:label="line.lineNo" 
-														:class="`color-radio-${line.lineNo}`" 
+													<el-radio
+														:label="line.lineNo"
+														:class="`color-radio-${line.lineNo}`"
 														:disabled="!isLineEnable(line.lineNo)">
 														{{ line.name }}
-														<el-tooltip 
+														<el-tooltip
 															v-if="showUnauthWarning(line.lineNo)"
-															effect="dark" 
+															effect="dark"
 															placement="right">
 															<!-- :content="getUnauthWarningText(line.lineNo)" -->
 															<div slot="content" v-html="getUnauthWarningText(line.lineNo)" style="white-space: pre-line;"></div>
@@ -56,7 +56,7 @@
 									</el-checkbox-group>
 								</div>
 							</el-col>
-							
+
 							<!-- 门禁列 -->
 							<el-col :span="18">
 								<div class="column auth-transfer">
@@ -220,7 +220,7 @@ export default {
 		}
 	},
 	mounted() {
-    
+
   },
 	computed: {
 		// 计算左侧非叶子节点数量
@@ -240,7 +240,7 @@ export default {
 				return hasUnauthLine || hasNormalLine;
 			});
     },
-    
+
     // 获取授权警告文本
     getUnauthWarningText(lineNo) {
 			if (!this.unAuthLines || this.unAuthLines.length === 0) return '';
@@ -282,7 +282,7 @@ export default {
         const today = new Date();
         const tenYearsLater = new Date();
         tenYearsLater.setFullYear(today.getFullYear() + 10);
-        
+
         // 格式化日期为YYYY-MM-DD
         const formatDate = (date) => {
 					const year = date.getFullYear();
@@ -290,7 +290,7 @@ export default {
 					const day = String(date.getDate()).padStart(2, '0');
 					return `${year}-${month}-${day}`;
         };
-        
+
         const startDate = formatDate(today);
         const endDate = formatDate(tenYearsLater);
 				// 添加到右侧表格
@@ -311,7 +311,7 @@ export default {
 					this.selectedList.splice(index, 1);
 				}
 			}
-			
+
 			// 更新左侧表格的选中状态
 			this.$nextTick(() => {
 				this.$refs.authTable.toggleRowSelection(row, isSelected);
@@ -322,7 +322,7 @@ export default {
 		handleLeftSelectAll(selection) {
 			// 获取当前页所有可选的非叶子节点
 			const selectableRows = this.authList.filter(row => !row.isLeaf);
-			
+
 			// 判断是全选还是取消全选
 			if (selection.length > 0) {
 				// 全选操作 - 添加所有可选项到selectedList
@@ -330,7 +330,7 @@ export default {
         const today = new Date();
         const tenYearsLater = new Date();
         tenYearsLater.setFullYear(today.getFullYear() + 10);
-        
+
         // 格式化日期为YYYY-MM-DD
         const formatDate = (date) => {
 					const year = date.getFullYear();
@@ -402,15 +402,15 @@ export default {
 		},
 		/** 时区/周期修改确认 */
 		handleTimeConfirm(data) {
-			const index = this.selectedList.findIndex(item => item.key === data.key);
+			 const index = this.selectedList.findIndex(item => item.key === data.key);
     	if (index !== -1) {
-        this.$set(this.selectedList, index, {
-					...this.selectedList[index],
-					timeCode: data.timeCode,
-					startDate: data.startDate,
-					endDate: data.endDate,
-					dateRange: `${data.startDate}至${data.endDate}`
-        });
+        let tempData = {...this.selectedList[index]}
+        tempData.timeCode=data.timeCode,
+        tempData.startDate= data.startDate,
+        tempData.endDate=data.endDate,
+        tempData.dateRange= `${data.startDate}至${data.endDate}`,
+        tempData.timeName=this.getTimeZoneLabel(data.timeCode,this.selectedList[index].lineNo)
+        this.$set(this.selectedList, index, tempData);
     	}
 		},
 		// 临时处理时区名称，需要增加接口返回时区名称
@@ -436,18 +436,27 @@ export default {
 		/** 时区/周期批量修改确认 */
 		handleTimeToLineConfirm(data) {
 			data ? data.forEach(item => {
-				const index = this.selectedList.findIndex(
-					selectedItem => selectedItem.lineNo === item.lineNo
-				);
-				if (index !== -1) {
-					this.$set(this.selectedList, index, {
-						...this.selectedList[index],
-						timeCode: item.timeCode,
-						startDate: item.startDate,
-						endDate: item.endDate,
-						dateRange: `${item.startDate}至${item.endDate}`
-					});
-				}
+        this.selectedList.forEach(selected =>{
+          if( selected.lineNo === item.lineNo){
+            selected.timeCode = item.timeCode,
+            selected.startDate = item.startDate,
+            selected.endDate = item.endDate,
+            selected.dateRange = `${item.startDate}至${item.endDate}`,
+            selected.timeName = this.getTimeZoneLabel(item.timeCode,selected.lineNo)
+          }
+        })
+				// const index = this.selectedList.findIndex(
+				// 	selectedItem => selectedItem.lineNo === item.lineNo
+				// );
+				// if (index !== -1) {
+				// 	this.$set(this.selectedList, index, {
+				// 		...this.selectedList[index],
+				// 		timeCode: item.timeCode,
+				// 		startDate: item.startDate,
+				// 		endDate: item.endDate,
+				// 		dateRange: `${item.startDate}至${item.endDate}`
+				// 	});
+				// }
 			}): null;
 		},
 		/** 快捷选择门禁集合 */
@@ -463,7 +472,7 @@ export default {
         const today = new Date();
         const tenYearsLater = new Date();
         tenYearsLater.setFullYear(today.getFullYear() + 10);
-        
+
         // 格式化日期为YYYY-MM-DD
         const formatDate = (date) => {
 					const year = date.getFullYear();
@@ -479,15 +488,15 @@ export default {
 				const existingKeys = new Set(this.selectedList.map(item => item.key));
 				// 1. 获取新选中集合的所有setCode
 				const newSetCodes = new Set(data.map(item => item.setCode));
-				
+
 				// 移除selectedList中属于被取消集合的权限项,只移除那些有setCode且不在新选中集合中的项
 				this.selectedList = this.selectedList.filter(item => {
 					// 如果没有setCode，说明是手动添加的权限，保留
 					if (!item.setCode) return true;
-					
+
 					// 如果有setCode且在新选中集合中，保留
 					if (newSetCodes.has(item.setCode)) return true;
-					
+
 					// 移除有setCode但不在新选中集合中的项
 					return false;
 				});
@@ -498,7 +507,7 @@ export default {
 
 				toAdd.forEach(async item => {
 					const key = `${item.lineNo}-${item.authMode}-${item.code}`;
-					
+
 					// 检查是否已存在相同key的项
 					// const isExist = this.selectedList.some(selectedItem => selectedItem.key === key);
 					const isExist = existingKeys.has(key);
@@ -509,7 +518,7 @@ export default {
 					console.log(timeCode)
 					if (!isExist && isLineEnable) {
 						if(item.authMode === 1){
-							this.selectedList.push({ 
+							this.selectedList.push({
 								...item,
 								key: key,
 								label: item.name,
@@ -551,7 +560,7 @@ export default {
 		// handleRemoveAuthSet() {
 
 		// },
-		/** 加载子节点 */ 
+		/** 加载子节点 */
 		async loadAuthList(node, treeNode, resolve) {
 			if (node.level === 0) {
 				try {
@@ -637,7 +646,7 @@ export default {
 					this.$message.error('获取用户授权信息失败');
 				}
 				this.addDeptPresetPermissions();
-				
+
 			} else if (this.AuthorizeForm.idCard.length === 0 && this.AuthorizeForm.deptId) {
 				this.title = '部门预设权限管理';
 				try {
@@ -669,7 +678,7 @@ export default {
 						timeCode: item.timeCode ? Number(item.timeCode): 0,
 						timeName: timeName || '全时区',
 					};
-					
+
 					if (item.authMode === 2) {
 						permissionItem.level = 0;
 						permissionItem.hasChildren = true;
@@ -695,7 +704,7 @@ export default {
 					// 对this.selectedList中重复的权限进行合并
 					const mergedList = [];
 					const keyMap = new Map();
-					
+
 					this.selectedList.forEach(item => {
 						if (!keyMap.has(item.key)) {
 							keyMap.set(item.key, item);
@@ -710,7 +719,7 @@ export default {
 							}
 						}
 					});
-					
+
 					this.selectedList = mergedList;
 					this.$nextTick(() => {
 						this.syncLeftSelection();
@@ -733,7 +742,7 @@ export default {
 			const year = dateArray[0];
 			const month = String(dateArray[1]).padStart(2, '0');
 			const day = String(dateArray[2]).padStart(2, '0');
-			
+
 			return `${year}-${month}-${day}`;
 		},
 		/** 关闭授权弹窗 */
@@ -801,7 +810,7 @@ export default {
 				this.checkAll = false;
 				this.isIndeterminate = false;
 				this.syncLeftSelection();
-				
+
 				this.onStationChange();
       }
     },
@@ -829,8 +838,8 @@ export default {
 				filteredList = [...this.groupList];
 			} else {
 				filteredList = [
-					...this.groupList, 
-					...this.deviceList.filter(device => 
+					...this.groupList,
+					...this.deviceList.filter(device =>
 							this.form.selectedStation.includes(device.stationNo)
 					)
 				];
@@ -886,7 +895,7 @@ export default {
 					}
 					users.push({
 						idCard: user.idCard,
-						permissions: unAuthLineNos.length > 0 ? 
+						permissions: unAuthLineNos.length > 0 ?
 							this.selectedList.filter(perm => unAuthLineNos.includes(perm.lineNo)) : []
 					});
 				});
@@ -912,7 +921,7 @@ export default {
 			// 	authItems,
 			// };
 			console.log('提交授权参数:', params);
-			
+
 			if (this.AuthorizeForm.deptId && this.AuthorizeForm.idCard.length === 0) {
 				try {
 					await deptAuthApi.createdeptPermission(params);
@@ -928,7 +937,7 @@ export default {
 				// 检查是否有用户存在无效权限
         const hasInvalidPermissions = params.users.some(user => user.permissions.length > 0);
 				if (hasInvalidPermissions) {
-					let message = `<div class="auth-error-container" 
+					let message = `<div class="auth-error-container"
 						style="max-height: 60vh; overflow: hidden; display: flex; flex-direction: column;">`;
 					message += `<p style="font-weight: bold; margin-bottom: 10px;">存在无法授予的权限，是否继续进行授权？</p>`;
 					message += `<div style="flex: 1;">`;
@@ -937,7 +946,7 @@ export default {
 					message += `<tr><th style="padding: 12px 16px;border-bottom: 1px solid #dfe6ec;">姓名</th>
 						<th style="padding: 12px 16px;border-bottom: 1px solid #dfe6ec;">线路</th>
 						<th style="padding: 12px 16px;border-bottom: 1px solid #dfe6ec;">无效的权限</th></tr>`;
-					
+
 					params.users.forEach(item => {
 						item.permissions.forEach(perm => {
 							const employeeName = this.unAuthLines.find(user => user.idCard === item.idCard)?.employeeName || item.idCard;
@@ -946,10 +955,10 @@ export default {
 							message += `<td style="padding: 12px 16px;">${employeeName}</td>`;
 							message += `<td style="padding: 12px 16px;">${lineName}</td>`;
 							message += `<td style="padding: 12px 16px;">${perm.name}</td>`;
-							message += `</tr>`; 
+							message += `</tr>`;
 						});
 					});
-					
+
 					message += `</tbody></table></div></div>`;
 					this.$confirm(message, '无效的权限', {
 						dangerouslyUseHTMLString: true,
@@ -977,7 +986,7 @@ export default {
 						this.$message({
 							type: 'info',
 							message: '已取消授权'
-						});  
+						});
 					});
 				} else {
 					try {
@@ -996,7 +1005,7 @@ export default {
 						this.$message.error('授权失败');
 					}
 				}
-				
+
 			}
 		},
 		reset() {
@@ -1032,7 +1041,7 @@ export default {
       border-bottom: 1px solid #ebeef5;
       // text-align: center;
     }
-    
+
     th {
       position: sticky;
       // top: 0;
@@ -1053,7 +1062,7 @@ export default {
 	position: relative;
 	padding: 0px;
 	height: 100%;
-  
+
   /* 移除默认间隔 */
   // margin-bottom: 0;
 
@@ -1182,7 +1191,7 @@ export default {
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
-			
+
 			span {
 				font-size: 14px;
 				letter-spacing: 0.5px;
@@ -1327,7 +1336,7 @@ export default {
 	align-items: center;
 	padding: 0 16px;
 	margin-bottom: 10px;
-	
+
 	.section-title {
 		margin: 0;
 	}
