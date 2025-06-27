@@ -40,3 +40,10 @@ export function getDeptPresetPermissions(idCard) {
 	})
 }
 
+// 权限是否在审核
+export function isPermissionAudit(deptId) {
+	return request({
+		url: '/nacs/dept-permissions/check-pending-auth?deptId=' + deptId,
+		method: 'get'
+	})
+}
