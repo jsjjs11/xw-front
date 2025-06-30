@@ -12,7 +12,7 @@
             </div>
             <div class="card-panel-description">
               <div class="card-panel-text">线网线路总数</div>
-              <div class="card-panel-num">1</div>
+              <div class="card-panel-num">{{ statisticsData?.lines?.total?.count }}</div>
             </div>
           </div>
         </el-col>
@@ -23,7 +23,7 @@
             </div>
             <div class="card-panel-description">
               <div class="card-panel-text">已接入线路</div>
-              <div class="card-panel-num" style="color: #409EFF;">1</div>
+              <div class="card-panel-num" style="color: #409EFF;">{{ statisticsData?.lines?.connected?.count }}</div>
             </div>
           </div>
         </el-col>
@@ -34,7 +34,7 @@
             </div>
             <div class="card-panel-description">
               <div class="card-panel-text">未接入线路</div>
-              <div class="card-panel-num" style="color: #F56C6C;">0</div>
+              <div class="card-panel-num" style="color: #F56C6C;">{{ statisticsData?.lines?.disconnected?.count }}</div>
             </div>
           </div>
         </el-col>
@@ -45,7 +45,7 @@
             </div>
             <div class="card-panel-description">
               <div class="card-panel-text">员工总数</div>
-              <div class="card-panel-num">1,240</div>
+              <div class="card-panel-num">{{ statisticsData?.employees?.total?.count }}</div>
             </div>
           </div>
         </el-col>
@@ -56,7 +56,7 @@
             </div>
             <div class="card-panel-description">
               <div class="card-panel-text">已授权员工</div>
-              <div class="card-panel-num" style="color: #409EFF;">1,234</div>
+              <div class="card-panel-num" style="color: #409EFF;">{{ statisticsData?.employees?.cardIssued?.count }}</div>
             </div>
           </div>
         </el-col>
@@ -67,18 +67,18 @@
             </div>
             <div class="card-panel-description">
               <div class="card-panel-text">未授权员工</div>
-              <div class="card-panel-num" style="color: #F56C6C;">6</div>
+              <div class="card-panel-num" style="color: #F56C6C;">{{ statisticsData?.employees?.cardNotIssued?.count }}</div>
             </div>
           </div>
         </el-col>
         <el-col :xs="24" :sm="12" :lg="3" class="card-panel-col">
           <div class="card-panel">
-            <div class="card-panel-icon-wrapper icon-lock">
+            <div class="card-panel-icon-wrapper icon-lock" >
               <svg-icon icon-class="devices" class-name="card-panel-icon" />
             </div>
             <div class="card-panel-description">
               <div class="card-panel-text">门禁点</div>
-              <div class="card-panel-num">586</div>
+              <div class="card-panel-num">{{ statisticsData?.accessPoints }}</div>
             </div>
           </div>
         </el-col>
@@ -97,8 +97,8 @@
           <div style="width: 100%; height: 100%; position: relative;">
             <!--                        <img src="@/assets/images/xianluda.png"
                             style="width: 100%; height: 100%; object-fit: contain;" />-->
-            <subway-line 
-              ref="subwayline" 
+            <subway-line
+              ref="subwayline"
               @station-click="handleStationClick"
               @line-click="handleLineClick"></subway-line>
             <show-detail
@@ -152,6 +152,7 @@
 <script>
 
 import SubwayLine from './subwayline/subwayLine'
+import { statistics } from '@/api/nacs/dashboard'
 import showDetail from './subwayline/showDetail'
 export default {
   name: "Overview",
@@ -161,6 +162,7 @@ export default {
   },
   data() {
     return {
+      statisticsData: null,
       activities: [
         {
           timestamp: '12月07日 11:51',
@@ -229,6 +231,9 @@ export default {
     };
   },
   methods: {
+    async getStatistics() {
+        this.statisticsData = (await statistics()).data
+    },
     resetSubWayLine() {
       this.$refs.subwayline.resetViewBox();
     },
@@ -249,7 +254,7 @@ export default {
       // this.popupIconClass = 'station-icon';
       
       const lineNames = station.lines.map(lid => `线路${lid}`).join(', ');
-      
+
       this.popupContent = `
         <p><strong>车站名称:</strong> ${station.name}</p>
         <p><strong>类型:</strong> ${station.isTransfer ? '换乘站' : '普通站'}</p>
@@ -257,30 +262,33 @@ export default {
         <p><strong>经过线路:</strong> ${lineNames}</p>
         <p><strong>运营状态:</strong> 正常</p>
       `;
-      
+
       this.showInfo = true;
     },
-    
+
     // 处理线路点击
     handleLineClick(line) {
       this.popupTitle = line.name + '线路';
       this.popupIcon = '➤';
       this.popupIconClass = 'line-icon';
-      
+
       this.popupContent = `
         <p><strong>线路名称:</strong> ${line.name}</p>
         <p><strong>车站数量:</strong> ${line.stations.length}</p>
         <p><strong>运营状态:</strong> 正常运营</p>
         <p><strong>首末班车:</strong> 6:00 - 23:30</p>
       `;
-      
+
       this.showInfo = true;
     },
-    
+
     // 关闭弹窗
     closePopup() {
       this.showInfo = false;
     }
+  },
+  mounted() {
+    this.getStatistics()
   }
 };
 </script>
