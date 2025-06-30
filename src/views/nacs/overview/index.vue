@@ -268,9 +268,10 @@ export default {
 
     // 处理线路点击
     handleLineClick(line) {
-      this.popupTitle = line.name + '线路';
+      this.popupTitle = line.name;
       this.popupIcon = '➤';
       this.popupIconClass = 'line-icon';
+      this.useImage = false;
 
       this.popupContent = `
         <p><strong>线路名称:</strong> ${line.name}</p>
