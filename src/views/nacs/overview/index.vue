@@ -12,7 +12,7 @@
             </div>
             <div class="card-panel-description">
               <div class="card-panel-text">线网线路总数</div>
-              <div class="card-panel-num">1</div>
+              <div class="card-panel-num">{{ statisticsData?.lines?.total?.count }}</div>
             </div>
           </div>
         </el-col>
@@ -23,7 +23,7 @@
             </div>
             <div class="card-panel-description">
               <div class="card-panel-text">已接入线路</div>
-              <div class="card-panel-num" style="color: #409EFF;">1</div>
+              <div class="card-panel-num" style="color: #409EFF;">{{ statisticsData?.lines?.connected?.count }}</div>
             </div>
           </div>
         </el-col>
@@ -34,7 +34,7 @@
             </div>
             <div class="card-panel-description">
               <div class="card-panel-text">未接入线路</div>
-              <div class="card-panel-num" style="color: #F56C6C;">0</div>
+              <div class="card-panel-num" style="color: #F56C6C;">{{ statisticsData?.lines?.disconnected?.count }}</div>
             </div>
           </div>
         </el-col>
@@ -45,7 +45,7 @@
             </div>
             <div class="card-panel-description">
               <div class="card-panel-text">员工总数</div>
-              <div class="card-panel-num">1,240</div>
+              <div class="card-panel-num">{{ statisticsData?.employees?.total?.count }}</div>
             </div>
           </div>
         </el-col>
@@ -56,7 +56,7 @@
             </div>
             <div class="card-panel-description">
               <div class="card-panel-text">已授权员工</div>
-              <div class="card-panel-num" style="color: #409EFF;">1,234</div>
+              <div class="card-panel-num" style="color: #409EFF;">{{ statisticsData?.employees?.cardIssued?.count }}</div>
             </div>
           </div>
         </el-col>
@@ -67,18 +67,18 @@
             </div>
             <div class="card-panel-description">
               <div class="card-panel-text">未授权员工</div>
-              <div class="card-panel-num" style="color: #F56C6C;">6</div>
+              <div class="card-panel-num" style="color: #F56C6C;">{{ statisticsData?.employees?.cardNotIssued?.count }}</div>
             </div>
           </div>
         </el-col>
         <el-col :xs="24" :sm="12" :lg="3" class="card-panel-col">
           <div class="card-panel">
-            <div class="card-panel-icon-wrapper icon-lock">
+            <div class="card-panel-icon-wrapper icon-lock" >
               <svg-icon icon-class="devices" class-name="card-panel-icon" />
             </div>
             <div class="card-panel-description">
               <div class="card-panel-text">门禁点</div>
-              <div class="card-panel-num">586</div>
+              <div class="card-panel-num">{{ statisticsData?.accessPoints }}</div>
             </div>
           </div>
         </el-col>
@@ -138,6 +138,7 @@
 <script>
 
 import SubwayLine from './subwayline/subwayLine'
+import { statistics } from '@/api/nacs/dashboard'
 export default {
   name: "Overview",
   components: {
@@ -145,6 +146,7 @@ export default {
   },
   data() {
     return {
+      statisticsData: null,
       activities: [
         {
           timestamp: '12月07日 11:51',
@@ -206,9 +208,15 @@ export default {
     };
   },
   methods: {
+    async getStatistics() {
+        this.statisticsData = (await statistics()).data
+    },
     resetSubWayLine() {
       this.$refs.subwayline.resetViewBox();
     }
+  },
+  mounted() {
+    this.getStatistics()
   }
 };
 </script>
