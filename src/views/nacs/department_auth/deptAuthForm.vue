@@ -4,7 +4,7 @@
 			<!-- 操作按钮 -->
       <div class="operation-buttons">
         <el-button type="primary" icon="el-icon-user" @click="showAuthDrawer()">部门预设权限管理</el-button>
-        <el-button type="info" icon="el-icon-edit" @click="handleRegisterAuth(scope.row)">注销授权</el-button>
+        <!-- <el-button type="info" icon="el-icon-edit" @click="handleRegisterAuth(scope.row)">注销授权</el-button> -->
         <el-button type="primary" icon="el-icon-s-promotion" @click="handleGrandAuth()">下发权限</el-button>
       </div>
       <!-- 权限列表表格 -->
@@ -33,11 +33,11 @@
             <dict-tag :type="DICT_TYPE.NACS_AUTH_MODE" :value="scope.row.authMode" />
           </template>
         </el-table-column>
-        <el-table-column prop="authSource" label="权限来源" align="center">
+        <!-- <el-table-column prop="authSource" label="权限来源" align="center">
           <template v-slot="scope">
             <dict-tag :type="DICT_TYPE.NACS_AUTH_SOURCE" :value="scope.row.authSource" />
           </template>
-        </el-table-column>
+        </el-table-column> -->
       </el-table>
 
       <!-- 分页组件 -->
@@ -83,6 +83,7 @@ export default {
       drawerVisible: false,
       // 当前选中的权限组
       currentGroup: {},
+      authFailReasonDictDatas: getDictDatas(DICT_TYPE.NACS_AUTH_FAIL_REASONS),
 		}
 	},
 	methods: {
@@ -104,13 +105,53 @@ export default {
     /** 下发权限 */
     async handleGrandAuth() {
       try {
-        await deptAuthApi.assignDeptPermission(this.queryParams.deptId)
-        this.$modal.msgSuccess("下发权限成功");
-        this.getList();
-      } catch (error) {
-        console.error("下发权限失败", error)
-        this.$modal.msgError("下发权限失败")
+        const isAudit = await deptAuthApi.isPermissionAudit(this.queryParams.deptId)
+        if (isAudit) {
+          this.$message.error('该部门存在未审核的预设权限，请等待管理员审核');
+        } else {
+          try {
+            const res = await deptAuthApi.assignDeptPermission(this.queryParams.deptId)
+            this.$modal.msgSuccess("权限已下发，请等待审核");
+            this.getList();
+            let userNames = res.data.map(item => item.employeeName).join(',');
+            let message = `<div class="auth-error-container"
+              style="max-height: 60vh; overflow: hidden; display: flex; flex-direction: column;>`;
+            message += `<p style="font-weight: bold; margin-bottom: 20px;">用户 ${userNames} 的部门预设权限无法生效，原因如下：</p>`;
+            message += `<div style="flex: 1;overflow-y:auto;">`;
+            message += `<table style="width: 100%; border-collapse: collapse;margin-top: 20px;">`;
+            message += `<thead style="position: sticky; top: 0; background: #f5f7fa; z-index: 1; ">`;
+            message += `<tr><th style="padding: 10px;border-bottom: 1px solid #dfe6ec;">姓名</th>
+              <th style="padding: 10px;border-bottom: 1px solid #dfe6ec;">线路</th>
+              <th style="padding: 10px;border-bottom: 1px solid #dfe6ec;">失效原因</th></tr>`;
+            
+            res.data.forEach(item => {
+              item.authFailReason.forEach(reason => {
+                const reasonText = this.authFailReasonDictDatas.find(item => item.value === String(reason.failReason))?.label 
+                                    || reason.failReason;
+                message += `<tr>`;
+                message += `<td style="padding: 10px;">${item.employeeName}</td>`;
+                message += `<td style="padding: 10px;">${reason.lineName}</td>`;
+                message += `<td style="padding: 10px;">${reasonText}</td>`;
+                message += `</tr>`; 
+              });
+            });
+            
+            message += `</tbody></table></div></div>`
+            this.$alert(message, '失效权限', {
+              dangerouslyUseHTMLString: true,
+              showConfirmButton: true,
+              confirmButtonText: '确定'
+            });
+          } catch (error) {
+            console.error("下发权限失败", error)
+            this.$modal.msgError("下发权限失败")
+          }
+        }
+      } catch(error) {
+        console.error("检查是否有待审核的部门预设权限失败", error)
+        this.$modal.msgError("检查是否有待审核的部门预设权限失败")
       }
+      
     },
 		/** 注销授权 */
     async handleRegisterAuth(row) {
@@ -164,6 +205,35 @@ export default {
 	}
 }
 </script>
+<style lang="scss">
+.el-message-box {
+  width: 700px;
+  .auth-error-container {
+    overflow: hidden;
+		margin-left: 12px;
+		margin-right: 12px;
+	}
+  table {
+    width: 100%;
+    thead {
+			overflow-y: auto;
+			overflow-x: auto;
+		}
+    th, td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #ebeef5;
+      // text-align: center;
+    }
+
+    th {
+      position: sticky;
+      // top: 0;
+      background: #f5f7fa;
+      z-index: 1;
+    }
+  }
+}
+</style>
 <style lang="scss" scoped>
 .operation-buttons {
   margin: 0px 0;
@@ -243,11 +313,11 @@ export default {
 ::v-deep .el-table {
   flex: 1;
   // overflow: hidden;
-  overflow-y:auto;
+  // overflow-y:auto;
   height: 400px !important;
   .el-table__body-wrapper {
     overflow-y:auto;
-    height: 260px !important;
+    height: 350px !important;
   }
 }
 ::v-deep .el-dialog {

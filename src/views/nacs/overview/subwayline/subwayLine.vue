@@ -12,7 +12,7 @@
       width="100%"
       height="100%"
       @click="handleContainerClick"
-      @click:element="handleElementClick"
+      @element-click="handleElementClick"
       :viewBox="viewBox"
       :initialViewBox="initialViewBox"
     />
@@ -21,12 +21,16 @@
 
 <script>
 import SvgContainer from './SvgContainer.vue'
+import {getLineDatas} from "@/utils/dict";
 export default {
   components: {
     SvgContainer
   },
   data() {
     return {
+      lineList: getLineDatas(),
+      stationData: {},
+      lineData: {},
       svgItems: [],
       viewBox: { x: 0, y: 0, width: 0, height: 0 },
       initialViewBox: { x: 0, y: 0, width: 0, height: 0 },
@@ -48,6 +52,8 @@ export default {
       const h = el.clientHeight * 2
       this.viewBox={ x: -w / 2, y: -h / 2, width: w, height: h }
       this.initialViewBox = { x: -w / 2, y: -h / 2, width: w, height: h }
+      this.prepareStationData();
+      this.prepareLineData();
     })
   },
   created() {
@@ -125,6 +131,7 @@ export default {
             if (ex) { // 换乘站
               if (!repeatStr.includes(sid)) {
                 imageArr.push({
+                  id: 'image-' + i + '--' + j,
                   type: 'image',
                   width: 20,
                   height: 20,
@@ -184,9 +191,99 @@ export default {
       console.log(event);
       console.log(`点击了容器: ${event.target.tagName}`)
     },
+
+
+    prepareStationData() {
+      const l = window.BMapSubWayData.subways.l;
+      this.stationData = {};
+      
+      for (let i = 0; i < l.length; i++) {
+        const line = l[i];
+        for (let j = 0; j < line.p.length; j++) {
+          const station = line.p[j].p_xmlattr;
+          if (station.st && station.sid) {
+            // const sid = station.sid;
+            const sid = `${i}--${j}`
+            if (!this.stationData[sid]) {
+              this.stationData[sid] = {
+                id: sid,
+                name: station.lb,
+                x: station.x,
+                y: station.y,
+                lines: [],
+                isTransfer: station.ex
+              };
+            }
+            // 添加线路信息
+            if (!this.stationData[sid].lines.includes(line.l_xmlattr.lid)) {
+              this.stationData[sid].lines.push(line.l_xmlattr.lid);
+            }
+          }
+        }
+      }
+    },
+    
+    // 准备线路数据
+    prepareLineData() {
+      const l = window.BMapSubWayData.subways.l;
+      this.lineData = {};
+      
+      for (let i = 0; i < l.length; i++) {
+        const line = l[i]
+        const lineArr = line.l_xmlattr;
+        const stations = (line.p || [])
+          .map((p, j) => ({ attr: p.p_xmlattr, index: j }))
+          .filter(({attr}) => attr.st && attr.sid)
+          .map(({index}) => `${i}--${index}`);
+        const matchedLine = this.lineList.find(item => item.name === lineArr.lid.replace(/^地铁/, ''));
+        this.lineData[lineArr.lid] = {
+          id: matchedLine ? matchedLine.lineNo : lineArr.lid,
+          name: lineArr.lb,
+          color: '#' + lineArr.lc.split('x')[1],
+          stations: stations,
+          length: stations.length,
+        };
+      }
+    },
     handleElementClick(item, event) {
       console.log(`点击了元素: ${item.id} (${item.type})`)
-    }
+      // 判断元素类型并显示相应信息
+      if (item.type === 'path') {
+        this.handleLineClick(item);
+      } else if (item.type === 'circle' || item.type === 'image') {
+        this.handleStationClick(item);
+      }
+      
+      // 阻止事件冒泡到容器
+      event.stopPropagation();
+    },
+    
+    // 处理线路点击
+    handleLineClick(item) {
+      const lid = item.id.split('--')[1];
+      const line = this.lineData[lid];
+      // console.log(this.lineList)
+      if (line) {
+        this.$emit('line-click', line);
+      }
+    },
+    
+    // 处理车站点击
+    handleStationClick(item) {
+      // 从ID中提取车站ID
+      let parts
+      if(item.type === 'circle') {
+        parts = item.id.replace(/^circle-/, '');
+      } else if(item.type === 'image') {
+        parts = item.id.replace(/^image-/, '');
+      }
+      const stationId = parts;
+      const station = this.stationData[stationId];
+      // console.log(stationId, station);
+      if (station) {
+        this.$emit('station-click', station);
+      }
+    },
   }
 }
 </script>

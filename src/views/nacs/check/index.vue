@@ -38,6 +38,11 @@
 				<el-table-column type="index" width="40" align="center" />
 				<el-table-column label="审核单号" align="center" prop="authNo"></el-table-column>
 				<el-table-column label="发起时间" align="center" prop="createTime"></el-table-column>
+				<el-table-column label="授权类型" align="center" prop="authType">
+					<template slot-scope="scope">
+						<dict-tag :type="DICT_TYPE.NACS_AUTH_TYPE" :value="scope.row.authType" />
+					</template>
+				</el-table-column>
 				<!-- <el-table-column label="发起人" align="center" prop="checkUser"></el-table-column> -->
 				<el-table-column label="审核状态" align="center" prop="reviewState">
 					<template slot-scope="scope">
@@ -82,6 +87,11 @@
 								<el-table-column label="授权方式" prop="authMode" align="center" width="100">
 									<template slot-scope="scope">
 										<dict-tag :type="DICT_TYPE.NACS_AUTH_MODE" :value="scope.row.authMode" />
+									</template>
+								</el-table-column>
+								<el-table-column prop="authSource" label="权限来源" align="center" width="120">
+									<template v-slot="scope">
+									<dict-tag :type="DICT_TYPE.NACS_AUTH_SOURCE" :value="scope.row.authSource" />
 									</template>
 								</el-table-column>
 								<el-table-column label="操作类型" prop="operateType" align="center" width="120">

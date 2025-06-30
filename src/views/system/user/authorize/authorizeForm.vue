@@ -21,7 +21,7 @@
       <!-- 操作按钮 -->
       <div class="operation-buttons">
         <el-button type="primary" icon="el-icon-user" @click="showAuthDrawer">人员授权</el-button>
-        <el-button type="info" icon="el-icon-edit" @click="handleRegisterAuth(scope.row)">注销授权</el-button>
+        <!-- <el-button type="info" icon="el-icon-edit" @click="handleRegisterAuth(scope.row)">注销授权</el-button> -->
       </div>
 
       <!-- 权限列表表格 -->
