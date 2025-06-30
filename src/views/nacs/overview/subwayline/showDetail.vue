@@ -2,9 +2,15 @@
 	<div>
 		<div v-if="visible" class="info-popup" :style="positionStyle" @click.stop>
 			<div class="popup-header">
-				<div class="popup-icon" :class="iconClass">
-					{{ icon }}
-				</div>
+				<div class="popup-icon-wrapper" :class="iconClass">
+          <img 
+            v-if="useImage" 
+            :src="iconImage" 
+            class="station-image"
+            :alt="title"
+          >
+          <span v-else class="popup-icon">{{ icon }}</span>
+        </div>
 				<div class="popup-title">{{ title }}</div>
 				<button class="close-btn" @click="close">×</button>
 			</div>
@@ -39,6 +45,14 @@ export default {
     position: {
       type: Object,
       default: () => ({ top: '20px', left: '20px' })
+    },
+    useImage: {
+      type: Boolean,
+      default: false
+    },
+    iconImage: {
+      type: String,
+      default: ''
     }
   },
 	computed: {
@@ -135,6 +149,23 @@ export default {
   margin-right: 15px;
   font-size: 20px;
   color: white;
+  margin-left: 15px;
+}
+
+.popup-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+}
+
+.station-image {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
 }
 
 .station-icon {

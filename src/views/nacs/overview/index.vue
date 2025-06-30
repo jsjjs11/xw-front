@@ -107,6 +107,8 @@
               :content="popupContent"
               :icon="popupIcon"
               :icon-class="popupIconClass"
+              :use-image="useImage"
+              :icon-image= "iconImage"
               :position="{ top: '20px', left: '20px' }"
               @close="closePopup"
             />
@@ -222,6 +224,8 @@ export default {
       popupContent: '',
       popupIcon: '',
       popupIconClass: '',
+      useImage: false,
+      iconImage: '',
     };
   },
   methods: {
@@ -231,8 +235,18 @@ export default {
     // 处理车站点击
     handleStationClick(station) {
       this.popupTitle = station.name;
-      this.popupIcon = station.isTransfer ? '⇄' : 'Ⓜ';
-      this.popupIconClass = 'station-icon';
+      if (station.isTransfer) {
+        this.popupIcon = '⇄';
+        this.popupIconClass = 'station-icon';
+        this.useImage = false;
+      } else {
+        this.popupIcon = '';
+        this.popupIconClass = 'station-icon';
+        this.useImage = true;
+        this.iconImage = require('@/assets/logo/R-C.png');
+      }
+      // this.popupIcon = station.isTransfer ? '⇄' : 'Ⓜ';
+      // this.popupIconClass = 'station-icon';
       
       const lineNames = station.lines.map(lid => `线路${lid}`).join(', ');
       
@@ -300,6 +314,7 @@ export default {
   }
   .card-panel {
     height: 78px;
+    display: flex;
     cursor: pointer;
     font-size: 12px;
     position: relative;
@@ -357,7 +372,8 @@ export default {
 
     .card-panel-icon-wrapper {
       float: left;
-      padding: 16px;
+      padding: 10px;
+      margin-right: 10px;
       transition: all 0.38s ease-out;
       border-radius: 6px;
     }
@@ -368,18 +384,27 @@ export default {
     }
 
     .card-panel-description {
+      flex: 1;
+      min-width: 0;
       float: right;
       font-weight: bold;
       margin: 12px 26px 0px 0;
+      overflow: hidden;
       .card-panel-text {
         line-height: 18px;
         color: rgba(0, 0, 0, 0.45);
         font-size: 16px;
         margin-bottom: 12px;
+        white-space: nowrap;
+        word-break: break-word; 
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
       }
 
       .card-panel-num {
         font-size: 20px;
+        line-height: 1.2;
       }
     }
   }
