@@ -98,7 +98,8 @@ export const DICT_TYPE = {
   NACS_DATA_SOURCE: 'nacs_data_source',                   //数据来源
   NACS_AUTH_CATE: 'nacs_auth_cate',                       //授权类别
   NACS_AUTH_FAIL_REASONS: 'nacs_auth_fail_reasons',       //授权失败原因
-  NACS_ACCESS_EVENT_RESULT: 'nacs_access_event_result',    //门禁访问事件结果
+  NACS_ACCESS_EVENT_RESULT: 'nacs_access_event_result',   //门禁访问事件结果
+  NACS_ALARM_EVENT_ACK: 'nacs_alarm_event_ack',           //门禁告警事件确认状态
   NACS_AUTH_TYPE:'nacs_auth_type',                         //授权类型
   // ......
 

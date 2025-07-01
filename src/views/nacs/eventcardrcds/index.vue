@@ -77,7 +77,7 @@
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
-    <div>
+    <div class="vg-content">
       <vxe-grid ref="gridRef" v-bind="gridOptions">
         <template #resultTag="{row}">
           <vxe-tag status="success" v-if="row.result == 0">{{getDictDatas(DICT_TYPE.NACS_ACCESS_EVENT_RESULT)[0]['label']}}</vxe-tag>
@@ -253,6 +253,7 @@ export default {
       const ss = String(date.getSeconds()).padStart(2, '0');
       return `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}`;
     },
+
     handleRowGroup(fields) {
       const $grid = this.$refs.gridRef
       if ($grid) {
@@ -308,11 +309,15 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-::v-deep .vxe-grid--layout-body-content-wrapper {
+/*::v-deep .vxe-grid--layout-body-content-wrapper {
   -webkit-box-flex: 1;
   -ms-flex-positive: 1;
   flex-grow: 1;
   overflow: auto;
   height: calc(100vh - 320px);
+}*/
+.vg-content {
+  height: calc(100vh - 320px);
+  overflow-y: auto;
 }
 </style>

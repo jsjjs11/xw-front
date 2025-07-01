@@ -18,6 +18,14 @@ export function updateEventCardWarning(data) {
   })
 }
 
+export function ackEventCardWarning(data) {
+  return request({
+    url: '/nacs/event-card-warning/ackBatch',
+    method: 'post',
+    data: data
+  })
+}
+
 // 删除该表存储员工门禁告警事件相关信息
 export function deleteEventCardWarning(id) {
   return request({
@@ -50,4 +58,4 @@ export function exportEventCardWarningExcel(params) {
     params,
     responseType: 'blob'
   })
-}
+}

@@ -96,13 +96,12 @@ const user = {
                 user: {
                   id: '',
                   avatar: '',
-                  userName: '',
+                  username: '',
                   nickname: ''
                 }
               }
             }
           }
-
           res = res.data; // 读取 data 数据
           const user = res.user
           const avatar = ( user.avatar === "" || user.avatar == null ) ? require("@/assets/images/profile.jpg") : user.avatar;
@@ -113,7 +112,7 @@ const user = {
             commit('SET_ROLES', ['ROLE_DEFAULT'])
           }
           commit('SET_ID', user.id)
-          commit('SET_NAME', user.userName)
+          commit('SET_NAME', user.username)
           commit('SET_NICKNAME', user.nickname)
           commit('SET_AVATAR', avatar)
           resolve(res)
