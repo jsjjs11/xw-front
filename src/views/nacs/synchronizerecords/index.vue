@@ -1,130 +1,130 @@
 <template>
-    <div class="page-container">
-        <el-row :gutter="20" style="height: 100%;">
-            <!-- 左侧：线路选择 -->
-            <el-col :span="3">
-                <div class="section-title">线路列表</div>
-                <el-radio-group v-model="selectedLine" @change="onLineChange" style="width: 100%;">
-                    <el-timeline class="custom-timeline">
-                        <el-timeline-item v-for="line in lineList" :key="line.lineNo" size="large">
-                            <template #dot>
-                                <el-radio :label="line.lineNo" :class="`color-radio-${line.lineNo}`">{{ line.name
-                                    }}</el-radio>
-                            </template>
-                        </el-timeline-item>
-                    </el-timeline>
-                </el-radio-group>
-            </el-col>
-            <!-- 右侧：Tab切换表格 -->
-            <el-col :span="21">
-                <el-tabs v-model="activeTab" type="card" @tab-click="onTabChange">
-                    <el-tab-pane label="卡授权" name="cardauth">
-                        <el-table :data="tableData_cardauth" style="width: 100%" height="calc(100vh - 220px)">
-                            <el-table-column type="selection" width="55" />
-                            <el-table-column prop="authId" label="授权ID" />
-                            <el-table-column prop="lineNo" label="线路" />
-                            <el-table-column prop="employeeCode" label="员工编码" />
-                            <el-table-column prop="idCard" label="身份证号" />
-                            <el-table-column prop="cardNo" label="卡号" />
-                            <el-table-column prop="groupCode" label="门禁权限组" />
-                            <el-table-column prop="groupName" label="门禁权限组名称" />
-                            <el-table-column prop="deviceCode" label="设备ID" />
-                            <el-table-column prop="deviceName" label="设备名称" />
-                            <el-table-column prop="authMode" label="授权模式" />
-                            <el-table-column prop="timeCode" label="时间段编码" />
-                            <el-table-column prop="startDate" label="有效开始日期" />
-                            <el-table-column prop="endDate" label="有效结束时间" />
-                            <el-table-column prop="dataMode" label="数据模式" />
-                            <el-table-column prop="dataType" label="操作类型" />
-                            <el-table-column prop="operState1" label="线网处理状态" />
-                            <el-table-column prop="operMessage1" label="线网处理消息" />
-                            <el-table-column prop="operTime1" label="线网处理时间" />
-                            <el-table-column prop="operState2" label="线路处理状态" />
-                            <el-table-column prop="operTime2" label="线路处理时间" />
-                            <el-table-column prop="operMessage2" label="线路处理消息" />
-                        </el-table>
-                    </el-tab-pane>
-                    <el-tab-pane label="卡记录" name="cardsrecords">
-                        <el-table :data="tableData_cardsrecords" style="width: 100%" height="calc(100vh - 220px)">
-                            <el-table-column type="selection" width="55" />
-                            <el-table-column prop="lineNo" label="线路" />
-                            <el-table-column prop="cardNo" label="卡号" />
-                            <el-table-column prop="cardFlag" label="是否为完整物理卡号" />
-                            <el-table-column prop="keyPass" label="键盘密码" />
-                            <el-table-column prop="employeeCode" label="员工编码" />
-                            <el-table-column prop="idCard" label="身份证号" />
-                            <el-table-column prop="cardType" label="卡类型" />
-                            <el-table-column prop="cardState" label="卡状态" />
-                            <el-table-column prop="startDate" label="开始日期" />
-                            <el-table-column prop="endDate" label="结束日期" />
-                            <el-table-column prop="dataMode" label="数据模式" />
-                            <el-table-column prop="dataType" label="数据操作类型" />
-                            <el-table-column prop="operState1" label="线网下发操作状态" />
-                            <el-table-column prop="operTime1" label="线网下发操作时间" />
-                            <el-table-column prop="operMessage1" label="线网下发操作消息" />
-                            <el-table-column prop="operState2" label="线路上传操作状态" />
-                            <el-table-column prop="operTime2" label="线路上传操作时间" />
-                            <el-table-column prop="operMessage2" label="线路上传操作消息" />
-                        </el-table>
-                    </el-tab-pane>
-                    <el-tab-pane label="设备记录" name="device">
-                        <el-table :data="tableData_device" style="width: 100%" height="calc(100vh - 220px)">
-                            <el-table-column type="selection" width="55" />
-                            <el-table-column prop="deviceId" label="设备ID" />
-                            <el-table-column prop="deviceName" label="设备名称" />
-                            <el-table-column prop="deviceType" label="设备类型" />
-                            <el-table-column prop="lineNo" label="线路" />
-                            <el-table-column prop="stationId" label="车站ID" />
-                            <el-table-column prop="operState1" label="线网下发操作状态" />
-                            <el-table-column prop="operTime1" label="线网下发操作时间" />
-                            <el-table-column prop="operMessage1" label="线网下发操作消息" />
-                            <el-table-column prop="operState2" label="线路上传操作状态" />
-                            <el-table-column prop="operTime2" label="线路上传操作时间" />
-                            <el-table-column prop="operMessage2" label="线路上传操作消息" />
-                        </el-table>
-                    </el-tab-pane>
-                    <el-tab-pane label="分组记录" name="group">
-                        <el-table :data="tableData_group" style="width: 100%" height="calc(100vh - 220px)">
-                            <el-table-column type="selection" width="55" />
-                            <el-table-column prop="groupCode" label="分组编码" />
-                            <el-table-column prop="groupName" label="分组名称" />
-                            <el-table-column prop="lineNo" label="线路" />
-                            <el-table-column prop="operState1" label="线网下发操作状态" />
-                            <el-table-column prop="operTime1" label="线网下发操作时间" />
-                            <el-table-column prop="operMessage1" label="线网下发操作消息" />
-                            <el-table-column prop="operState2" label="线路上传操作状态" />
-                            <el-table-column prop="operTime2" label="线路上传操作时间" />
-                            <el-table-column prop="operMessage2" label="线路上传操作消息" />
-                        </el-table>
-                    </el-tab-pane>
-                    <el-tab-pane label="分组设备" name="groupequip">
-                        <el-table :data="tableData_groupequip" style="width: 100%" height="calc(100vh - 220px)">
-                            <el-table-column type="selection" width="55" />
-                            <el-table-column prop="groupCode" label="分组编码" />
-                            <el-table-column prop="groupName" label="分组名称" />
-                            <el-table-column prop="deviceId" label="设备ID" />
-                            <el-table-column prop="deviceName" label="设备名称" />
-                            <el-table-column prop="lineNo" label="线路" />
-                            <el-table-column prop="operState1" label="线网下发操作状态" />
-                            <el-table-column prop="operTime1" label="线网下发操作时间" />
-                            <el-table-column prop="operMessage1" label="线网下发操作消息" />
-                            <el-table-column prop="operState2" label="线路上传操作状态" />
-                            <el-table-column prop="operTime2" label="线路上传操作时间" />
-                            <el-table-column prop="operMessage2" label="线路上传操作消息" />
-                        </el-table>
-                    </el-tab-pane>
-                </el-tabs>
-                <!-- 总的分页组件 -->
-                <pagination v-show="currentTotal > 0" :page-size="currentPageSize" :total="currentTotal"
-                    layout="total, prev, pager, next, sizes" @current-change="handlePageChange"
-                    @size-change="handleSizeChange" style="margin-top: 10px; text-align: right;" />
-            </el-col>
-        </el-row>
-    </div>
+  <div class="page-container">
+    <el-row :gutter="20" style="height: 100%;">
+      <!-- 左侧：线路选择 -->
+      <el-col :span="3" style="width: 12%; max-width: 200px">
+        <div class="section-title">线路列表</div>
+        <el-radio-group v-model="selectedLine" @change="onLineChange" style="width: 100%;">
+          <el-timeline class="custom-timeline">
+            <el-timeline-item v-for="line in lineList" :key="line.lineNo" size="large">
+              <template #dot>
+                <el-radio :label="line.lineNo" :class="`color-radio-${line.lineNo}`">{{ line.name }}</el-radio>
+              </template>
+            </el-timeline-item>
+          </el-timeline>
+        </el-radio-group>
+      </el-col>
+      <!-- 右侧：Tab切换表格 -->
+      <el-col :span="21" style="width: 88%;">
+        <el-tabs v-model="activeTab" type="card" @tab-click="onTabChange">
+          <el-tab-pane label="卡授权" name="cardauth">
+            <el-table :data="tableData_cardauth" style="width: 100%" height="calc(100vh - 220px)">
+              <el-table-column type="selection" width="55" />
+              <el-table-column prop="authId" label="授权ID" />
+              <el-table-column prop="lineNo" label="线路" />
+              <el-table-column prop="employeeCode" label="员工编码" />
+              <el-table-column prop="idCard" label="身份证号" />
+              <el-table-column prop="cardNo" label="卡号" />
+              <el-table-column prop="groupCode" label="门禁权限组" />
+              <el-table-column prop="groupName" label="门禁权限组名称" />
+              <el-table-column prop="deviceCode" label="设备ID" />
+              <el-table-column prop="deviceName" label="设备名称" />
+              <el-table-column prop="authMode" label="授权模式" />
+              <el-table-column prop="timeCode" label="时间段编码" />
+              <el-table-column prop="startDate" label="有效开始日期" />
+              <el-table-column prop="endDate" label="有效结束时间" />
+              <el-table-column prop="dataMode" label="数据模式" />
+              <el-table-column prop="dataType" label="操作类型" />
+              <el-table-column prop="operState1" label="线网处理状态" />
+              <el-table-column prop="operMessage1" label="线网处理消息" />
+              <el-table-column prop="operTime1" label="线网处理时间" />
+              <el-table-column prop="operState2" label="线路处理状态" />
+              <el-table-column prop="operTime2" label="线路处理时间" />
+              <el-table-column prop="operMessage2" label="线路处理消息" />
+            </el-table>
+          </el-tab-pane>
+          <el-tab-pane label="卡记录" name="cardsrecords">
+            <el-table :data="tableData_cardsrecords" style="width: 100%" height="calc(100vh - 220px)">
+              <el-table-column type="selection" width="55" />
+              <el-table-column prop="lineNo" label="线路" />
+              <el-table-column prop="cardNo" label="卡号" />
+              <el-table-column prop="cardFlag" label="是否为完整物理卡号" />
+              <el-table-column prop="keyPass" label="键盘密码" />
+              <el-table-column prop="employeeCode" label="员工编码" />
+              <el-table-column prop="idCard" label="身份证号" />
+              <el-table-column prop="cardType" label="卡类型" />
+              <el-table-column prop="cardState" label="卡状态" />
+              <el-table-column prop="startDate" label="开始日期" />
+              <el-table-column prop="endDate" label="结束日期" />
+              <el-table-column prop="dataMode" label="数据模式" />
+              <el-table-column prop="dataType" label="数据操作类型" />
+              <el-table-column prop="operState1" label="线网下发操作状态" />
+              <el-table-column prop="operTime1" label="线网下发操作时间" />
+              <el-table-column prop="operMessage1" label="线网下发操作消息" />
+              <el-table-column prop="operState2" label="线路上传操作状态" />
+              <el-table-column prop="operTime2" label="线路上传操作时间" />
+              <el-table-column prop="operMessage2" label="线路上传操作消息" />
+            </el-table>
+          </el-tab-pane>
+          <el-tab-pane label="设备记录" name="device">
+            <el-table :data="tableData_device" style="width: 100%" height="calc(100vh - 220px)">
+              <el-table-column type="selection" width="55" />
+              <el-table-column prop="deviceId" label="设备ID" />
+              <el-table-column prop="deviceName" label="设备名称" />
+              <el-table-column prop="deviceType" label="设备类型" />
+              <el-table-column prop="lineNo" label="线路" />
+              <el-table-column prop="stationId" label="车站ID" />
+              <el-table-column prop="operState1" label="线网下发操作状态" />
+              <el-table-column prop="operTime1" label="线网下发操作时间" />
+              <el-table-column prop="operMessage1" label="线网下发操作消息" />
+              <el-table-column prop="operState2" label="线路上传操作状态" />
+              <el-table-column prop="operTime2" label="线路上传操作时间" />
+              <el-table-column prop="operMessage2" label="线路上传操作消息" />
+            </el-table>
+          </el-tab-pane>
+          <el-tab-pane label="分组记录" name="group">
+            <el-table :data="tableData_group" style="width: 100%" height="calc(100vh - 220px)">
+              <el-table-column type="selection" width="55" />
+              <el-table-column prop="groupCode" label="分组编码" />
+              <el-table-column prop="groupName" label="分组名称" />
+              <el-table-column prop="lineNo" label="线路" />
+              <el-table-column prop="operState1" label="线网下发操作状态" />
+              <el-table-column prop="operTime1" label="线网下发操作时间" />
+              <el-table-column prop="operMessage1" label="线网下发操作消息" />
+              <el-table-column prop="operState2" label="线路上传操作状态" />
+              <el-table-column prop="operTime2" label="线路上传操作时间" />
+              <el-table-column prop="operMessage2" label="线路上传操作消息" />
+            </el-table>
+          </el-tab-pane>
+          <el-tab-pane label="分组设备" name="groupequip">
+            <el-table :data="tableData_groupequip" style="width: 100%" height="calc(100vh - 220px)">
+              <el-table-column type="selection" width="55" />
+              <el-table-column prop="groupCode" label="分组编码" />
+              <el-table-column prop="groupName" label="分组名称" />
+              <el-table-column prop="deviceId" label="设备ID" />
+              <el-table-column prop="deviceName" label="设备名称" />
+              <el-table-column prop="lineNo" label="线路" />
+              <el-table-column prop="operState1" label="线网下发操作状态" />
+              <el-table-column prop="operTime1" label="线网下发操作时间" />
+              <el-table-column prop="operMessage1" label="线网下发操作消息" />
+              <el-table-column prop="operState2" label="线路上传操作状态" />
+              <el-table-column prop="operTime2" label="线路上传操作时间" />
+              <el-table-column prop="operMessage2" label="线路上传操作消息" />
+            </el-table>
+          </el-tab-pane>
+        </el-tabs>
+        <!-- 总的分页组件 -->
+        <pagination v-show="currentTotal > 0" :page-size="currentPageSize" :total="currentTotal"
+            layout="total, prev, pager, next, sizes" @current-change="handlePageChange"
+            @size-change="handleSizeChange" style="margin-top: 10px; text-align: right;" />
+      </el-col>
+    </el-row>
+  </div>
 </template>
 
 <script>
 import { getLineDatas } from '@/utils/dict';
+import * as SynchronizeApi from '@/api/nacs/synchronizerecords';
 export default {
   name: 'SynchronizeRecordsTabs',
   data() {
@@ -232,35 +232,96 @@ export default {
       // 切换Tab时可做额外处理
     },
     // 各Tab分页方法
-    getList_cardauth() {
-      const start = (this.pageNo_cardauth - 1) * this.pageSize_cardauth;
-      const end = start + this.pageSize_cardauth;
-      this.tableData_cardauth = this.allData_cardauth.slice(start, end);
-      this.total_cardauth = this.allData_cardauth.length;
+    async getList_cardauth() {
+      const params = {
+        pageNo: this.pageNo_cardauth,
+        pageSize: this.pageSize_cardauth,
+        lineNo: this.selectedLine
+      }
+      try {
+        const res = await SynchronizeApi.getSynchronizeAuthRecords(params);
+        this.tableData_cardauth = res.data.list;
+        this.total_cardauth = res.data.total;
+      } catch (error) {
+        console.log(error);
+
+      }
+      // const start = (this.pageNo_cardauth - 1) * this.pageSize_cardauth;
+      // const end = start + this.pageSize_cardauth;
+      // this.tableData_cardauth = this.allData_cardauth.slice(start, end);
+      
     },
-    getList_cardsrecords() {
-      const start = (this.pageNo_cardsrecords - 1) * this.pageSize_cardsrecords;
-      const end = start + this.pageSize_cardsrecords;
-      this.tableData_cardsrecords = this.allData_cardsrecords.slice(start, end);
-      this.total_cardsrecords = this.allData_cardsrecords.length;
+    async getList_cardsrecords() {
+      const params = {
+        pageNo: this.pageNo_cardsrecords,
+        pageSize: this.pageSize_cardsrecords,
+        lineNo: this.selectedLine
+      }
+      try {
+        const res = await SynchronizeApi.getSynchronizeCardsRecords(params);
+        this.tableData_cardsrecords = res.data.list;
+        this.total_cardsrecords = res.data.total;
+      } catch (error) {
+        console.log(error);
+      }
+      // const start = (this.pageNo_cardsrecords - 1) * this.pageSize_cardsrecords;
+      // const end = start + this.pageSize_cardsrecords;
+      // this.tableData_cardsrecords = this.allData_cardsrecords.slice(start, end);
+      // this.total_cardsrecords = this.allData_cardsrecords.length;
     },
-    getList_device() {
-      const start = (this.pageNo_device - 1) * this.pageSize_device;
-      const end = start + this.pageSize_device;
-      this.tableData_device = this.allData_device.slice(start, end);
-      this.total_device = this.allData_device.length;
+    async getList_device() {
+      const params = {
+        pageNo: this.pageNo_device,
+        pageSize: this.pageSize_device,
+        lineNo: this.selectedLine
+      }
+      try {
+        const res = await SynchronizeApi.getSynchronizeDeviceRecords(params);
+        this.tableData_device = res.data.list;
+        this.total_device = res.data.total;
+      } catch (error) {
+        console.log(error);
+      }
+      // const start = (this.pageNo_device - 1) * this.pageSize_device;
+      // const end = start + this.pageSize_device;
+      // this.tableData_device = this.allData_device.slice(start, end);
+      // this.total_device = this.allData_device.length;
     },
-    getList_group() {
-      const start = (this.pageNo_group - 1) * this.pageSize_group;
-      const end = start + this.pageSize_group;
-      this.tableData_group = this.allData_group.slice(start, end);
-      this.total_group = this.allData_group.length;
+    async getList_group() {
+      const params = {
+        pageNo: this.pageNo_group,
+        pageSize: this.pageSize_group,
+        lineNo: this.selectedLine
+      }
+      try {
+        const res = await SynchronizeApi.getSynchronizeGroupRecords(params);
+        this.tableData_group = res.data.list;
+        this.total_group = res.data.total;
+      } catch (error) {
+        console.log(error);
+      }
+      // const start = (this.pageNo_group - 1) * this.pageSize_group;
+      // const end = start + this.pageSize_group;
+      // this.tableData_group = this.allData_group.slice(start, end);
+      // this.total_group = this.allData_group.length;
     },
-    getList_groupequip() {
-      const start = (this.pageNo_groupequip - 1) * this.pageSize_groupequip;
-      const end = start + this.pageSize_groupequip;
-      this.tableData_groupequip = this.allData_groupequip.slice(start, end);
-      this.total_groupequip = this.allData_groupequip.length;
+    async getList_groupequip() {
+      const params = {
+        pageNo: this.pageNo_groupequip,
+        pageSize: this.pageSize_groupequip,
+        lineNo: this.selectedLine
+      }
+      try {
+        const res = await SynchronizeApi.getSynchronizeGroupEquipRecords(params);
+        this.tableData_groupequip = res.data.list;
+        this.total_groupequip = res.data.total;
+      } catch (error) {
+        console.log(error);
+      }
+      // const start = (this.pageNo_groupequip - 1) * this.pageSize_groupequip;
+      // const end = start + this.pageSize_groupequip;
+      // this.tableData_groupequip = this.allData_groupequip.slice(start, end);
+      // this.total_groupequip = this.allData_groupequip.length;
     },
     // 总分页事件
     handlePageChange(page) {
