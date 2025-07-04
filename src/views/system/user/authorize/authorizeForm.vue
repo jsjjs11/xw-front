@@ -230,9 +230,8 @@ export default {
         // 处理返回数据，设置name字段
         this.tableData = response.data.list.map(item => ({
             ...item,
-            lineName: this.lineMap.find(line => line.lineNo === item.lineNo).name
+            lineName: this.lineMap.find(line => line.lineNo === item.lineNo)?.name || item.lineNo,
         }));
-        // console.log(this.lineMap)
         this.total = response.data.total;
         // console.log('tableData', this.tableData);
       } catch (error) {

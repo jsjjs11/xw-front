@@ -8,7 +8,7 @@
         <el-button type="primary" icon="el-icon-s-promotion" @click="handleGrandAuth()">下发权限</el-button>
       </div>
       <!-- 权限列表表格 -->
-      <el-table :data="tableData" style="width: 100%; margin-top: 20px;">
+      <el-table :data="tableData" style="width: 100%; margin-top: 20px;" v-loading="loading">
         <el-table-column type="selection" width="55" />
         <el-table-column prop="lineName" label="线路名称" align="center" width="150"/>
         <el-table-column prop="name" label="权限名称" align="center" width="230">
