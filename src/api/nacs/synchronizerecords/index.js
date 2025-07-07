@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export function getSynchronizeAuthRecords(query) {
   return request({
-    url: '/nacs/synchronizeauthrecords/page',
+    url: '/nacs/sync-records/auth',
 		method: 'get',
 		params: query
   })
@@ -10,7 +10,7 @@ export function getSynchronizeAuthRecords(query) {
 
 export function getSynchronizeCardsRecords(query) {
   return request({
-    url: '/nacs/synchronizecardrecords/page',
+    url: '/nacs/sync-records/card',
 		method: 'get',
 		params: query
   })
@@ -18,7 +18,7 @@ export function getSynchronizeCardsRecords(query) {
 
 export function getSynchronizeDeviceRecords(query) {
   return request({
-    url: '/nacs/synchronizedevicerecords/page',
+    url: '/nacs/sync-records/device',
 		method: 'get',
 		params: query
   })
@@ -26,7 +26,7 @@ export function getSynchronizeDeviceRecords(query) {
 
 export function getSynchronizeGroupRecords(query) {
   return request({
-    url: '/nacs/synchronizegrouprecords/page',
+    url: '/nacs/sync-records/group',
 		method: 'get',
 		params: query
   })
@@ -34,7 +34,7 @@ export function getSynchronizeGroupRecords(query) {
 
 export function getSynchronizeGroupEquipRecords(query) {
   return request({
-    url: '/nacs/synchronizegroupequiprecords/page',
+    url: '/nacs/sync-records/group-equip',
 		method: 'get',
 		params: query
   })
