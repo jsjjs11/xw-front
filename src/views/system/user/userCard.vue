@@ -72,7 +72,7 @@
                 <span>{{ parseTime(scope.row.endDate) }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="操作" align="center" width="260">
+            <el-table-column label="操作" align="center" width="300">
               <template v-slot="scope">
                 <!-- 已激活状态(1)和代发卡状态(0)：显示挂失和加入黑名单按钮 -->
                 <template v-if="scope.row.cardState === 1 || scope.row.cardState === 0">
@@ -90,9 +90,15 @@
                   </el-button>
                   <el-button
                     size="mini"
-                    type="danger"
+                    type="warning"
                     @click="handleBlacklist(scope.row)">
                     加入黑名单
+                  </el-button>
+                  <el-button
+                    size="mini"
+                    type="danger"
+                    @click="handleDeleteCard(scope.row)">
+                    注销
                   </el-button>
                 </template>
 
@@ -142,7 +148,7 @@
 </template>
 
 <script>
-import { getCards, updateCards, freezeCards, activateCards, addBlacklist, reportLost, checkEligibility, getLineCards } from '@/api/nacs/cards'
+import { getCards, updateCards, freezeCards, activateCards, addBlacklist, reportLost, checkEligibility, getLineCards, cancelCards } from '@/api/nacs/cards'
 import CardsForm from '@/views/nacs/cards/CardsForm.vue'
 import { DICT_TYPE, getLineDatas } from '@/utils/dict'
 import { parseTime } from '@/utils/ruoyi';
@@ -369,7 +375,22 @@ export default {
         this.loading = false
       }
     },
-
+    /** 处理卡片注销 */
+    async handleDeleteCard(row) {
+      try {
+        this.$modal.confirm('确认要注销该卡片吗？')
+        this.loading = true
+        await cancelCards(row.id)
+        this.$modal.msgSuccess("卡片已注销")
+        await this.getList()
+        await this.loadLineCard()
+      } catch (error) {
+        console.error("注销操作失败", error)
+        if (error !== 'cancel') {
+          this.$modal.msgError('注销失败')
+        }
+      }
+    },
     /** 处理恢复正常 */
     async handleRestore(row) {
       // 修改状态检查逻辑，允许已挂失和已注销的卡片恢复正常
