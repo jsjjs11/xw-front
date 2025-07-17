@@ -378,10 +378,14 @@ export default {
     /** 处理卡片注销 */
     async handleDeleteCard(row) {
       try {
-        this.$modal.confirm('确认要注销该卡片吗？')
-        this.loading = true
-        await cancelCards(row.id)
-        this.$modal.msgSuccess("卡片已注销")
+        this.$modal.confirm('确认要注销该卡片吗？','系统提示',{
+          confirmButtonText: '确认',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(async () => {
+          await cancelCards(row.id)
+          this.$modal.msgSuccess("卡片已注销")
+        })
         await this.getList()
         await this.loadLineCard()
       } catch (error) {
