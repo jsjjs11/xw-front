@@ -70,10 +70,17 @@
 										<div class="table-wrapper left-table">
 											<div class="table-header">
 												<span>可选权限（{{ leftNonLeafCount }}）</span>
+												<el-input
+													v-model="searchQuery"
+													placeholder="搜索可选权限..."
+													prefix-icon="el-icon-search"
+													size="small"
+													style="width: 200px; margin-right: 10px;"
+												></el-input>
 												<el-button type="text" @click="handleAddAuthSet">快捷选择</el-button>
 											</div>
 											<el-table
-												:data = "authList"
+												:data = "filteredAuthList"
 												row-key = "key"
 												:tree-props = "{ children: 'children', hasChildren: 'hasChildren' }"
 												lazy
@@ -204,6 +211,7 @@ export default {
 			hasDeptAuth: false,
 			unAuthLines: [],
 			timePeriodCache: null,
+			searchQuery: '',
 		}
 	},
 	watch: {
@@ -226,9 +234,22 @@ export default {
 		// 计算左侧非叶子节点数量
     leftNonLeafCount() {
       return this.countNonLeafNodes(this.authList)
-    }
+    },
+		filteredAuthList() {
+			return this.filterNodes(this.authList, this.searchQuery.toLowerCase());
+		},
 	},
 	methods: {
+		filterNodes(nodes, query) {
+			return nodes.filter(node => {
+				const matches = node.label.toLowerCase().includes(query);
+				if (node.children) {
+					const childMatches = this.filterNodes(node.children, query);
+					return matches || childMatches.length > 0;
+				}
+				return matches;
+			});
+		},
 		// 检查是否显示授权警告
     showUnauthWarning(lineNo) {
 			if (!this.unAuthLines || this.unAuthLines.length === 0) return false;
@@ -321,7 +342,7 @@ export default {
 		/** 左侧表格全选 */
 		handleLeftSelectAll(selection) {
 			// 获取当前页所有可选的非叶子节点
-			const selectableRows = this.authList.filter(row => !row.isLeaf);
+			const selectableRows = this.filteredAuthList.filter(row => !row.isLeaf);
 
 			// 判断是全选还是取消全选
 			if (selection.length > 0) {
@@ -371,25 +392,25 @@ export default {
 			if (index > -1) {
 				this.selectedList.splice(index, 1);
 				// 更新左侧表格的选中状态
-				const leftIndex = this.authList.findIndex(item => item.key === node.key);
+				const leftIndex = this.filteredAuthList.findIndex(item => item.key === node.key);
 				if (leftIndex > -1) {
 					this.$nextTick(() => {
-						this.$refs.authTable.toggleRowSelection(this.authList[leftIndex], false);
+						this.$refs.authTable.toggleRowSelection(this.filteredAuthList[leftIndex], false);
 					});
 				}
 			}
 		},
 		/** 同步左侧表格勾选状态 */
     syncLeftSelection() {
-			if (!this.$refs.authTable || !this.authList.length) return;
+			if (!this.$refs.authTable || !this.filteredAuthList.length) return;
 			// 首先清空所有选中项
-			this.authList.forEach(row => {
+			this.filteredAuthList.forEach(row => {
 				this.$refs.authTable.toggleRowSelection(row, false);
 			});
 			// const currentSelections = this.$refs.authTable.selection || [];
 			// 设置选中状态
 			this.selectedList.forEach(item => {
-				const row = this.authList.find(auth => auth.key === item.key);
+				const row = this.filteredAuthList.find(auth => auth.key === item.key);
 				if (row) {
 					this.$refs.authTable.toggleRowSelection(row, true);
 				}
