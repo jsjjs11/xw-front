@@ -240,6 +240,19 @@ export default {
 		},
 	},
 	methods: {
+		checkAuthMode(selectedLineNo, newItem) {
+			const existing = this.selectedList.find(item => item.lineNo === selectedLineNo && item.authMode === 3)
+			if (existing && newItem.authMode !== 3) {
+				this.$message.error('该线路只能添加一个门禁组权限');
+				return true;
+			}
+			if (newItem.authMode == 3 && this.selectedList.some(item => item.lineNo === selectedLineNo && item.key !== newItem.key)) {
+				this.$message.error('该线路只能添加一个门禁组权限');
+				return true;
+			}
+			return false;
+		},
+
 		filterNodes(nodes, query) {
 			return nodes.filter(node => {
 				const matches = node.label.toLowerCase().includes(query);
@@ -296,6 +309,12 @@ export default {
 		/** 左侧表格勾选 */
 		handleLeftSelect(selection, row) {
 			if (row.isLeaf) return;
+			// 新增冲突校验
+			const lineNo = row.lineNo || this.form.selectedLine;
+			if (this.checkAuthMode(lineNo, row)) {
+				this.$refs.authTable.toggleRowSelection(row, false);
+				return;
+			}
 			// 判断是选中还是取消选中
 			const isSelected = selection.some(item => item.key === row.key);
 			if (isSelected) {
@@ -341,6 +360,17 @@ export default {
 		},
 		/** 左侧表格全选 */
 		handleLeftSelectAll(selection) {
+			// 新增全选校验
+			const selectedLineNo = this.form.selectedLine;
+			const hasMode3 = this.selectedList.some(item => 
+				item.lineNo === selectedLineNo && item.authMode === 3
+			);
+			
+			if (hasMode3 && selection.length > 0) {
+				this.$message.error('该线路只能添加一个门禁组权限');
+				this.$refs.authTable.clearSelection();
+				return;
+			}
 			// 获取当前页所有可选的非叶子节点
 			const selectableRows = this.filteredAuthList.filter(row => !row.isLeaf);
 
