@@ -71,49 +71,8 @@ export default {
 			this.getList();
 		},
 		async getList() {
-			/*
-			// mock数据
-			const allData = [
-				{
-					groupId: 'G001',
-					lineNo: '1号线',
-					groupCode: 'GRP001',
-					groupName: '管理员组',
-					groupCodeParent: '',
-					remark: '管理员权限组',
-					dataMode: '线网下发',
-					dataType: '新增',
-					operState1: '成功',
-					operTime1: '2023-06-01 10:00:00',
-					operMessage1: '下发成功',
-					operState2: '',
-					operTime2: '',
-					operMessage2: ''
-				},
-				{
-					groupId: 'G002',
-					lineNo: '2号线',
-					groupCode: 'GRP002',
-					groupName: '操作员组',
-					groupCodeParent: 'GRP001',
-					remark: '操作员权限组',
-					dataMode: '线路上传',
-					dataType: '修改',
-					operState1: '',
-					operTime1: '',
-					operMessage1: '',
-					operState2: '失败',
-					operTime2: '2023-06-02 11:05:00',
-					operMessage2: '上传失败'
-				}
-			];
-			// 分页
-			const start = (this.queryParams.pageNo - 1) * this.queryParams.pageSize;
-			const end = start + this.queryParams.pageSize;
-			this.tableData = allData.slice(start, end);
-			this.total = allData.length;
-			*/
 			try {
+				this.queryParams.lineNo = this.selectedLine;
 				const res = await SynchronizeApi.getSynchronizeGroupRecords(this.queryParams);
 				this.tableData = res.data.list;
 				this.total = res.data.total;

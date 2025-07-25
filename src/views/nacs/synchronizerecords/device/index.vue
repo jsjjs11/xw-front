@@ -78,63 +78,8 @@ export default {
 			this.getList();
 		},
 		async getList() {
-			/*
-			// mock数据
-			const allData = [
-				{
-					deviceId: 'D001',
-					lineNo: '1号线',
-					stationNo: 'S001',
-					stationName: '车站1',
-					deviceCode: 'DEV001',
-					deviceName: '门禁1',
-					deviceType: '门禁设备',
-					devicePbcd: 'P001',
-					deviceBcd: 'B001',
-					deviceCom: 'TCP/IP',
-					deviceManu: '厂商A',
-					deviceBrand: '品牌A',
-					remark: '测试设备1',
-					dataMode: '线网下发',
-					dataType: '新增',
-					operState1: '成功',
-					operTime1: '2023-06-01 10:00:00',
-					operMessage1: '下发成功',
-					operState2: '',
-					operTime2: '',
-					operMessage2: ''
-				},
-				{
-					deviceId: 'D002',
-					lineNo: '2号线',
-					stationNo: 'S002',
-					stationName: '车站2',
-					deviceCode: 'DEV002',
-					deviceName: '门禁2',
-					deviceType: '门禁设备',
-					devicePbcd: 'P002',
-					deviceBcd: 'B002',
-					deviceCom: 'RS485',
-					deviceManu: '厂商B',
-					deviceBrand: '品牌B',
-					remark: '测试设备2',
-					dataMode: '线路上传',
-					dataType: '修改',
-					operState1: '',
-					operTime1: '',
-					operMessage1: '',
-					operState2: '失败',
-					operTime2: '2023-06-02 11:05:00',
-					operMessage2: '上传失败'
-				}
-			];
-			// 分页
-			const start = (this.queryParams.pageNo - 1) * this.queryParams.pageSize;
-			const end = start + this.queryParams.pageSize;
-			this.tableData = allData.slice(start, end);
-			this.total = allData.length;
-			*/
 			try {
+				this.queryParams.lineNo = this.selectedLine;
 				const res = await SynchronizeApi.getSynchronizeDeviceRecords(this.queryParams);
 				this.tableData = res.data.list;
 				this.total = res.data.total;
