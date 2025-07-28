@@ -212,6 +212,7 @@ export default {
 			unAuthLines: [],
 			timePeriodCache: null,
 			searchQuery: '',
+			isSingleGroup: false,
 		}
 	},
 	watch: {
@@ -241,12 +242,11 @@ export default {
 	},
 	methods: {
 		checkAuthMode(selectedLineNo, newItem) {
-			const existing = this.selectedList.find(item => item.lineNo === selectedLineNo && item.authMode === 3)
-			if (existing && newItem.authMode !== 3) {
-				this.$message.error('该线路只能添加一个门禁组权限');
-				return true;
+			const existing = this.selectedList.find(item => item.lineNo === selectedLineNo)
+			if (!this.isSingleGroup) {
+				return false;
 			}
-			if (newItem.authMode == 3 && this.selectedList.some(item => item.lineNo === selectedLineNo && item.key !== newItem.key)) {
+			if (existing && existing.key !== newItem.key) {
 				this.$message.error('该线路只能添加一个门禁组权限');
 				return true;
 			}
@@ -361,14 +361,10 @@ export default {
 		/** 左侧表格全选 */
 		handleLeftSelectAll(selection) {
 			// 新增全选校验
-			const selectedLineNo = this.form.selectedLine;
-			const hasMode3 = this.selectedList.some(item => 
-				item.lineNo === selectedLineNo && item.authMode === 3
-			);
-			
-			if (hasMode3 && selection.length > 0) {
+			if (this.isSingleGroup && selection.length > 0) {
 				this.$message.error('该线路只能添加一个门禁组权限');
 				this.$refs.authTable.clearSelection();
+				this.syncLeftSelection();
 				return;
 			}
 			// 获取当前页所有可选的非叶子节点
@@ -809,6 +805,7 @@ export default {
 		async onLineChange() {
       if(this.form.selectedLine){
 				const res = await AuthorizationApi.getGroupsOrDevicesList(this.form.selectedLine);
+				this.isSingleGroup = (res.data.authMode === 3);
 				const {groups, stations, devices} = res.data;
 				const timeCode = res.data.timeCode;
 				const timeName = this.getTimeZoneLabel(timeCode, this.form.selectedLine);
