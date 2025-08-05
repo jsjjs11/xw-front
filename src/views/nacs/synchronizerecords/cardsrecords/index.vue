@@ -18,22 +18,50 @@
       <el-col :span="21" style="width: 88%;">
         <el-table :data="tableData" style="width: 100%" height="calc(100vh - 160px)">
           <el-table-column type="selection" width="55" />
-          <el-table-column prop="lineNo" label="线路" />
+          <el-table-column prop="lineNo" label="线路">
+            <template v-slot="scope">
+              <span>{{ lineList.find(line => line.lineNo === scope.row.lineNo)?.name }}</span>
+            </template>
+          </el-table-column>
           <el-table-column prop="cardNo" label="卡号" />
           <el-table-column prop="cardFlag" label="是否为完整物理卡号" />
           <el-table-column prop="keyPass" label="键盘密码" />
           <el-table-column prop="employeeCode" label="员工编码" />
           <el-table-column prop="idCard" label="身份证号" />
-          <el-table-column prop="cardType" label="卡类型" />
-          <el-table-column prop="cardState" label="卡状态" />
+          <el-table-column label="卡类型" align="center" prop="cardType">
+            <template v-slot="scope">
+              <dict-tag :type="DICT_TYPE.NACS_CARD_TYPE" :value="scope.row.cardType" />
+            </template>
+          </el-table-column>
+          <el-table-column label="卡状态" align="center" prop="cardState">
+            <template v-slot="scope">
+              <dict-tag :type="DICT_TYPE.NACS_CARD_STATE" :value="scope.row.cardState" />
+            </template>
+          </el-table-column>
           <el-table-column prop="startDate" label="开始日期" />
           <el-table-column prop="endDate" label="结束日期" />
-          <el-table-column prop="dataMode" label="数据模式" />
-          <el-table-column prop="dataType" label="数据操作类型" />
-          <el-table-column prop="operState1" label="线网下发操作状态" />
+          <el-table-column prop="dataMode" label="数据模式">
+            <template v-slot="scope">
+              <dict-tag :type="DICT_TYPE.NACS_OP_DATA_MODE" :value="scope.row.dataMode" />
+            </template>
+          </el-table-column>
+          <el-table-column prop="dataType" label="数据操作类型">
+            <template v-slot="scope">
+              <dict-tag :type="DICT_TYPE.NACS_OP_DATA_TYPE" :value="scope.row.dataType" />
+            </template>
+          </el-table-column>
+          <el-table-column prop="operState1" label="线网下发操作状态">
+            <template v-slot="scope">
+              <dict-tag :type="DICT_TYPE.NACS_PROCESS_STATE" :value="scope.row.operState1" />
+            </template>
+          </el-table-column>
           <el-table-column prop="operTime1" label="线网下发操作时间" />
           <el-table-column prop="operMessage1" label="线网下发操作消息" />
-          <el-table-column prop="operState2" label="线路上传操作状态" />
+          <el-table-column prop="operState2" label="线路上传操作状态">
+          <template v-slot="scope">
+            <dict-tag :type="DICT_TYPE.NACS_PROCESS_STATE" :value="scope.row.operState2" />
+          </template>
+          </el-table-column>
           <el-table-column prop="operTime2" label="线路上传操作时间" />
           <el-table-column prop="operMessage2" label="线路上传操作消息" />
         </el-table>

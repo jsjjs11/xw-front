@@ -18,20 +18,47 @@
 			<el-col :span="21" style="width: 88%;">
 				<el-table :data="tableData" style="width: 100%" height="calc(100vh - 160px)">
 					<el-table-column type="selection" width="55" />
-					<el-table-column prop="groupEquipId" label="权限组设备ID" />
-					<el-table-column prop="lineNo" label="线路ID" />
+          <el-table-column prop="lineNo" label="线路">
+            <template v-slot="scope">
+              <span>{{ lineList.find(line => line.lineNo === scope.row.lineNo)?.name }}</span>
+            </template>
+          </el-table-column>
 					<el-table-column prop="groupCode" label="权限组编码" />
 					<el-table-column prop="deviceCode" label="设备ID" />
 					<el-table-column prop="deviceName" label="设备名称" />
 					<el-table-column prop="accessType" label="门禁类型" />
-					<el-table-column prop="dataMode" label="数据模式" />
-					<el-table-column prop="dataType" label="数据操作类型" />
-					<el-table-column prop="operState1" label="线网下发操作状态" />
-					<el-table-column prop="operTime1" label="线网下发操作时间" />
-					<el-table-column prop="operMessage1" label="线网下发操作消息" />
-					<el-table-column prop="operState2" label="线路上传操作状态" />
-					<el-table-column prop="operTime2" label="线路上传操作时间" />
-					<el-table-column prop="operMessage2" label="线路上传操作消息" />
+          <el-table-column prop="dataMode" label="数据模式">
+            <template v-slot="scope">
+              <dict-tag :type="DICT_TYPE.NACS_OP_DATA_MODE" :value="scope.row.dataMode" />
+            </template>
+          </el-table-column>
+          <el-table-column prop="dataType" label="数据操作类型">
+            <template v-slot="scope">
+              <dict-tag :type="DICT_TYPE.NACS_OP_DATA_TYPE" :value="scope.row.dataType" />
+            </template>
+          </el-table-column>
+          <el-table-column prop="operState1" label="线网下发操作状态">
+            <template v-slot="scope">
+              <dict-tag :type="DICT_TYPE.NACS_PROCESS_STATE" :value="scope.row.operState1" />
+            </template>
+          </el-table-column>
+          <el-table-column prop="operTime1" label="线网下发操作时间">
+            <template v-slot="scope">
+              <span>{{ parseTime(scope.row.operTime1) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="operMessage1" label="线网下发操作消息" />
+          <el-table-column prop="operState2" label="线路上传操作状态">
+            <template v-slot="scope">
+              <dict-tag :type="DICT_TYPE.NACS_PROCESS_STATE" :value="scope.row.operState2" />
+            </template>
+          </el-table-column>
+          <el-table-column prop="operTime2" label="线路上传操作时间" >
+            <template v-slot="scope">
+              <span>{{ parseTime(scope.row.operTime2) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="operMessage2" label="线路上传操作消息" />
 				</el-table>
 				<pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNo"
 						:limit.sync="queryParams.pageSize" @pagination="getList" />
