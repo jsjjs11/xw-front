@@ -17,8 +17,8 @@
       <el-col :span="20" :xs="24" class="content-container">
         <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch"
           label-width="100px">
-          <el-form-item label="门禁点名称" prop="deviceName">
-            <el-input v-model="queryParams.deviceName" placeholder="请输入门禁点名称" clearable style="width: 240px"
+          <el-form-item label="门禁组名称" prop="deviceName">
+            <el-input v-model="queryParams.deviceName" placeholder="请输入门禁组名称" clearable style="width: 240px"
               @keyup.enter.native="handleQuery" />
           </el-form-item>
           <el-form-item label="门禁访问类型" prop="accessType">
@@ -34,8 +34,8 @@
         </el-form>
         <div class="table-container">
           <el-table v-loading="loading" :data="deviceList">
-            <el-table-column label="门禁点编号" align="center" key="id" prop="id" />
-            <el-table-column label="门禁点名称" align="center" key="deviceName" prop="deviceName"
+            <el-table-column label="门禁组编号" align="center" key="id" prop="id" />
+            <el-table-column label="门禁组名称" align="center" key="deviceName" prop="deviceName"
               :show-overflow-tooltip="true" />
             <el-table-column label="线路名称" align="center" key="lineNo" prop="lineNo" :show-overflow-tooltip="true">
               <template v-slot="scope">

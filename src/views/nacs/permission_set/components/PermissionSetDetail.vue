@@ -23,7 +23,7 @@
         v-hasPermi="['nacs:permission-set-detail:edit']">修改</el-button>
     </div>
     <!-- 列表 -->
-     
+
     <el-table v-loading="loading" :data="list" :height="$store.state.app.isFullscreen ? '280px' : '225px'">
       <el-table-column prop="lineNo" align="center" label="线路名称">
         <template v-slot="scope">
@@ -32,7 +32,7 @@
       </el-table-column>
       <el-table-column label="设备名称" align="center">
         <template v-slot="scope">
-          <el-link type="primary" v-if="scope.row.id.indexOf('GROUP')!=-1" :underline="false"
+          <el-link type="primary" v-if="scope.row.authMode==2" :underline="false"
             @click="showGroupDetails(scope.row)" style="text-decoration: underline;">
             {{ scope.row.name }}
             <i class="el-icon-view el-icon--right"></i>

@@ -57,7 +57,7 @@
 
                 <el-table-column prop="name" label="设备名称">
                   <template v-slot="scope">
-                    <el-link type="primary" v-if="scope.row.id.indexOf('GROUP') != -1" :underline="false"
+                    <el-link type="primary" v-if="scope.row.authMode==2" :underline="false"
                       @click="showGroupDetails(scope.row)" style="text-decoration: underline;">
                       {{ scope.row.name }}
                       <i class="el-icon-view el-icon--right"></i>
@@ -199,6 +199,7 @@ export default {
         //找出与res.data.lineNo相等时lineList中对应的authMode
         this.authMode = this.lineList.find(line => line.lineNo === res.data.lineNo).authMode;
         this.stationList = res.data.stations
+        this.selectedStation = []
         this.tableData = [...res.data.devices,...res.data.groups]
         //遍历tableData给里面的每个对象增加lineNo字段
         this.tableData.forEach(item => {
