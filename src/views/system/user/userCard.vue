@@ -385,9 +385,9 @@ export default {
         }).then(async () => {
           await cancelCards(row.id)
           this.$modal.msgSuccess("卡片已注销")
+          await this.getList()
+          await this.loadLineCard()
         })
-        await this.getList()
-        await this.loadLineCard()
       } catch (error) {
         console.error("注销操作失败", error)
         if (error !== 'cancel') {
