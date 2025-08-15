@@ -246,7 +246,7 @@ export default {
 			if (!this.isSingleGroup) {
 				return false;
 			}
-			if (existing && existing.key !== newItem.key) {
+			if (existing && existing.key !== newItem.key && newItem.authMode === 2 && existing.authMode === 2) {
 				this.$message.error('该线路只能添加一个门禁组权限');
 				return true;
 			}
