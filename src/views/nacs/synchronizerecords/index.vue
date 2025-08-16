@@ -125,6 +125,7 @@
 <script>
 import { getLineDatas } from '@/utils/dict';
 import * as SynchronizeApi from '@/api/nacs/synchronizerecords';
+import data from '@/views/system/dict/data.vue'
 export default {
   name: 'SynchronizeRecordsTabs',
   data() {
@@ -249,7 +250,7 @@ export default {
       // const start = (this.pageNo_cardauth - 1) * this.pageSize_cardauth;
       // const end = start + this.pageSize_cardauth;
       // this.tableData_cardauth = this.allData_cardauth.slice(start, end);
-      
+
     },
     async getList_cardsrecords() {
       const params = {
@@ -258,7 +259,61 @@ export default {
         lineNo: this.selectedLine
       }
       try {
+        // 日志点 1: 在调用 API 之前
+        console.log("准备调用 API...");
+
         const res = await SynchronizeApi.getSynchronizeCardsRecords(params);
+
+        // 日志点 2: 在成功拿到响应之后
+        console.log("API 调用成功返回，这是响应数据:", res);
+        //
+        // this.tableData_cardsrecords = res.data.list;
+        // this.total_cardsrecords = res.data.total;
+
+        // 日志点 3: 在给表格赋值之后
+        console.log("表格数据赋值完成。");
+        // res.data.list =  [
+        //   {
+        //     end_date: "2026-07-17",
+        //     oper_time2: 1752737202000,
+        //     "create_time": 1752737202000,
+        //     "card_flag": 1,
+        //     "oper_time1": 1752737775000,
+        //     "line_no": "00005",
+        //     "id_card": "663772819190092",
+        //     "card_type": "0",
+        //     "data_mode": 0,
+        //     "key_pass": "1234",
+        //     "oper_message2": "执行成功",
+        //     "employee_code": "223114",
+        //     "card_state": 1,
+        //     "card_no": "72726361822123",
+        //     "data_type": 0,
+        //     "id": 145,
+        //     "oper_state2": 1,
+        //     "start_date": "2025-07-17",
+        //     "oper_state1": 1
+        //   },
+        //   {
+        //     "end_date": "2026-07-18",
+        //     "create_time": 1753147201000,
+        //     "card_flag": 1,
+        //     "oper_time1": 1753147800000,
+        //     "line_no": "00005",
+        //     "id_card": "663772819190092",
+        //     "card_type": "0",
+        //     "data_mode": 0,
+        //     "key_pass": "1234",
+        //     "employee_code": "223114",
+        //     "card_state": 1,
+        //     "card_no": "73738289212445",
+        //     "data_type": 2,
+        //     "id": 146,
+        //     "oper_state2": 0,
+        //     "start_date": "2025-07-18",
+        //     "oper_state1": 1
+        //   }
+        // ];
         this.tableData_cardsrecords = res.data.list;
         this.total_cardsrecords = res.data.total;
       } catch (error) {
@@ -294,9 +349,19 @@ export default {
         lineNo: this.selectedLine
       }
       try {
-        const res = await SynchronizeApi.getSynchronizeGroupRecords(params);
-        this.tableData_group = res.data.list;
-        this.total_group = res.data.total;
+        // 日志点 1: 在调用 API 之前
+        console.log("准备调用 API...");
+
+        const res = await SynchronizeApi.getSynchronizeCardsRecords(params);
+
+        // 日志点 2: 在成功拿到响应之后
+        console.log("API 调用成功返回，这是响应数据:", res);
+
+        this.tableData_cardsrecords = res.data.list;
+        this.total_cardsrecords = res.data.total;
+
+        // 日志点 3: 在给表格赋值之后
+        console.log("表格数据赋值完成。");
       } catch (error) {
         console.log(error);
       }
